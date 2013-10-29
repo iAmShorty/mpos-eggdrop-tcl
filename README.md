@@ -31,6 +31,6 @@ fbsql is needed for executing MySQL Queries against the MPOS Database
 
 Requirements:
 
- - TCL
+ - TCL (with JSON Support)
  - MySQL Client Libraries
  - Fastbase MySQL
