@@ -13,6 +13,7 @@ a fantastic Webinterface for people running Cryptocoin Pools
 
 Usage: 
 <code>
+
 !block       - Blockstats"
 
 !pool        - Pool Information"
@@ -22,6 +23,7 @@ Usage:
 !user <user> - Information about a specific User"
 
 !help        - This help text"
+
 </code>
 
 ================
