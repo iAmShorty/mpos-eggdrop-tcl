@@ -238,10 +238,15 @@ proc block_info {nick host hand chan arg} {
       				if {$elem eq "nextnetworkblock"} { set block_next "Next Block: $elem_val" } 
       				if {$elem eq "lastblock"} { set block_last "Last Block: $elem_val" }
       				if {$elem eq "networkdiff"} { set block_diff "Difficulty: $elem_val" } 
-      				if {$elem eq "esttime"} { set block_time "Est. Time to resolve: $elem_val" } 
+      				if {$elem eq "esttime"} {
+      					#set timediff [expr {$elem_val / 60}]
+      					set timediff [expr {double(round(100*[expr {$elem_val / 60}]))/100}]
+      					set block_time "Est. Time to resolve: $timediff minutes" 
+      				} 
       				if {$elem eq "estshares"} { set block_shares "Est. Shares to resolve: $elem_val" } 
       				if {$elem eq "timesincelast"} { 
-      					set timediff [expr {$elem_val / 60}]
+      					#set timediff [expr {$elem_val / 60}]
+      					set timediff [expr {double(round(100*[expr {$elem_val / 60}]))/100}]
       					#set timediff $elem_val
       					set block_timelast "Time since last Block: $timediff minutes"
       				}
@@ -262,4 +267,4 @@ proc block_info {nick host hand chan arg} {
 
 
 
-putlog "===>> Mining-Pool-Stats - Version $scriptversion - geladen"
+putlog "===>> Mining-Pool-Stats - Version $scriptversion"
