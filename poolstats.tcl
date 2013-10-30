@@ -14,6 +14,7 @@ bind pub - !user user_info
 bind pub - !help printUsage
 
 
+
 proc printUsage {nick host hand chan arg} {
     putquick "NOTICE $nick :Usage: !block       - Blockstats"
     putquick "NOTICE $nick :       !pool        - Pool Information"
@@ -21,10 +22,6 @@ proc printUsage {nick host hand chan arg} {
     putquick "NOTICE $nick :       !user <user> - Information about a specific User"
     putquick "NOTICE $nick :       !help        - This help text"
 }
-
-
-
-
 
 proc user_info {nick host hand chan arg} {
  	global apiurl apikey help_blocktime help_blocked
@@ -85,10 +82,12 @@ proc user_info {nick host hand chan arg} {
 
 
 proc last_info {nick host hand chan arg } {
- 	global sqluser sqlpass sqlhost sqldb help_blocktime help_blocked
- 	sql connect $sqlhost $sqluser $sqlpass
- 	sql selectdb $sqldb
-
+ 	global apiurl apikey help_blocktime help_blocked
+	package require http
+	package require json
+	
+ 	set action "index.php?page=api&action=getblocksfound&limit=1&api_key="
+ 	
  	set mask [string trimleft $host ~]
  	regsub -all {@([^\.]*)\.} $mask {@*.} mask	 	
  	set mask *!$mask
@@ -98,17 +97,46 @@ proc last_info {nick host hand chan arg } {
     	  return
   	}
 
-	foreach row [sql query "SELECT height, confirmations, difficulty, shares, account_id from blocks ORDER BY id DESC LIMIT 1"] {
-		set Block [lindex $row 0]
-		set Confirmed [lindex $row 1]
-		set Difficulty [lindex $row 2]
-		set Shares [lindex $row 3]
-		set AccID [lindex $row 4]
-		set Founder [sql query "select username from accounts WHERE id = '$AccID'"]
-		putquick "PRIVMSG $chan :Last Block: $Block | Shares: $Shares | Confirmations: $Confirmed | Solved By: $Founder"
- 	}
+  	set newurl $apiurl
+  	append newurl $action
+  	append newurl $apikey
+  	
+    set token [::http::geturl "$newurl"]
+    set data [::http::data $token]
+    ::http::cleanup $token
+    #putlog "xml: $data"
+    set results [::json::json2dict $data]
+	
+	foreach {key value} $results {
+		#putlog "Key: $key - $value"
+		foreach {sub_key sub_value} $value {
+			#putlog "Sub: $sub_key - $sub_value"
+			if {$sub_key eq "data"} {
+				#putlog "Sub: $sub_value"
+				foreach {elem elem_val} $sub_value {
+					#putlog "Ele: $elem - Val: $elem_val"
+					foreach {elem2 elem_val2} $elem {
+						#putlog "Ele: $elem2 - Val: $elem_val2"
 
- 	sql disconnect
+      					if {$elem2 eq "height"} { set last_block "Last Block: $elem_val2" }
+      					if {$elem2 eq "confirmations"} { set last_confirmed "Confirmations: $elem_val2" } 
+      					if {$elem2 eq "difficulty"} { set last_difficulty "Difficulty: $elem_val2" }
+      					if {$elem2 eq "time"} {
+      						set converttimestamp [strftime "%d.%m.%Y - %T" $elem_val2]
+      						set last_timefound "Time found: $converttimestamp" 
+      					}
+      					if {$elem2 eq "shares"} { set last_shares "Shares: $elem_val2" } 
+						if {$elem2 eq "finder"} { set last_finder "Finder: $elem_val2" } 
+						if {$elem2 eq "estshares"} { set last_estshares "Est. Shares: $elem_val2" } 
+						
+					}
+					break
+				}
+			}
+		}
+	}
+	
+ 	putquick "PRIVMSG $chan :$last_block | $last_confirmed | $last_difficulty | $last_timefound | $last_shares | $last_estshares | $last_finder"
 
 	set help_blocked($mask) 1
 	utimer $help_blocktime [ list unset help_blocked($mask) ]
@@ -119,7 +147,7 @@ proc last_info {nick host hand chan arg } {
 
 # Pool Stats
 proc pool_info {nick host hand chan arg} {
-    global apiurl apikey
+    global apiurl apikey help_blocktime help_blocked
 	package require http
 	package require json
 	
@@ -173,7 +201,7 @@ proc pool_info {nick host hand chan arg} {
 
 # Block Stats
 proc block_info {nick host hand chan arg} {
-    global apiurl apikey
+    global apiurl apikey help_blocktime help_blocked
 	package require http
 	package require json
 	
