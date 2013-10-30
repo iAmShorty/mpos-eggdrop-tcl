@@ -11,24 +11,24 @@ a fantastic Webinterface for people running Cryptocoin Pools
 
 ================
 
-Usage: 
-<code>
+Usage:
 
-!block       - Blockstats"
+!block       - Blockstats
 
-!pool        - Pool Information"
+!pool        - Pool Information
 
-!last        - Information about last found Block"
+!last        - Information about last found Block
 
-!user <user> - Information about a specific User"
+!user <user> - Information about a specific User
 
-!help        - This help text"
+!help        - This help text
 
-</code>
+
 
 ================
 
 Requirements:
 
  - TCL (with JSON Support)
+ - eggdrop IRC Bot
 
