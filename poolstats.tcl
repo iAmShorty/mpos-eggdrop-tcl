@@ -34,7 +34,6 @@ proc user_info {nick host hand chan arg} {
  
   	if {[info exists help_blocked($mask)]} {
     	  putquick "NOTICE $nick :You have been blocked for $help_blocktime Seconds, please be patient..."
-    	  sql disconnect
     	  return
   	}
   	
