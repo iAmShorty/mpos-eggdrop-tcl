@@ -12,13 +12,13 @@ a fantastic Webinterface for people running Cryptocoin Pools
 ================
 
 Usage: 
-
+<code>
 !block       - Blockstats"
 !pool        - Pool Information"
 !last        - Information about last found Block"
 !user <user> - Information about a specific User"
 !help        - This help text"
-       
+</code>
 
 ================
 
