@@ -15,16 +15,14 @@ a fantastic Webinterface for people running Cryptocoin Pools
 If you are on IRC and the Bot sits in your channel, type one of the following commands to
 communicate with the bot and get the output right in the channel
 
-* !block       - Blockstats
-
-* !pool        - Pool Information
-
-* !last        - Information about last found Block
-
-* !user <user> - Information about a specific User
-
-* !help        - This help text
-
+<pre>
+!block          - Blockstats
+!pool           - Pool Information
+!round          - Actual Round Information
+!last           - Information about last found Block
+!user username  - Information about a specific User
+!help           - This help text
+</pre>
 
 **Requirements**: 
 ================
