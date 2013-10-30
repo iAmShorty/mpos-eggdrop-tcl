@@ -1,34 +1,40 @@
-mpos-eggdrop-tcl
+**mpos-eggdrop-tcl**
 ================
 
 MPOS Addon - TCL Script for Eggdrop IRC Bot
 
-This script is an addon for the popular eggdrop <a href="http://www.eggheads.org">Bot</a>
+This script is an addon for the popular eggdrop <a href="http://www.eggheads.org" target="_blank">Bot</a>
 
-and gets API Data from <a href="https://github.com/TheSerapher/php-mpos">MPOS</a>, 
+and gets API Data from <a href="https://github.com/TheSerapher/php-mpos" target="_blank">MPOS</a>, 
 a fantastic Webinterface for people running Cryptocoin Pools
 
 
+**USAGE**: 
 ================
 
-Usage:
+If you are on IRC and the Bot sits in your channel, type one of the following commands to
+communicate with the bot and get the output right in the channel
 
-!block       - Blockstats
+* !block       - Blockstats
 
-!pool        - Pool Information
+* !pool        - Pool Information
 
-!last        - Information about last found Block
+* !last        - Information about last found Block
 
-!user <user> - Information about a specific User
+* !user <user> - Information about a specific User
 
-!help        - This help text
+* !help        - This help text
 
 
-
+**Requirements**: 
 ================
 
-Requirements:
+ - <a href="http://www.tcl.tk" target="_blank">TCL</a> (with JSON Support)
+ - <a href="http://www.eggheads.org" target="_blank">eggdrop</a> IRC Bot
+ - <a href="https://github.com/TheSerapher/php-mpos" target="_blank">MPOS</a>
 
- - TCL (with JSON Support)
- - eggdrop IRC Bot
 
+**Contact**
+================
+
+You can find me on Freenode.net, #MPOS.
