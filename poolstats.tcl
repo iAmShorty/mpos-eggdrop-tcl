@@ -1,8 +1,8 @@
 #
 # MPOS eggdrop Calls
 #
-
-set scriptversion "v0.2"
+#
+set scriptversion "v0.3"
 
 # time to wait before next command in seconds
 #
@@ -10,13 +10,28 @@ set help_blocktime "5"
 
 # interval to check for new blocks in seconds
 # if set to 0, the bot will do no automatic
-# check for new blocks
-# checktime is seconds
+# check for new blocks in seconds
 #
-set blockchecktime "0"
+set blockchecktime "60"
 
-# channels to advertise new blocks
-# and run commands
+# debug mode
+# set to 1 to display debug messages
+#
+set debug "0"
+
+# debug output
+# set to 1 to display json output
+# beware, lots of data
+#
+set debugoutput "0"
+
+# file to write last found block
+# no entry will put the file in eggdrops root folder
+# file and folder needs to be writeable by the bot user
+#
+set lastblocksfile "./scripts/news/lastblock"
+
+# channels to advertise new block information
 #
 set channels "#firstchannel #secondchannel #thirdchannel"
 
@@ -31,7 +46,15 @@ set apikey "YOURAPIKEYFROMMPOS"
 
 
 
-# Key Bindings
+
+######################################################################
+##########           nothing to edit below this line        ##########
+######################################################################
+
+
+
+
+# key bindings
 #
 bind pub - !pool pool_info
 bind pub - !block block_info
@@ -41,24 +64,24 @@ bind pub - !round round_info
 bind pub - !help printUsage
 
 
-
-
 # start timer if set
-# and check if started when bot makes a rehash
+# and check if started when bot rehashes
+# prevent from double timers
 #
 if {$blockchecktime ne "0"} {
 	# check if timer is running
 	# else a rehash starts a new timer
 	if {![info exists checknewblocks_running]} {
-		putlog "Timer aktiviert"
+		if {$debug eq "1"} { putlog "Timer aktiviert" }
+		
  	   	utimer $blockchecktime checknewblocks
 	    set checknewblocks_running 1
 	}
 }
 
 
-                                  
-  
+# print bot usage info
+#
 
 proc printUsage {nick host hand chan arg} {
     putquick "NOTICE $nick :Usage: !block       - Blockstats"
@@ -69,12 +92,50 @@ proc printUsage {nick host hand chan arg} {
     putquick "NOTICE $nick :       !help        - This help text"
 }
 
-	
 
-                                         
+# basic file operations
+#
+
+proc file_write {blocknumber} {
+    set FILE [open lastblock w]
+    # write buffer
+    puts -nonewline $FILE $blocknumber
+    # release and return 1 for OK
+    close $FILE
+    return 1
+}
+
+proc file_read {} {
+    # check exists and readable
+    if {[file exists lastblock] && [file readable lastblock]} then {
+        # open for readmode
+        set FILE [open lastblock r]
+     	set READ [read -nonewline $FILE]
+        # release and return
+        close $FILE
+        return $READ
+    } else {
+    	return 0
+    }
+}
+
+proc FileCheck {FILENAME} {
+    # check file exists
+    if [file exists $FILENAME] then {
+        # file exists
+        return 1
+    } else {
+        # file not exists
+        return "0"
+    }
+}
+
+
+# checking for new blocks
+#
 
 proc checknewblocks {} {
-	global blockchecktime channels apiurl apikey channels
+	global blockchecktime channels apiurl apikey channels debug debugoutput
 	package require http
 	package require json
 	
@@ -87,7 +148,7 @@ proc checknewblocks {} {
     set token [::http::geturl "$newurl"]
     set data [::http::data $token]
     ::http::cleanup $token
-    #putlog "xml: $data"
+    if {$debugoutput eq "1"} { putlog "xml: $data" }
     set results [::json::json2dict $data]
 	
 	foreach {key value} $results {
@@ -101,14 +162,7 @@ proc checknewblocks {} {
 					foreach {elem2 elem_val2} $elem {
 						#putlog "Ele: $elem2 - Val: $elem_val2"
 
-      					if {$elem2 eq "time"} {
-      						# used actual timestamp - 2x $blockchecktime + 1
-      						# it's used for checking if block is found a second
-      						# after last check and api is cached or memcached
-      						set time1 [expr [unixtime]-$blockchecktime-$blockchecktime+1]
-      						set time2 $elem_val2
-      					}
-      					if {$elem2 eq "height"} { set last_block "Last Block: $elem_val2" }
+      					if {$elem2 eq "height"} { set last_block "$elem_val2" }
       					if {$elem2 eq "shares"} { set last_shares "Shares: $elem_val2" } 
 						if {$elem2 eq "finder"} { set last_finder "Finder: $elem_val2" }
 						if {$elem2 eq "confirmations"} { 
@@ -126,25 +180,33 @@ proc checknewblocks {} {
 		}
 	}
 	
-	
-	if {$time1 < $time2} {
-		foreach advert $channels {
-			putquick "PRIVMSG $advert :New Block Found"
- 			putquick "PRIVMSG $advert :$last_block | $last_status | $last_shares | $last_finder"
- 		}
+	if { [file_read] eq "0" } {
+		if {$debug eq "1"} { putlog "can't read file" }
 	} else {
-		set timelast [strftime "%d.%m.%Y - %T" $time2]
-		set timetocheck [strftime "%d.%m.%Y - %T" $time1]
-		putlog "No New Block: lastfind: $timelast | checktime: $timetocheck"
+		set lastarchivedblock [file_read]
+		if {"$lastarchivedblock" eq "$last_block"} {
+			if {$debug eq "1"} { putlog "No New Block" }
+		} else {
+			if {$debug eq "1"} { putlog "New / Last: $last_block - $lastarchivedblock" }
+			foreach advert $channels {
+				putquick "PRIVMSG $advert :New Block Found"
+				putquick "PRIVMSG $advert :New Block: #$last_block | Last Block: #$lastarchivedblock | $last_status | $last_shares | $last_finder"
+			}
+			#write new block to file
+			if {[file_write $last_block] eq "1" } { putlog "Block saved" }
+		}
 	}
-	
+
 	utimer $blockchecktime checknewblocks
 
   }                                      
   
-  
+
+# info for specific user
+#
+
 proc user_info {nick host hand chan arg} {
- 	global apiurl apikey help_blocktime help_blocked channels
+ 	global apiurl apikey help_blocktime help_blocked channels debug debugoutput
  	
  	set action "index.php?page=api&action=getuserstatus&id=$arg&api_key="
  	
@@ -164,10 +226,8 @@ proc user_info {nick host hand chan arg} {
     set token [::http::geturl "$newurl"]
     set data [::http::data $token]
     ::http::cleanup $token
-    #putlog "xml: $data"
+    if {$debugoutput eq "1"} { putlog "xml: $data" }
     set results [::json::json2dict $data]
-    
-    #putlog $results
     
 	foreach {key value} $results {
 		foreach {sub_key sub_value} $value {
@@ -191,10 +251,8 @@ proc user_info {nick host hand chan arg} {
 		}
 	}
 	
-	foreach advert $channels {
-		putquick "PRIVMSG $advert :User Info for $arg"
-		putquick "PRIVMSG $advert :$user_hashrate | $user_validround | $user_invalidround | $user_sharerate"
-	}
+	putquick "PRIVMSG $chan :User Info for $arg"
+	putquick "PRIVMSG $chan :$user_hashrate | $user_validround | $user_invalidround | $user_sharerate"
 
 	set help_blocked($mask) 1
 	utimer $help_blocktime [ list unset help_blocked($mask) ]
@@ -202,9 +260,11 @@ proc user_info {nick host hand chan arg} {
 }
 
 
+# round info
+#
 
 proc round_info {nick host hand chan arg } {
- 	global apiurl apikey help_blocktime help_blocked channels
+ 	global apiurl apikey help_blocktime help_blocked channels debug debugoutput
 	package require http
 	package require json
 	
@@ -226,7 +286,7 @@ proc round_info {nick host hand chan arg } {
     set token [::http::geturl "$newurl"]
     set data [::http::data $token]
     ::http::cleanup $token
-    #putlog "xml: $data"
+    if {$debugoutput eq "1"} { putlog "xml: $data" }
     set results [::json::json2dict $data]
 	
 	foreach {key value} $results {
@@ -258,23 +318,20 @@ proc round_info {nick host hand chan arg } {
 	
 	set allshares [expr $shares_valid+$shares_invalid]
 
-	foreach advert $channels {
-		putquick "PRIVMSG $advert :Actual Round"
- 		putquick "PRIVMSG $advert :$shares_estimated | Sharecount: $allshares | Shares valid: $shares_valid | Shares invalid: $shares_invalid | $shares_progress"
-	}
-	
+	putquick "PRIVMSG $chan :Actual Round"
+ 	putquick "PRIVMSG $chan :$shares_estimated | Sharecount: $allshares | Shares valid: $shares_valid | Shares invalid: $shares_invalid | $shares_progress"		
+
 	set help_blocked($mask) 1
 	utimer $help_blocktime [ list unset help_blocked($mask) ]
 
 }
 
 
-
-
-
+# last block found
+#
 
 proc last_info {nick host hand chan arg } {
- 	global apiurl apikey help_blocktime help_blocked channels
+ 	global apiurl apikey help_blocktime help_blocked channels debug debugoutput
 	package require http
 	package require json
 	
@@ -296,7 +353,7 @@ proc last_info {nick host hand chan arg } {
     set token [::http::geturl "$newurl"]
     set data [::http::data $token]
     ::http::cleanup $token
-    #putlog "xml: $data"
+    if {$debugoutput eq "1"} { putlog "xml: $data" }
     set results [::json::json2dict $data]
 	
 	foreach {key value} $results {
@@ -310,8 +367,14 @@ proc last_info {nick host hand chan arg } {
 					foreach {elem2 elem_val2} $elem {
 						#putlog "Ele: $elem2 - Val: $elem_val2"
 
-      					if {$elem2 eq "height"} { set last_block "Last Block: $elem_val2" }
-      					if {$elem2 eq "confirmations"} { set last_confirmed "Confirmations: $elem_val2" } 
+      					if {$elem2 eq "height"} { set last_block "Last Block: #$elem_val2" }
+      					if {$elem2 eq "confirmations"} {
+      						if {"$elem_val2" eq "-1"} {
+      							set last_confirmed "Status: Orphaned"
+      						} else {
+      							set last_confirmed "Status: Valid | Confirmations: $elem_val2"
+      						}
+      					} 
       					if {$elem2 eq "difficulty"} { set last_difficulty "Difficulty: $elem_val2" }
       					if {$elem2 eq "time"} {
       						set converttimestamp [strftime "%d.%m.%Y - %T" $elem_val2]
@@ -328,10 +391,7 @@ proc last_info {nick host hand chan arg } {
 		}
 	}
 	
-	foreach advert $channels {
-		putquick "PRIVMSG $advert :Last Block"
- 		putquick "PRIVMSG $advert :$last_block | $last_confirmed | $last_difficulty | $last_timefound | $last_shares | $last_estshares | $last_finder"
- 	}
+ 	putquick "PRIVMSG $chan :$last_block | $last_confirmed | $last_difficulty | $last_timefound | $last_shares | $last_estshares | $last_finder"
  	
 	set help_blocked($mask) 1
 	utimer $help_blocktime [ list unset help_blocked($mask) ]
@@ -339,10 +399,11 @@ proc last_info {nick host hand chan arg } {
 }
 
 
-
 # Pool Stats
+#
+
 proc pool_info {nick host hand chan arg} {
-    global apiurl apikey help_blocktime help_blocked channels
+    global apiurl apikey help_blocktime help_blocked channels debug debugoutput
 	package require http
 	package require json
 	
@@ -364,7 +425,7 @@ proc pool_info {nick host hand chan arg} {
     set token [::http::geturl "$newurl"]
     set data [::http::data $token]
     ::http::cleanup $token
-    #putlog "xml: $data"
+    if {$debugoutput eq "1"} { putlog "xml: $data" }
     set results [::json::json2dict $data]
 
 	foreach {key value} $results {
@@ -385,18 +446,17 @@ proc pool_info {nick host hand chan arg} {
 		}
 	}
 	
-	foreach advert $channels {
-    	putquick "PRIVMSG $advert :Pool Stats"
-    	putquick "PRIVMSG $advert :$pool_hashrate | $pool_efficiency | $pool_workers | $pool_nethashrate"
-    }
+	putquick "PRIVMSG $chan :Pool Stats"
+	putquick "PRIVMSG $chan :$pool_hashrate | $pool_efficiency | $pool_workers | $pool_nethashrate"		
     
 }
 
 
-
 # Block Stats
+#
+
 proc block_info {nick host hand chan arg} {
-    global apiurl apikey help_blocktime help_blocked channels
+    global apiurl apikey help_blocktime help_blocked channels debug debugoutput
 	package require http
 	package require json
 	
@@ -418,10 +478,8 @@ proc block_info {nick host hand chan arg} {
     set token [::http::geturl "$newurl"]
     set data [::http::data $token]
     ::http::cleanup $token
-    #putlog "xml: $data"
+    if {$debugoutput eq "1"} { putlog "xml: $data" }
     set results [::json::json2dict $data]
-    
-    #putlog $results
     
 	foreach {key value} $results {
 		foreach {sub_key sub_value} $value {
@@ -430,9 +488,9 @@ proc block_info {nick host hand chan arg} {
 				foreach {elem elem_val} $sub_value {
 					#putlog "Ele: $elem - Val: $elem_val"
 
-      				if {$elem eq "currentnetworkblock"} { set block_current "Current Block: $elem_val" } 
-      				if {$elem eq "nextnetworkblock"} { set block_next "Next Block: $elem_val" } 
-      				if {$elem eq "lastblock"} { set block_last "Last Block: $elem_val" }
+      				if {$elem eq "currentnetworkblock"} { set block_current "Current Block: #$elem_val" } 
+      				if {$elem eq "nextnetworkblock"} { set block_next "Next Block: #$elem_val" } 
+      				if {$elem eq "lastblock"} { set block_last "Last Block: #$elem_val" }
       				if {$elem eq "networkdiff"} { set block_diff "Difficulty: $elem_val" } 
       				if {$elem eq "esttime"} {
       					#set timediff [expr {$elem_val / 60}]
@@ -452,10 +510,8 @@ proc block_info {nick host hand chan arg} {
 		}
 	}
 	
-	foreach advert $channels {
-    	putquick "PRIVMSG $chan :Block Stats"
-    	putquick "PRIVMSG $chan :$block_current | $block_next | $block_last | $block_diff | $block_time | $block_shares | $block_timelast | $block_last"
-    }
+  	putquick "PRIVMSG $chan :Block Stats"
+	putquick "PRIVMSG $chan :$block_current | $block_next | $block_last | $block_diff | $block_time | $block_shares | $block_timelast | $block_last"		
     
 }
 
