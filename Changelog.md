@@ -1,3 +1,9 @@
+v. 0.3
+
+* added blockchecktime to advertise only if blocks confirmed
+* writing new blocks to file, preventing double advertising
+* added debugoutput in settings
+
 v. 0.2
 
 * added some more settings
