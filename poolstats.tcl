@@ -17,13 +17,18 @@ set blockchecktime "60"
 # debug mode
 # set to 1 to display debug messages
 #
-set debug "0"
+set debug "1"
 
 # debug output
 # set to 1 to display json output
 # beware, lots of data
 #
 set debugoutput "0"
+
+# confirmations before a block will be advertised
+#
+#
+set confirmations "20"
 
 # file to write last found block
 # no entry will put the file in eggdrops root folder
@@ -135,11 +140,12 @@ proc FileCheck {FILENAME} {
 #
 
 proc checknewblocks {} {
-	global blockchecktime channels apiurl apikey channels debug debugoutput
+	global blockchecktime channels apiurl apikey channels debug debugoutput confirmations
 	package require http
 	package require json
 	
  	set action "index.php?page=api&action=getblocksfound&limit=1&api_key="
+ 	set advertise_block 0
  	
   	set newurl $apiurl
   	append newurl $action
@@ -165,21 +171,21 @@ proc checknewblocks {} {
       					if {$elem2 eq "height"} { set last_block "$elem_val2" }
       					if {$elem2 eq "shares"} { set last_shares "Shares: $elem_val2" } 
 						if {$elem2 eq "finder"} { set last_finder "Finder: $elem_val2" }
-						if {$elem2 eq "confirmations"} { 
-							if {$elem_val2 eq "-1"} { 
+						if {$elem2 eq "confirmations"} {
+							set last_confirmations $elem_val2
+							if {$elem_val2 eq "-1"} {
 								set last_status "Status: Orphaned"
 							} else {
-								set last_status "Status: Valid"
+								set last_status "Status: Valid | Confirmations: $elem_val2"
 							}
 						}
-						
 					}
 					break
 				}
 			}
 		}
 	}
-	
+
 	if { [file_read] eq "0" } {
 		if {$debug eq "1"} { putlog "can't read file" }
 	} else {
@@ -188,13 +194,24 @@ proc checknewblocks {} {
 			if {$debug eq "1"} { putlog "No New Block" }
 		} else {
 			if {$debug eq "1"} { putlog "New / Last: $last_block - $lastarchivedblock" }
-			foreach advert $channels {
-				putquick "PRIVMSG $advert :New Block Found"
-				putquick "PRIVMSG $advert :New Block: #$last_block | Last Block: #$lastarchivedblock | $last_status | $last_shares | $last_finder"
+			
+			if {$last_confirmations eq "-1"} {
+				set advertise_block 1
+			} elseif {$last_confirmations > $confirmations} {
+				set advertise_block 1
+			} else {
+				set advertise_block 0
 			}
-			#write new block to file
-			if {[file_write $last_block] eq "1" } { putlog "Block saved" }
 		}
+	}
+
+	if {$advertise_block eq "1"} {
+		foreach advert $channels {
+			putquick "PRIVMSG $advert :New Block Found"
+			putquick "PRIVMSG $advert :New Block: #$last_block | Last Block: #$lastarchivedblock | $last_status | $last_shares | $last_finder"
+		}
+		#write new block to file
+		if {[file_write $last_block] eq "1" } { putlog "Block saved" }
 	}
 
 	utimer $blockchecktime checknewblocks
