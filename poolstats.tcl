@@ -44,6 +44,10 @@ set channels "#firstchannel #secondchannel #thirdchannel"
 #
 set apiurl "http://yourdomain.tld/"
 
+# url use https
+#
+set usehttps "1"
+
 # api key from mpos
 #
 set apikey "YOURAPIKEYFROMMPOS"
@@ -140,9 +144,10 @@ proc FileCheck {FILENAME} {
 #
 
 proc checknewblocks {} {
-	global blockchecktime channels apiurl apikey channels debug debugoutput confirmations
+	global blockchecktime channels apiurl apikey channels debug debugoutput confirmations usehttps
 	package require http
 	package require json
+	package require tls
 	
  	set action "index.php?page=api&action=getblocksfound&limit=1&api_key="
  	set advertise_block 0
@@ -151,23 +156,29 @@ proc checknewblocks {} {
   	append newurl $action
   	append newurl $apikey
   	
+  	if {$usehttps eq "1"} {
+  		::http::register https 443 tls::socket
+  	}
     set token [::http::geturl "$newurl"]
     set data [::http::data $token]
     ::http::cleanup $token
+    if {$usehttps eq "1"} {
+    	::http::unregister https
+    }
+    
     if {$debugoutput eq "1"} { putlog "xml: $data" }
     set results [::json::json2dict $data]
 	
 	foreach {key value} $results {
 		#putlog "Key: $key - $value"
 		foreach {sub_key sub_value} $value {
-			#putlog "Sub: $sub_key - $sub_value"
+			#putlog "Sub1: $sub_key - $sub_value"
 			if {$sub_key eq "data"} {
-				#putlog "Sub: $sub_value"
+				#putlog "Sub2: $sub_value"
 				foreach {elem elem_val} $sub_value {
-					#putlog "Ele: $elem - Val: $elem_val"
+					#putlog "Ele1: $elem - Val: $elem_val"
 					foreach {elem2 elem_val2} $elem {
-						#putlog "Ele: $elem2 - Val: $elem_val2"
-
+						#putlog "Ele2: $elem2 - Val: $elem_val2"
       					if {$elem2 eq "height"} { set last_block "$elem_val2" }
       					if {$elem2 eq "shares"} { set last_shares "Shares: $elem_val2" } 
 						if {$elem2 eq "finder"} { set last_finder "Finder: $elem_val2" }
@@ -193,8 +204,6 @@ proc checknewblocks {} {
 		if {"$lastarchivedblock" eq "$last_block"} {
 			if {$debug eq "1"} { putlog "No New Block" }
 		} else {
-			if {$debug eq "1"} { putlog "New / Last: $last_block - $lastarchivedblock" }
-			
 			if {$last_confirmations eq "-1"} {
 				set advertise_block 1
 			} elseif {$last_confirmations > $confirmations} {
@@ -206,6 +215,7 @@ proc checknewblocks {} {
 	}
 
 	if {$advertise_block eq "1"} {
+		if {$debug eq "1"} { putlog "New / Last: $last_block - $lastarchivedblock" }
 		foreach advert $channels {
 			putquick "PRIVMSG $advert :New Block Found"
 			putquick "PRIVMSG $advert :New Block: #$last_block | Last Block: #$lastarchivedblock | $last_status | $last_shares | $last_finder"
@@ -223,8 +233,11 @@ proc checknewblocks {} {
 #
 
 proc user_info {nick host hand chan arg} {
- 	global apiurl apikey help_blocktime help_blocked channels debug debugoutput
- 	
+ 	global apiurl apikey help_blocktime help_blocked channels debug debugoutput usehttps
+	package require http
+	package require json
+	package require tls
+	
  	set action "index.php?page=api&action=getuserstatus&id=$arg&api_key="
  	
  	set mask [string trimleft $host ~]
@@ -240,9 +253,16 @@ proc user_info {nick host hand chan arg} {
   	append newurl $action
   	append newurl $apikey
   	
+  	if {$usehttps eq "1"} {
+  		::http::register https 443 tls::socket
+  	}
     set token [::http::geturl "$newurl"]
     set data [::http::data $token]
     ::http::cleanup $token
+    if {$usehttps eq "1"} {
+    	::http::unregister https
+    }
+    
     if {$debugoutput eq "1"} { putlog "xml: $data" }
     set results [::json::json2dict $data]
     
@@ -281,9 +301,10 @@ proc user_info {nick host hand chan arg} {
 #
 
 proc round_info {nick host hand chan arg } {
- 	global apiurl apikey help_blocktime help_blocked channels debug debugoutput
+ 	global apiurl apikey help_blocktime help_blocked channels debug debugoutput usehttps
 	package require http
 	package require json
+	package require tls
 	
  	set action "index.php?page=api&action=getdashboarddata&api_key="
  	
@@ -300,9 +321,16 @@ proc round_info {nick host hand chan arg } {
   	append newurl $action
   	append newurl $apikey
   	
+  	if {$usehttps eq "1"} {
+  		::http::register https 443 tls::socket
+  	}
     set token [::http::geturl "$newurl"]
     set data [::http::data $token]
     ::http::cleanup $token
+    if {$usehttps eq "1"} {
+    	::http::unregister https
+    }
+    
     if {$debugoutput eq "1"} { putlog "xml: $data" }
     set results [::json::json2dict $data]
 	
@@ -348,9 +376,10 @@ proc round_info {nick host hand chan arg } {
 #
 
 proc last_info {nick host hand chan arg } {
- 	global apiurl apikey help_blocktime help_blocked channels debug debugoutput
+ 	global apiurl apikey help_blocktime help_blocked channels debug debugoutput usehttps
 	package require http
 	package require json
+	package require tls
 	
  	set action "index.php?page=api&action=getblocksfound&limit=1&api_key="
  	
@@ -367,9 +396,16 @@ proc last_info {nick host hand chan arg } {
   	append newurl $action
   	append newurl $apikey
   	
+  	if {$usehttps eq "1"} {
+  		::http::register https 443 tls::socket
+  	}
     set token [::http::geturl "$newurl"]
     set data [::http::data $token]
     ::http::cleanup $token
+    if {$usehttps eq "1"} {
+    	::http::unregister https
+    }
+    
     if {$debugoutput eq "1"} { putlog "xml: $data" }
     set results [::json::json2dict $data]
 	
@@ -420,9 +456,10 @@ proc last_info {nick host hand chan arg } {
 #
 
 proc pool_info {nick host hand chan arg} {
-    global apiurl apikey help_blocktime help_blocked channels debug debugoutput
+    global apiurl apikey help_blocktime help_blocked channels debug debugoutput usehttps
 	package require http
 	package require json
+	package require tls
 	
 	set action "index.php?page=api&action=getpoolstatus&api_key="
 	
@@ -439,9 +476,16 @@ proc pool_info {nick host hand chan arg} {
   	append newurl $action
   	append newurl $apikey
   	
+  	if {$usehttps eq "1"} {
+  		::http::register https 443 tls::socket
+  	}
     set token [::http::geturl "$newurl"]
     set data [::http::data $token]
     ::http::cleanup $token
+    if {$usehttps eq "1"} {
+    	::http::unregister https
+    }
+    
     if {$debugoutput eq "1"} { putlog "xml: $data" }
     set results [::json::json2dict $data]
 
@@ -473,9 +517,10 @@ proc pool_info {nick host hand chan arg} {
 #
 
 proc block_info {nick host hand chan arg} {
-    global apiurl apikey help_blocktime help_blocked channels debug debugoutput
+    global apiurl apikey help_blocktime help_blocked channels debug debugoutput usehttps
 	package require http
 	package require json
+	package require tls
 	
 	set action "index.php?page=api&action=getpoolstatus&api_key="
 	
@@ -492,9 +537,16 @@ proc block_info {nick host hand chan arg} {
   	append newurl $action
   	append newurl $apikey
   	
+  	if {$usehttps eq "1"} {
+  		::http::register https 443 tls::socket
+  	}
     set token [::http::geturl "$newurl"]
     set data [::http::data $token]
     ::http::cleanup $token
+    if {$usehttps eq "1"} {
+    	::http::unregister https
+    }
+    
     if {$debugoutput eq "1"} { putlog "xml: $data" }
     set results [::json::json2dict $data]
     
@@ -528,7 +580,7 @@ proc block_info {nick host hand chan arg} {
 	}
 	
   	putquick "PRIVMSG $chan :Block Stats"
-	putquick "PRIVMSG $chan :$block_current | $block_next | $block_last | $block_diff | $block_time | $block_shares | $block_timelast | $block_last"		
+	putquick "PRIVMSG $chan :$block_current | $block_next | $block_last | $block_diff | $block_time | $block_shares | $block_timelast"		
     
 }
 
