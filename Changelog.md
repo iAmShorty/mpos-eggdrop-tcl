@@ -1,3 +1,10 @@
+v. 0.4
+
+* added workers for specified user
+* check for access with supplied api key
+* setting output to channel or private notice
+* added ssl support for mpos api
+
 v. 0.3
 
 * added blockchecktime to advertise only if blocks confirmed
