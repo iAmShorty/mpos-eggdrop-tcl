@@ -111,45 +111,6 @@ proc printUsage {nick host hand chan arg} {
     putquick "NOTICE $nick :       !help          - This help text"
 }
 
-
-# basic file operations
-#
-
-proc file_write {blocknumber} {
-    set FILE [open lastblock w]
-    # write buffer
-    puts -nonewline $FILE $blocknumber
-    # release and return 1 for OK
-    close $FILE
-    return 1
-}
-
-proc file_read {} {
-    # check exists and readable
-    if {[file exists lastblock] && [file readable lastblock]} then {
-        # open for readmode
-        set FILE [open lastblock r]
-     	set READ [read -nonewline $FILE]
-        # release and return
-        close $FILE
-        return $READ
-    } else {
-    	return 0
-    }
-}
-
-proc FileCheck {FILENAME} {
-    # check file exists
-    if [file exists $FILENAME] then {
-        # file exists
-        return 1
-    } else {
-        # file not exists
-        return "0"
-    }
-}
-
-
 # checking for new blocks
 #
 
@@ -713,28 +674,28 @@ proc worker_info {nick host hand chan arg} {
 		foreach {sub_key sub_value} $value {
 			if {$sub_key eq "data"} {
 				#putlog "Sub: $sub_value"
-				foreach {elem elem_val} $sub_value {
-					#putlog "Ele: $elem - Val: $elem_val"
+				foreach {elem} $sub_value {
+					#putlog "Ele: $elem"
 					foreach {elem2 elem_val2} $elem {
 						#putlog "Ele: $elem2 - Val: $elem_val2"
+						
       					if {$elem2 eq "username"} {
-      					
       						#if {$elem_val2 ne $arg} {
       						#	putquick "PRIVMSG $chan :Access to user $elem_val2 denied"
       						#	return 0
       						#}
       						
       						if {![info exists worker_name]} {
-      							set worker_name "Worker: $elem_val2"
+      							set worker_name "$elem_val2"
       						} else {
-      							append worker_name "Worker: $elem_val2"
+      							append worker_name "$elem_val2"
       						}
       					} 
       					if {$elem2 eq "hashrate"} { 
       						if {![info exists worker_name]} {
-      							set worker_name " - Hashrate: $elem_val2 | " 
+      							set worker_name " - $elem_val2 KH/s | " 
       						} else {
-      							append worker_name " - Hashrate: $elem_val2 | "
+      							append worker_name " - $elem_val2 KH/s | "
       						}
       					} 						
 					}
@@ -742,18 +703,88 @@ proc worker_info {nick host hand chan arg} {
 			}
 		}
 	}
-
- 	if {$output eq "CHAN"} {
-  		putquick "PRIVMSG $chan :Workers"
-		putquick "PRIVMSG $chan :$worker_name"	
-	} elseif {$output eq "NOTICE"} {
-  		putquick "NOTICE $nick :Workers"
-		putquick "NOTICE $nick :$worker_name"		
-	} else {
-		putquick "PRIVMSG $chan :please set output in config file"
-	}
+	
+	# split message if buffer is to big
+	#
+   	set len [expr {512-[string len ":$::botname PRIVMSG $chan :\r\n"]}] 
+   	foreach line [wordwrap $worker_name $len] { 
+ 		if {$output eq "CHAN"} {
+  			putquick "PRIVMSG $chan :$line"	
+		} elseif {$output eq "NOTICE"} {
+  			putquick "NOTICE $nick :$line"		
+		} else {
+			putquick "PRIVMSG $chan :please set output in config file"
+			return 0
+		}      
+   	}
 	
 }
+
+
+
+
+
+
+# basic file operations
+#
+
+proc file_write {blocknumber} {
+    set FILE [open lastblock w]
+    # write buffer
+    puts -nonewline $FILE $blocknumber
+    # release and return 1 for OK
+    close $FILE
+    return 1
+}
+
+proc file_read {} {
+    # check exists and readable
+    if {[file exists lastblock] && [file readable lastblock]} then {
+        # open for readmode
+        set FILE [open lastblock r]
+     	set READ [read -nonewline $FILE]
+        # release and return
+        close $FILE
+        return $READ
+    } else {
+    	return 0
+    }
+}
+
+proc FileCheck {FILENAME} {
+    # check file exists
+    if [file exists $FILENAME] then {
+        # file exists
+        return 1
+    } else {
+        # file not exists
+        return "0"
+    }
+}
+
+# wordwrap proc that accepts multiline data 
+# (empty lines will be stripped because there's no way to relay them via irc) 
+proc wordwrap {data len} { 
+   set out {} 
+   foreach line [split [string trim $data] \n] { 
+      set curr {} 
+      set i 0 
+      foreach word [split [string trim $line]] { 
+         if {[incr i [string len $word]]>$len} { 
+            lappend out [join $curr] 
+            set curr [list $word] 
+            set i [string len $word] 
+         } { 
+            lappend curr $word 
+         } 
+         incr i 
+      } 
+      if {[llength $curr]} { 
+         lappend out [join $curr] 
+      } 
+   } 
+   set out 
+} 
 
 
 putlog "===>> Mining-Pool-Stats - Version $scriptversion loaded"
