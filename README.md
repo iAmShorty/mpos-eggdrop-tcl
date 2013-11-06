@@ -16,12 +16,13 @@ If you are on IRC and the Bot sits in your channel, type one of the following co
 communicate with the bot and get the output right in the channel
 
 <pre>
-!block          - Blockstats
-!pool           - Pool Information
-!round          - Actual Round Information
-!last           - Information about last found Block
-!user username  - Information about a specific User
-!help           - This help text
+!block            - Blockstats
+!pool             - Pool Information
+!round            - Actual Round Information
+!last             - Information about last found Block
+!user username    - Information about a specific User
+!worker username  - Workers for specific User
+!help             - This help text
 </pre>
 
 **Requirements**: 
