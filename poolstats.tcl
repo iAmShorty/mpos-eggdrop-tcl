@@ -6,7 +6,7 @@
 # -> getting worker from specified user
 # -> getting userinfo from specified user
 #
-set scriptversion "v0.3"
+set scriptversion "v0.4"
 
 # time to wait before next command in seconds
 #
@@ -120,6 +120,8 @@ proc checknewblocks {} {
 	package require json
 	package require tls
 	
+	if {$debug eq "1"} { putlog "checking for new blocks" }
+	
  	set action "index.php?page=api&action=getblocksfound&limit=1&api_key="
  	set advertise_block 0
  	
@@ -141,70 +143,70 @@ proc checknewblocks {} {
     
     if {$data eq "Access denied"} { 
     	putquick "PRIVMSG $chan :Access to Newblockdata denied"
-    	return 0
-    }
-    
-    set results [::json::json2dict $data]
+    } elseif {$data eq ""} {
+    	putlog "no data: $data"
+    } else {
+
+  	  set results [::json::json2dict $data]
 	
-	foreach {key value} $results {
-		#putlog "Key: $key - $value"
-		foreach {sub_key sub_value} $value {
-			#putlog "Sub1: $sub_key - $sub_value"
-			if {$sub_key eq "data"} {
-				#putlog "Sub2: $sub_value"
-				foreach {elem elem_val} $sub_value {
-					#putlog "Ele1: $elem - Val: $elem_val"
-					foreach {elem2 elem_val2} $elem {
-						#putlog "Ele2: $elem2 - Val: $elem_val2"
-      					if {$elem2 eq "height"} { set last_block "$elem_val2" }
-      					if {$elem2 eq "shares"} { set last_shares "Shares: $elem_val2" } 
-						if {$elem2 eq "finder"} { set last_finder "Finder: $elem_val2" }
-						if {$elem2 eq "confirmations"} {
-							set last_confirmations $elem_val2
-							if {$elem_val2 eq "-1"} {
-								set last_status "Status: Orphaned"
-							} else {
-								set last_status "Status: Valid | Confirmations: $elem_val2"
+		foreach {key value} $results {
+			#putlog "Key: $key - $value"
+			foreach {sub_key sub_value} $value {
+				#putlog "Sub1: $sub_key - $sub_value"
+				if {$sub_key eq "data"} {
+					#putlog "Sub2: $sub_value"
+					foreach {elem elem_val} $sub_value {
+						#putlog "Ele1: $elem - Val: $elem_val"
+						foreach {elem2 elem_val2} $elem {
+							#putlog "Ele2: $elem2 - Val: $elem_val2"
+      						if {$elem2 eq "height"} { set last_block "$elem_val2" }
+      						if {$elem2 eq "shares"} { set last_shares "Shares: $elem_val2" } 
+							if {$elem2 eq "finder"} { set last_finder "Finder: $elem_val2" }
+							if {$elem2 eq "confirmations"} {
+								set last_confirmations $elem_val2
+								if {$elem_val2 eq "-1"} {
+									set last_status "Status: Orphaned"
+								} else {
+									set last_status "Status: Valid | Confirmations: $elem_val2"
+								}
 							}
 						}
+						break
 					}
-					break
 				}
 			}
 		}
-	}
 
-	if { [file_read] eq "0" } {
-		if {$debug eq "1"} { putlog "can't read file" }
-	} else {
-		set lastarchivedblock [file_read]
-		if {"$lastarchivedblock" eq "$last_block"} {
-			if {$debug eq "1"} { putlog "No New Block" }
+		if { [file_read] eq "0" } {
+			if {$debug eq "1"} { putlog "can't read file" }
 		} else {
-			if {$last_confirmations eq "-1"} {
-				set advertise_block 1
-			} elseif {$last_confirmations > $confirmations} {
-				set advertise_block 1
+			set lastarchivedblock [file_read]
+			if {"$lastarchivedblock" eq "$last_block"} {
+				if {$debug eq "1"} { putlog "No New Block" }
 			} else {
-				set advertise_block 0
+				if {$last_confirmations eq "-1"} {
+					set advertise_block 1
+				} elseif {$last_confirmations > $confirmations} {
+					set advertise_block 1
+				} else {
+					putlog "block not confirmed: $last_confirmations - $confirmations"
+					set advertise_block 0
+				}
 			}
 		}
-	}
 
-	if {$advertise_block eq "1"} {
-		if {$debug eq "1"} { putlog "New / Last: $last_block - $lastarchivedblock" }
-		foreach advert $channels {
-			putquick "PRIVMSG $advert :New Block Found"
-			putquick "PRIVMSG $advert :New Block: #$last_block | Last Block: #$lastarchivedblock | $last_status | $last_shares | $last_finder"
+		if {$advertise_block eq "1"} {
+			if {$debug eq "1"} { putlog "New / Last: $last_block - $lastarchivedblock" }
+			foreach advert $channels {
+				putquick "PRIVMSG $advert :New Block Found"
+				putquick "PRIVMSG $advert :New Block: #$last_block | Last Block: #$lastarchivedblock | $last_status | $last_shares | $last_finder"
+			}
+			#write new block to file
+			if {[file_write $last_block] eq "1" } { putlog "Block saved" }
 		}
-		
-		#write new block to file
-		if {[file_write $last_block] eq "1" } { putlog "Block saved" }
 	}
-
 	utimer $blockchecktime checknewblocks
-
-  }                                      
+}                                      
   
 
 # info for specific user

@@ -4,6 +4,7 @@ v. 0.4
 * check for access with supplied api key
 * setting output to channel or private notice
 * added ssl support for mpos api
+* error handling
 
 v. 0.3
 
