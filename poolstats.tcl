@@ -2,6 +2,10 @@
 # MPOS eggdrop Calls
 #
 #
+# some functions ONLY work with admin api key
+# -> getting worker from specified user
+# -> getting userinfo from specified user
+#
 set scriptversion "v0.3"
 
 # time to wait before next command in seconds
@@ -27,8 +31,14 @@ set debugoutput "0"
 
 # confirmations before a block will be advertised
 #
-#
 set confirmations "20"
+
+# setting the output style
+#
+# -> CHAN   - put all infos in channel
+# -> NOTICE - sends notice to the user who triggered the command
+#
+set output "CHAN"
 
 # file to write last found block
 # no entry will put the file in eggdrops root folder
@@ -46,12 +56,11 @@ set apiurl "http://yourdomain.tld/"
 
 # url use https
 #
-set usehttps "1"
+set usehttps "0"
 
 # api key from mpos
 #
 set apikey "YOURAPIKEYFROMMPOS"
-
 
 
 
@@ -70,8 +79,8 @@ bind pub - !block block_info
 bind pub - !last last_info
 bind pub - !user user_info
 bind pub - !round round_info
+bind pub - !worker worker_info
 bind pub - !help printUsage
-
 
 # start timer if set
 # and check if started when bot rehashes
@@ -93,12 +102,13 @@ if {$blockchecktime ne "0"} {
 #
 
 proc printUsage {nick host hand chan arg} {
-    putquick "NOTICE $nick :Usage: !block       - Blockstats"
-    putquick "NOTICE $nick :       !pool        - Pool Information"
-    putquick "NOTICE $nick :       !round       - Round Information"
-    putquick "NOTICE $nick :       !last        - Information about last found Block"
-    putquick "NOTICE $nick :       !user <user> - Information about a specific User"
-    putquick "NOTICE $nick :       !help        - This help text"
+    putquick "NOTICE $nick :Usage: !block         - Blockstats"
+    putquick "NOTICE $nick :       !pool          - Pool Information"
+    putquick "NOTICE $nick :       !round         - Round Information"
+    putquick "NOTICE $nick :       !last          - Information about last found Block"
+    putquick "NOTICE $nick :       !user <user>   - Information about a specific User"
+    putquick "NOTICE $nick :       !worker <user> - Display Workers for specific User"
+    putquick "NOTICE $nick :       !help          - This help text"
 }
 
 
@@ -167,6 +177,12 @@ proc checknewblocks {} {
     }
     
     if {$debugoutput eq "1"} { putlog "xml: $data" }
+    
+    if {$data eq "Access denied"} { 
+    	putquick "PRIVMSG $chan :Access to Newblockdata denied"
+    	return 0
+    }
+    
     set results [::json::json2dict $data]
 	
 	foreach {key value} $results {
@@ -220,6 +236,7 @@ proc checknewblocks {} {
 			putquick "PRIVMSG $advert :New Block Found"
 			putquick "PRIVMSG $advert :New Block: #$last_block | Last Block: #$lastarchivedblock | $last_status | $last_shares | $last_finder"
 		}
+		
 		#write new block to file
 		if {[file_write $last_block] eq "1" } { putlog "Block saved" }
 	}
@@ -233,7 +250,7 @@ proc checknewblocks {} {
 #
 
 proc user_info {nick host hand chan arg} {
- 	global apiurl apikey help_blocktime help_blocked channels debug debugoutput usehttps
+ 	global apiurl apikey help_blocktime help_blocked channels debug debugoutput usehttps output
 	package require http
 	package require json
 	package require tls
@@ -264,6 +281,12 @@ proc user_info {nick host hand chan arg} {
     }
     
     if {$debugoutput eq "1"} { putlog "xml: $data" }
+    
+    if {$data eq "Access denied"} { 
+    	putquick "PRIVMSG $chan :Access to Userdata denied"
+    	return 0
+    }
+    
     set results [::json::json2dict $data]
     
 	foreach {key value} $results {
@@ -288,8 +311,15 @@ proc user_info {nick host hand chan arg} {
 		}
 	}
 	
-	putquick "PRIVMSG $chan :User Info for $arg"
-	putquick "PRIVMSG $chan :$user_hashrate | $user_validround | $user_invalidround | $user_sharerate"
+	if {$output eq "CHAN"} {
+		putquick "PRIVMSG $chan :User Info for $arg"
+		putquick "PRIVMSG $chan :$user_hashrate | $user_validround | $user_invalidround | $user_sharerate"
+	} elseif {$output eq "NOTICE"} {
+		putquick "NOTICE $nick :User Info for $arg"
+		putquick "NOTICE $nick :$user_hashrate | $user_validround | $user_invalidround | $user_sharerate"
+	} else {
+		putquick "PRIVMSG $chan :please set output in config file"
+	}
 
 	set help_blocked($mask) 1
 	utimer $help_blocktime [ list unset help_blocked($mask) ]
@@ -301,7 +331,7 @@ proc user_info {nick host hand chan arg} {
 #
 
 proc round_info {nick host hand chan arg } {
- 	global apiurl apikey help_blocktime help_blocked channels debug debugoutput usehttps
+ 	global apiurl apikey help_blocktime help_blocked channels debug debugoutput usehttps output
 	package require http
 	package require json
 	package require tls
@@ -332,6 +362,12 @@ proc round_info {nick host hand chan arg } {
     }
     
     if {$debugoutput eq "1"} { putlog "xml: $data" }
+    
+    if {$data eq "Access denied"} { 
+    	putquick "PRIVMSG $chan :Access to Roundinfo denied"
+    	return 0 
+    }
+    
     set results [::json::json2dict $data]
 	
 	foreach {key value} $results {
@@ -363,9 +399,16 @@ proc round_info {nick host hand chan arg } {
 	
 	set allshares [expr $shares_valid+$shares_invalid]
 
-	putquick "PRIVMSG $chan :Actual Round"
- 	putquick "PRIVMSG $chan :$shares_estimated | Sharecount: $allshares | Shares valid: $shares_valid | Shares invalid: $shares_invalid | $shares_progress"		
-
+	if {$output eq "CHAN"} {
+		putquick "PRIVMSG $chan :Actual Round"
+ 		putquick "PRIVMSG $chan :$shares_estimated | Sharecount: $allshares | Shares valid: $shares_valid | Shares invalid: $shares_invalid | $shares_progress"	
+	} elseif {$output eq "NOTICE"} {
+		putquick "NOTICE $nick :Actual Round"
+ 		putquick "NOTICE $nick :$shares_estimated | Sharecount: $allshares | Shares valid: $shares_valid | Shares invalid: $shares_invalid | $shares_progress"	
+	} else {
+		putquick "PRIVMSG $chan :please set output in config file"
+	}
+	
 	set help_blocked($mask) 1
 	utimer $help_blocktime [ list unset help_blocked($mask) ]
 
@@ -376,7 +419,7 @@ proc round_info {nick host hand chan arg } {
 #
 
 proc last_info {nick host hand chan arg } {
- 	global apiurl apikey help_blocktime help_blocked channels debug debugoutput usehttps
+ 	global apiurl apikey help_blocktime help_blocked channels debug debugoutput usehttps output
 	package require http
 	package require json
 	package require tls
@@ -407,6 +450,12 @@ proc last_info {nick host hand chan arg } {
     }
     
     if {$debugoutput eq "1"} { putlog "xml: $data" }
+    
+    if {$data eq "Access denied"} { 
+    	putquick "PRIVMSG $chan :Access to Lastblocks denied"
+    	return 0 
+    }
+    
     set results [::json::json2dict $data]
 	
 	foreach {key value} $results {
@@ -444,8 +493,14 @@ proc last_info {nick host hand chan arg } {
 		}
 	}
 	
- 	putquick "PRIVMSG $chan :$last_block | $last_confirmed | $last_difficulty | $last_timefound | $last_shares | $last_estshares | $last_finder"
- 	
+ 	if {$output eq "CHAN"} {
+		putquick "PRIVMSG $chan :$last_block | $last_confirmed | $last_difficulty | $last_timefound | $last_shares | $last_estshares | $last_finder"
+	} elseif {$output eq "NOTICE"} {
+		putquick "NOTICE $nick :$last_block | $last_confirmed | $last_difficulty | $last_timefound | $last_shares | $last_estshares | $last_finder"
+	} else {
+		putquick "PRIVMSG $chan :please set output in config file"
+	}
+	
 	set help_blocked($mask) 1
 	utimer $help_blocktime [ list unset help_blocked($mask) ]
 
@@ -456,7 +511,7 @@ proc last_info {nick host hand chan arg } {
 #
 
 proc pool_info {nick host hand chan arg} {
-    global apiurl apikey help_blocktime help_blocked channels debug debugoutput usehttps
+    global apiurl apikey help_blocktime help_blocked channels debug debugoutput usehttps output
 	package require http
 	package require json
 	package require tls
@@ -487,6 +542,12 @@ proc pool_info {nick host hand chan arg} {
     }
     
     if {$debugoutput eq "1"} { putlog "xml: $data" }
+    
+    if {$data eq "Access denied"} { 
+    	putquick "PRIVMSG $chan :Access to Poolinfo denied"
+    	return 0
+    }
+    
     set results [::json::json2dict $data]
 
 	foreach {key value} $results {
@@ -507,9 +568,16 @@ proc pool_info {nick host hand chan arg} {
 		}
 	}
 	
-	putquick "PRIVMSG $chan :Pool Stats"
-	putquick "PRIVMSG $chan :$pool_hashrate | $pool_efficiency | $pool_workers | $pool_nethashrate"		
-    
+ 	if {$output eq "CHAN"} {
+		putquick "PRIVMSG $chan :Pool Stats"
+		putquick "PRIVMSG $chan :$pool_hashrate | $pool_efficiency | $pool_workers | $pool_nethashrate"	
+	} elseif {$output eq "NOTICE"} {
+		putquick "NOTICE $nick :Pool Stats"
+		putquick "NOTICE $nick :$pool_hashrate | $pool_efficiency | $pool_workers | $pool_nethashrate"	
+	} else {
+		putquick "PRIVMSG $chan :please set output in config file"
+	}
+	
 }
 
 
@@ -517,7 +585,7 @@ proc pool_info {nick host hand chan arg} {
 #
 
 proc block_info {nick host hand chan arg} {
-    global apiurl apikey help_blocktime help_blocked channels debug debugoutput usehttps
+    global apiurl apikey help_blocktime help_blocked channels debug debugoutput usehttps output
 	package require http
 	package require json
 	package require tls
@@ -548,6 +616,12 @@ proc block_info {nick host hand chan arg} {
     }
     
     if {$debugoutput eq "1"} { putlog "xml: $data" }
+    
+    if {$data eq "Access denied"} { 
+    	putquick "PRIVMSG $chan :Access to Blockinfo denied"
+    	return 0
+    }
+    
     set results [::json::json2dict $data]
     
 	foreach {key value} $results {
@@ -579,9 +653,106 @@ proc block_info {nick host hand chan arg} {
 		}
 	}
 	
-  	putquick "PRIVMSG $chan :Block Stats"
-	putquick "PRIVMSG $chan :$block_current | $block_next | $block_last | $block_diff | $block_time | $block_shares | $block_timelast"		
+ 	if {$output eq "CHAN"} {
+  		putquick "PRIVMSG $chan :Block Stats"
+		putquick "PRIVMSG $chan :$block_current | $block_next | $block_last | $block_diff | $block_time | $block_shares | $block_timelast"	
+	} elseif {$output eq "NOTICE"} {
+  		putquick "NOTICE $nick :Block Stats"
+		putquick "NOTICE $nick :$block_current | $block_next | $block_last | $block_diff | $block_time | $block_shares | $block_timelast"	
+	} else {
+		putquick "PRIVMSG $chan :please set output in config file"
+	}
+	
+}
+
+
+# Get Workers
+#
+
+proc worker_info {nick host hand chan arg} {
+    global apiurl apikey help_blocktime help_blocked channels debug debugoutput usehttps output
+	package require http
+	package require json
+	package require tls
+	
+	set action "index.php?page=api&action=getuserworkers&id=$arg&api_key="
+	
+ 	set mask [string trimleft $host ~]
+ 	regsub -all {@([^\.]*)\.} $mask {@*.} mask	 	
+ 	set mask *!$mask
+ 
+  	if {[info exists help_blocked($mask)]} {
+    	  putquick "NOTICE $nick : You have been blocked for $help_blocktime Seconds, please be patient..."
+    	  return
+  	}
+  	
+  	set newurl $apiurl
+  	append newurl $action
+  	append newurl $apikey
+  	
+  	if {$usehttps eq "1"} {
+  		::http::register https 443 tls::socket
+  	}
+    set token [::http::geturl "$newurl"]
+    set data [::http::data $token]
+    ::http::cleanup $token
+    if {$usehttps eq "1"} {
+    	::http::unregister https
+    }
     
+    if {$debugoutput eq "1"} { putlog "xml: $data" }
+    
+    if {$data eq "Access denied"} { 
+    	putquick "PRIVMSG $chan :Access to Workers denied"
+    	return 0
+    }
+    
+    set results [::json::json2dict $data]
+    
+	foreach {key value} $results {
+		foreach {sub_key sub_value} $value {
+			if {$sub_key eq "data"} {
+				#putlog "Sub: $sub_value"
+				foreach {elem elem_val} $sub_value {
+					#putlog "Ele: $elem - Val: $elem_val"
+					foreach {elem2 elem_val2} $elem {
+						#putlog "Ele: $elem2 - Val: $elem_val2"
+      					if {$elem2 eq "username"} {
+      					
+      						#if {$elem_val2 ne $arg} {
+      						#	putquick "PRIVMSG $chan :Access to user $elem_val2 denied"
+      						#	return 0
+      						#}
+      						
+      						if {![info exists worker_name]} {
+      							set worker_name "Worker: $elem_val2"
+      						} else {
+      							append worker_name "Worker: $elem_val2"
+      						}
+      					} 
+      					if {$elem2 eq "hashrate"} { 
+      						if {![info exists worker_name]} {
+      							set worker_name " - Hashrate: $elem_val2 | " 
+      						} else {
+      							append worker_name " - Hashrate: $elem_val2 | "
+      						}
+      					} 						
+					}
+				}
+			}
+		}
+	}
+
+ 	if {$output eq "CHAN"} {
+  		putquick "PRIVMSG $chan :Workers"
+		putquick "PRIVMSG $chan :$worker_name"	
+	} elseif {$output eq "NOTICE"} {
+  		putquick "NOTICE $nick :Workers"
+		putquick "NOTICE $nick :$worker_name"		
+	} else {
+		putquick "PRIVMSG $chan :please set output in config file"
+	}
+	
 }
 
 
