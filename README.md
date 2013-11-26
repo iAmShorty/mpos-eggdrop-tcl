@@ -59,7 +59,9 @@ Requirements
  - <a href="https://github.com/TheSerapher/php-mpos" target="_blank">MPOS</a>
 
 
-**Contact**
+Contact
 ================
 
 You can find me on Freenode.net, #MPOS.
+
+[1]: https://github.com/iAmShorty/mpos-eggdrop-tcl/issues "Issue"
