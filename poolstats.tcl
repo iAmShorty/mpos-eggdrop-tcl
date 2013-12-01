@@ -119,6 +119,7 @@ proc printUsage {nick host hand chan arg} {
     putquick "NOTICE $nick :       !last                                    - Last found Block"
     putquick "NOTICE $nick :       !user <user>                             - User Information"
     putquick "NOTICE $nick :       !worker <user>                           - User Workers"
+    putquick "NOTICE $nick :       !balance <user>                          - User Wallet Balance"
     putquick "NOTICE $nick :       !price                                   - Get actual Coinprice"
     putquick "NOTICE $nick :       !help                                    - This help text"
 }
@@ -899,6 +900,5 @@ proc wordwrap {data len} {
    } 
    set out 
 } 
-
 
 putlog "===>> Mining-Pool-Stats - Version $scriptversion loaded"
