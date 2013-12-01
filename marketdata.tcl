@@ -28,7 +28,7 @@ set output "CHAN"
 
 # channels to advertise new block information
 #
-set channels "#auxmining"
+set channels "#firstchannel #secondchannel #thirdchannel"
 
 # cryptsy api url
 #
@@ -60,7 +60,7 @@ bind pub - !price price_info
 
 
 
-# info for specific user
+# marketdata for specified market
 #
 
 proc price_info {nick host hand chan arg} {
