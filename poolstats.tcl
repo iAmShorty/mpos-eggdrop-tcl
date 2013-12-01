@@ -6,7 +6,7 @@
 # -> getting worker from specified user
 # -> getting userinfo from specified user
 #
-set scriptversion "v0.4"
+set scriptversion "v0.6"
 
 # time to wait before next command in seconds
 #
@@ -21,7 +21,7 @@ set blockchecktime "60"
 # debug mode
 # set to 1 to display debug messages
 #
-set debug "1"
+set debug "0"
 
 # debug output
 # set to 1 to display json output
@@ -31,7 +31,7 @@ set debugoutput "0"
 
 # confirmations before a block will be advertised
 #
-set confirmations "20"
+set confirmations "10"
 
 # setting the output style
 #
@@ -40,11 +40,22 @@ set confirmations "20"
 #
 set output "CHAN"
 
-# file to write last found block
-# no entry will put the file in eggdrops root folder
-# file and folder needs to be writeable by the bot user
+# setting coin name
 #
-set lastblocksfile "./scripts/news/lastblock"
+set coinname "LTC"
+
+# script path
+# 
+# path where poolstats.tcl is located
+#
+# if your script is installed in /usr/src/eggdrop/scripts/mininginfo/poolstats.tcl
+# scriptpath is "./scripts/mininginfo/"
+# 
+set scriptpath "./scripts/mininginfo/"
+
+# file to save last blocks
+#
+set lastblockfile "lastblock"
 
 # channels to advertise new block information
 #
@@ -69,9 +80,6 @@ set apikey "YOURAPIKEYFROMMPOS"
 ##########           nothing to edit below this line        ##########
 ######################################################################
 
-
-
-
 # key bindings
 #
 bind pub - !pool pool_info
@@ -80,6 +88,7 @@ bind pub - !last last_info
 bind pub - !user user_info
 bind pub - !round round_info
 bind pub - !worker worker_info
+bind pub - !balance balance_info
 bind pub - !help printUsage
 
 # start timer if set
@@ -97,25 +106,28 @@ if {$blockchecktime ne "0"} {
 	}
 }
 
-
 # print bot usage info
 #
 
 proc printUsage {nick host hand chan arg} {
-    putquick "NOTICE $nick :Usage: !block         - Blockstats"
-    putquick "NOTICE $nick :       !pool          - Pool Information"
-    putquick "NOTICE $nick :       !round         - Round Information"
-    putquick "NOTICE $nick :       !last          - Information about last found Block"
-    putquick "NOTICE $nick :       !user <user>   - Information about a specific User"
-    putquick "NOTICE $nick :       !worker <user> - Display Workers for specific User"
-    putquick "NOTICE $nick :       !help          - This help text"
+	putquick "NOTICE $nick :Usage:"
+    putquick "NOTICE $nick :       !adduser <ircnick> <mposuser> <password> - Adding User to userfile"
+    putquick "NOTICE $nick :       !deluser <ircnick> <mposuser> <password> - Deleting User from userfile"
+    putquick "NOTICE $nick :       !block                                   - Blockstats"
+    putquick "NOTICE $nick :       !pool                                    - Pool Information"
+    putquick "NOTICE $nick :       !round                                   - Round Information"
+    putquick "NOTICE $nick :       !last                                    - Last found Block"
+    putquick "NOTICE $nick :       !user <user>                             - User Information"
+    putquick "NOTICE $nick :       !worker <user>                           - User Workers"
+    putquick "NOTICE $nick :       !price                                   - Get actual Coinprice"
+    putquick "NOTICE $nick :       !help                                    - This help text"
 }
 
 # checking for new blocks
 #
 
 proc checknewblocks {} {
-	global blockchecktime channels apiurl apikey channels debug debugoutput confirmations usehttps
+	global blockchecktime channels apiurl apikey debug debugoutput confirmations usehttps scriptpath lastblockfile
 	package require http
 	package require json
 	package require tls
@@ -125,9 +137,19 @@ proc checknewblocks {} {
  	set action "index.php?page=api&action=getblocksfound&limit=1&api_key="
  	set advertise_block 0
  	
+ 	set last_block "null"
+ 	set last_shares "null"
+ 	set last_finder "null"
+ 	set last_status "null"
+ 	set last_confirmations "null"
+ 	
   	set newurl $apiurl
   	append newurl $action
   	append newurl $apikey
+  	
+  	# setting logfile to right path
+  	set logfilepath $scriptpath
+  	append logfilepath $lastblockfile
   	
   	if {$usehttps eq "1"} {
   		::http::register https 443 tls::socket
@@ -141,8 +163,11 @@ proc checknewblocks {} {
     
     if {$debugoutput eq "1"} { putlog "xml: $data" }
     
-    if {$data eq "Access denied"} { 
-    	putquick "PRIVMSG $chan :Access to Newblockdata denied"
+    if {$data eq "Access denied"} {
+    foreach advert $channels {
+    	putquick "PRIVMSG $advert :Access to Newblockdata denied"
+    }
+    	
     } elseif {$data eq ""} {
     	putlog "no data: $data"
     } else {
@@ -177,12 +202,21 @@ proc checknewblocks {} {
 			}
 		}
 
-		if { [file_read] eq "0" } {
-			if {$debug eq "1"} { putlog "can't read file" }
+		if { [file_read $logfilepath] eq "0" } {
+			
+			# check if lastblocksfile exists
+			#
+			if { [file_check $logfilepath] eq "0" } {
+				if {$debug eq "1"} { putlog "file $logfilepath does not exist" }
+				if {[file_write $logfilepath new] eq "1" } { putlog "file $logfilepath created" }
+			} else {
+				if {$debug eq "1"} { putlog "can't read $logfilepath"}
+			}
+
 		} else {
-			set lastarchivedblock [file_read]
+			set lastarchivedblock [file_read $logfilepath]
 			if {"$lastarchivedblock" eq "$last_block"} {
-				if {$debug eq "1"} { putlog "No New Block" }
+				if {$debug eq "1"} { putlog "No New Block - $lastarchivedblock" }
 			} else {
 				if {$last_confirmations eq "-1"} {
 					set advertise_block 1
@@ -198,11 +232,10 @@ proc checknewblocks {} {
 		if {$advertise_block eq "1"} {
 			if {$debug eq "1"} { putlog "New / Last: $last_block - $lastarchivedblock" }
 			foreach advert $channels {
-				putquick "PRIVMSG $advert :New Block Found"
 				putquick "PRIVMSG $advert :New Block: #$last_block | Last Block: #$lastarchivedblock | $last_status | $last_shares | $last_finder"
 			}
 			#write new block to file
-			if {[file_write $last_block] eq "1" } { putlog "Block saved" }
+			if {[file_write $logfilepath $last_block] eq "1" } { putlog "Block saved" }
 		}
 	}
 	utimer $blockchecktime checknewblocks
@@ -398,6 +431,14 @@ proc last_info {nick host hand chan arg } {
     	  return
   	}
 
+ 	set last_block "null"
+ 	set last_confirmed "null"
+ 	set last_difficulty "null"
+ 	set last_shares "null"
+ 	set last_finder "null"
+ 	set last_estshares "null"
+ 	set last_timefound "null"
+ 	
   	set newurl $apiurl
   	append newurl $action
   	append newurl $apikey
@@ -725,13 +766,84 @@ proc worker_info {nick host hand chan arg} {
 
 
 
+# Account balance
+#
+
+proc balance_info {nick host hand chan arg} {
+    global apiurl apikey help_blocktime help_blocked channels debug debugoutput usehttps output coinname
+	package require http
+	package require json
+	package require tls
+	
+	set action "index.php?page=api&action=getuserbalance&id=$arg&api_key="
+	
+ 	set mask [string trimleft $host ~]
+ 	regsub -all {@([^\.]*)\.} $mask {@*.} mask	 	
+ 	set mask *!$mask
+ 
+  	if {[info exists help_blocked($mask)]} {
+    	  putquick "NOTICE $nick : You have been blocked for $help_blocktime Seconds, please be patient..."
+    	  return
+  	}
+  	
+  	set newurl $apiurl
+  	append newurl $action
+  	append newurl $apikey
+  	
+  	if {$usehttps eq "1"} {
+  		::http::register https 443 tls::socket
+  	}
+    set token [::http::geturl "$newurl"]
+    set data [::http::data $token]
+    ::http::cleanup $token
+    if {$usehttps eq "1"} {
+    	::http::unregister https
+    }
+    
+    if {$debugoutput eq "1"} { putlog "xml: $data" }
+    
+    if {$data eq "Access denied"} { 
+    	putquick "PRIVMSG $chan :Access to Blockinfo denied"
+    	return 0
+    }
+    
+    set results [::json::json2dict $data]
+    
+	foreach {key value} $results {
+		foreach {sub_key sub_value} $value {
+			if {$sub_key eq "data"} {
+				#putlog "Sub: $sub_value"
+				foreach {elem elem_val} $sub_value {
+					#putlog "Ele: $elem - Val: $elem_val"
+					
+      				if {$elem eq "confirmed"} { set balance_confirmed "Confirmed: $elem_val $coinname" } 
+      				if {$elem eq "unconfirmed"} { set balance_unconfirmed "Unconfirmed: $elem_val $coinname" } 
+      				if {$elem eq "orphaned"} { set balance_orphaned "Orphaned: $elem_val $coinname" } 
+
+				}
+			}
+		}
+	}
+	
+ 	if {$output eq "CHAN"} {
+  		putquick "PRIVMSG $chan :Account Balance"
+		putquick "PRIVMSG $chan :$balance_confirmed | $balance_unconfirmed | $balance_orphaned"	
+	} elseif {$output eq "NOTICE"} {
+  		putquick "NOTICE $nick :Account Balance"
+		putquick "NOTICE $nick :$balance_confirmed | $balance_unconfirmed | $balance_orphaned"	
+	} else {
+		putquick "PRIVMSG $chan :please set output in config file"
+	}
+	
+}
+
 
 
 # basic file operations
 #
 
-proc file_write {blocknumber} {
-    set FILE [open lastblock w]
+proc file_write {filename blocknumber} {
+    set FILE [open $filename w]
     # write buffer
     puts -nonewline $FILE $blocknumber
     # release and return 1 for OK
@@ -739,11 +851,11 @@ proc file_write {blocknumber} {
     return 1
 }
 
-proc file_read {} {
+proc file_read {filename} {
     # check exists and readable
-    if {[file exists lastblock] && [file readable lastblock]} then {
+    if {[file exists $filename] && [file readable $filename]} then {
         # open for readmode
-        set FILE [open lastblock r]
+        set FILE [open $filename r]
      	set READ [read -nonewline $FILE]
         # release and return
         close $FILE
@@ -753,9 +865,9 @@ proc file_read {} {
     }
 }
 
-proc FileCheck {FILENAME} {
+proc file_check {filename} {
     # check file exists
-    if [file exists $FILENAME] then {
+    if [file exists $filename] then {
         # file exists
         return 1
     } else {
