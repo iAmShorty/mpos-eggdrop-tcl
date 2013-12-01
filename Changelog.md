@@ -1,3 +1,11 @@
+v. 0.6
+
+* added https detection
+* new script -> marketdata
+* added marketinfo for coin price
+* deleted https as config option
+* added userbalance to commands
+
 v. 0.4
 
 * added workers for specified user
