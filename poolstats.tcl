@@ -385,6 +385,8 @@ proc round_info {nick host hand chan arg } {
 			#putlog "Sub: $sub_key - $sub_value"
 			foreach {elem elem_val} $sub_value {
 				#putlog "Ele: $elem - Val: $elem_val"
+				
+				
 				if {$elem eq "pool"} {
 					#putlog "Ele: $elem - Val: $elem_val"
 					foreach {elem2 elem_val2} $elem_val {
@@ -402,6 +404,17 @@ proc round_info {nick host hand chan arg } {
 						}
 					}				
 				}
+				
+				if {$elem eq "network"} {
+					#putlog "Ele: $elem - Val: $elem_val"
+					foreach {elem2 elem_val2} $elem_val {
+
+						if {$elem2 eq "block"} { set net_block "Block: #$elem_val2" }
+						if {$elem2 eq "difficulty"} { set net_diff "Difficulty: $elem_val2" }
+
+					}				
+				}				
+				
 			}
 		}
 	}
@@ -410,10 +423,10 @@ proc round_info {nick host hand chan arg } {
 
 	if {$output eq "CHAN"} {
 		putquick "PRIVMSG $chan :Actual Round"
- 		putquick "PRIVMSG $chan :$shares_estimated | Sharecount: $allshares | Shares valid: $shares_valid | Shares invalid: $shares_invalid | $shares_progress"	
+ 		putquick "PRIVMSG $chan :$net_block | $net_diff | $shares_estimated | Sharecount: $allshares | Shares valid: $shares_valid | Shares invalid: $shares_invalid | $shares_progress"	
 	} elseif {$output eq "NOTICE"} {
 		putquick "NOTICE $nick :Actual Round"
- 		putquick "NOTICE $nick :$shares_estimated | Sharecount: $allshares | Shares valid: $shares_valid | Shares invalid: $shares_invalid | $shares_progress"	
+ 		putquick "NOTICE $nick :$net_block | $net_diff | $shares_estimated | Sharecount: $allshares | Shares valid: $shares_valid | Shares invalid: $shares_invalid | $shares_progress"	
 	} else {
 		putquick "PRIVMSG $chan :please set output in config file"
 	}
@@ -690,10 +703,10 @@ proc block_info {nick host hand chan arg} {
 	
  	if {$output eq "CHAN"} {
   		putquick "PRIVMSG $chan :Block Stats"
-		putquick "PRIVMSG $chan :$block_current | $block_next | $block_last | $block_diff | $block_time | $block_shares | $block_timelast"	
+		putquick "PRIVMSG $chan :$block_current | $block_next | $block_last | $block_diff | $block_time | $block_shares | $block_timelast"	
 	} elseif {$output eq "NOTICE"} {
   		putquick "NOTICE $nick :Block Stats"
-		putquick "NOTICE $nick :$block_current | $block_next | $block_last | $block_diff | $block_time | $block_shares | $block_timelast"	
+		putquick "NOTICE $nick :$block_current | $block_next | $block_last | $block_diff | $block_time | $block_shares | $block_timelast"	
 	} else {
 		putquick "PRIVMSG $chan :please set output in config file"
 	}
@@ -801,8 +814,6 @@ proc worker_info {nick host hand chan arg} {
 }
 
 
-
-
 # Account balance
 #
 
@@ -861,7 +872,7 @@ proc balance_info {nick host hand chan arg} {
 					
       				if {$elem eq "confirmed"} { set balance_confirmed "Confirmed: $elem_val $coinname" } 
       				if {$elem eq "unconfirmed"} { set balance_unconfirmed "Unconfirmed: $elem_val $coinname" } 
-      				if {$elem eq "orphaned"} { set balance_orphaned "Orphaned: $elem_val $coinname" } 
+      				if {$elem eq "orphaned"} { set balance_orphaned "Orphan: $elem_val $coinname" } 
 
 				}
 			}
@@ -870,10 +881,10 @@ proc balance_info {nick host hand chan arg} {
 	
  	if {$output eq "CHAN"} {
   		putquick "PRIVMSG $chan :Account Balance"
-		putquick "PRIVMSG $chan :$balance_confirmed | $balance_unconfirmed | $balance_orphaned"	
+		putquick "PRIVMSG $chan :$balance_confirmed | $balance_unconfirmed | $balance_orphaned"	
 	} elseif {$output eq "NOTICE"} {
   		putquick "NOTICE $nick :Account Balance"
-		putquick "NOTICE $nick :$balance_confirmed | $balance_unconfirmed | $balance_orphaned"	
+		putquick "NOTICE $nick :$balance_confirmed | $balance_unconfirmed | $balance_orphaned"	
 	} else {
 		putquick "PRIVMSG $chan :please set output in config file"
 	}
