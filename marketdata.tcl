@@ -42,12 +42,7 @@ set apiurl "http://pubapi.cryptsy.com/api.php?method=singlemarketdata&marketid="
 # Fastcoin = 44
 # Feathercoin = 5
 #
-set marketid "44"
-
-# url use https
-#
-set usehttps "0"
-
+set marketid "3"
 
 
 ######################################################################
@@ -64,7 +59,7 @@ bind pub - !price price_info
 #
 
 proc price_info {nick host hand chan arg} {
- 	global apiurl help_blocktime help_blocked channels debug debugoutput usehttps output marketid
+ 	global help_blocktime help_blocked channels debug debugoutput usehttps output marketapi marketid
 	package require http
 	package require json
 	package require tls
@@ -78,12 +73,19 @@ proc price_info {nick host hand chan arg} {
     	  return
   	}
   	
-  	set newurl $apiurl
+  	set newurl $marketapi
   	append newurl $marketid
   	
+    if {[string match "*https*" [string tolower $marketapi]]} {
+  		set usehttps 1
+    } else {
+    	set usehttps 0
+    }
+    
   	if {$usehttps eq "1"} {
   		::http::register https 443 tls::socket
   	}
+  	
     set token [::http::geturl "$newurl"]
     set data [::http::data $token]
     ::http::cleanup $token

@@ -65,15 +65,9 @@ set channels "#firstchannel #secondchannel #thirdchannel"
 #
 set apiurl "http://yourdomain.tld/"
 
-# url use https
-#
-set usehttps "0"
-
 # api key from mpos
 #
 set apikey "YOURAPIKEYFROMMPOS"
-
-
 
 
 ######################################################################
@@ -128,7 +122,7 @@ proc printUsage {nick host hand chan arg} {
 #
 
 proc checknewblocks {} {
-	global blockchecktime channels apiurl apikey debug debugoutput confirmations usehttps scriptpath lastblockfile
+	global blockchecktime channels apiurl apikey debug debugoutput confirmations scriptpath lastblockfile
 	package require http
 	package require json
 	package require tls
@@ -152,6 +146,12 @@ proc checknewblocks {} {
   	set logfilepath $scriptpath
   	append logfilepath $lastblockfile
   	
+    if {[string match "*https*" [string tolower $apiurl]]} {
+  		set usehttps 1
+    } else {
+    	set usehttps 0
+    }  
+
   	if {$usehttps eq "1"} {
   		::http::register https 443 tls::socket
   	}
@@ -247,7 +247,7 @@ proc checknewblocks {} {
 #
 
 proc user_info {nick host hand chan arg} {
- 	global apiurl apikey help_blocktime help_blocked channels debug debugoutput usehttps output
+ 	global apiurl apikey help_blocktime help_blocked channels debug debugoutput output
 	package require http
 	package require json
 	package require tls
@@ -266,7 +266,13 @@ proc user_info {nick host hand chan arg} {
   	set newurl $apiurl
   	append newurl $action
   	append newurl $apikey
-  	
+
+    if {[string match "*https*" [string tolower $apiurl]]} {
+  		set usehttps 1
+    } else {
+    	set usehttps 0
+    }
+    
   	if {$usehttps eq "1"} {
   		::http::register https 443 tls::socket
   	}
@@ -328,7 +334,7 @@ proc user_info {nick host hand chan arg} {
 #
 
 proc round_info {nick host hand chan arg } {
- 	global apiurl apikey help_blocktime help_blocked channels debug debugoutput usehttps output
+ 	global apiurl apikey help_blocktime help_blocked channels debug debugoutput output
 	package require http
 	package require json
 	package require tls
@@ -347,7 +353,13 @@ proc round_info {nick host hand chan arg } {
   	set newurl $apiurl
   	append newurl $action
   	append newurl $apikey
-  	
+
+    if {[string match "*https*" [string tolower $apiurl]]} {
+  		set usehttps 1
+    } else {
+    	set usehttps 0
+    }
+    
   	if {$usehttps eq "1"} {
   		::http::register https 443 tls::socket
   	}
@@ -416,7 +428,7 @@ proc round_info {nick host hand chan arg } {
 #
 
 proc last_info {nick host hand chan arg } {
- 	global apiurl apikey help_blocktime help_blocked channels debug debugoutput usehttps output
+ 	global apiurl apikey help_blocktime help_blocked channels debug debugoutput output
 	package require http
 	package require json
 	package require tls
@@ -443,7 +455,13 @@ proc last_info {nick host hand chan arg } {
   	set newurl $apiurl
   	append newurl $action
   	append newurl $apikey
-  	
+
+    if {[string match "*https*" [string tolower $apiurl]]} {
+  		set usehttps 1
+    } else {
+    	set usehttps 0
+    }
+    
   	if {$usehttps eq "1"} {
   		::http::register https 443 tls::socket
   	}
@@ -516,7 +534,7 @@ proc last_info {nick host hand chan arg } {
 #
 
 proc pool_info {nick host hand chan arg} {
-    global apiurl apikey help_blocktime help_blocked channels debug debugoutput usehttps output
+    global apiurl apikey help_blocktime help_blocked channels debug debugoutput output
 	package require http
 	package require json
 	package require tls
@@ -535,7 +553,13 @@ proc pool_info {nick host hand chan arg} {
   	set newurl $apiurl
   	append newurl $action
   	append newurl $apikey
-  	
+
+    if {[string match "*https*" [string tolower $apiurl]]} {
+  		set usehttps 1
+    } else {
+    	set usehttps 0
+    }
+    
   	if {$usehttps eq "1"} {
   		::http::register https 443 tls::socket
   	}
@@ -590,7 +614,7 @@ proc pool_info {nick host hand chan arg} {
 #
 
 proc block_info {nick host hand chan arg} {
-    global apiurl apikey help_blocktime help_blocked channels debug debugoutput usehttps output
+    global apiurl apikey help_blocktime help_blocked channels debug debugoutput output
 	package require http
 	package require json
 	package require tls
@@ -609,7 +633,13 @@ proc block_info {nick host hand chan arg} {
   	set newurl $apiurl
   	append newurl $action
   	append newurl $apikey
-  	
+
+    if {[string match "*https*" [string tolower $apiurl]]} {
+  		set usehttps 1
+    } else {
+    	set usehttps 0
+    }
+    
   	if {$usehttps eq "1"} {
   		::http::register https 443 tls::socket
   	}
@@ -675,7 +705,7 @@ proc block_info {nick host hand chan arg} {
 #
 
 proc worker_info {nick host hand chan arg} {
-    global apiurl apikey help_blocktime help_blocked channels debug debugoutput usehttps output
+    global apiurl apikey help_blocktime help_blocked channels debug debugoutput output
 	package require http
 	package require json
 	package require tls
@@ -694,7 +724,13 @@ proc worker_info {nick host hand chan arg} {
   	set newurl $apiurl
   	append newurl $action
   	append newurl $apikey
-  	
+
+    if {[string match "*https*" [string tolower $apiurl]]} {
+  		set usehttps 1
+    } else {
+    	set usehttps 0
+    }
+    
   	if {$usehttps eq "1"} {
   		::http::register https 443 tls::socket
   	}
@@ -771,7 +807,7 @@ proc worker_info {nick host hand chan arg} {
 #
 
 proc balance_info {nick host hand chan arg} {
-    global apiurl apikey help_blocktime help_blocked channels debug debugoutput usehttps output coinname
+    global apiurl apikey help_blocktime help_blocked channels debug debugoutput output coinname
 	package require http
 	package require json
 	package require tls
@@ -790,7 +826,13 @@ proc balance_info {nick host hand chan arg} {
   	set newurl $apiurl
   	append newurl $action
   	append newurl $apikey
-  	
+
+    if {[string match "*https*" [string tolower $apiurl]]} {
+  		set usehttps 1
+    } else {
+    	set usehttps 0
+    }
+    
   	if {$usehttps eq "1"} {
   		::http::register https 443 tls::socket
   	}
@@ -900,5 +942,6 @@ proc wordwrap {data len} {
    } 
    set out 
 } 
+
 
 putlog "===>> Mining-Pool-Stats - Version $scriptversion loaded"
