@@ -35,6 +35,21 @@ You can contribute to this project in different ways:
 * Report outstanding issues and bugs by creating an [Issue][1]
 * Suggest feature enhancements also via [Issues][1]
 
+INSTALL
+================
+
+simply add these lines at the end of your eggdrop.conf
+
+<pre>
+#
+### Mininginfo
+#
+source scripts/mininginfo/http.tcl
+source scripts/mininginfo/poolstats.tcl
+source scripts/mininginfo/users.tcl
+source scripts/mininginfo/marketdata.tcl
+</pre>
+
 USAGE
 ================
 
