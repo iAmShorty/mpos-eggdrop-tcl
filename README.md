@@ -14,9 +14,6 @@ Active Pools
 * http://fastcoin.auxmining.de
 * http://feathercoin.auxmining.de
 * http://litecoin.auxmining.de
-* http://mincoin.auxmining.de
-* http://anoncoin.auxmining.de
-* http://stablecoin.auxmining.de
 
 Donations
 ================
