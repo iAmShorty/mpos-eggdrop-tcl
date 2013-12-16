@@ -24,8 +24,6 @@ with some hard earned coins feel free to donate:
 
 * Litecoin:    `Lhiuh9Zv4dypuHn8gTphcveQydViUdKLux`
 * Bitcoin:     `1HeUGoZGrSQPDmq24s9768J7oH6tdMeJBa`
-* Feathercoin: `6pxUWFWFshzDCYUQZyVsTtBbGNroGEfkGx`
-* Fastcoin:    `fwhuoXRk4BcQabGtvoi97GrNWVqu7MTavz`
 
 Contributing
 ================
