@@ -35,13 +35,16 @@ You can contribute to this project in different ways:
 INSTALL
 ================
 
-simply add these lines at the end of your eggdrop.conf
+copy or rename config.dist.tcl to config.tcl, configure the settings and add the following
+lines at the end of your eggdrop.conf
 
 <pre>
 #
 ### Mininginfo
 #
 source scripts/mininginfo/http.tcl
+source scripts/mininginfo/config.tcl
+source scripts/mininginfo/bothelp.tcl
 source scripts/mininginfo/poolstats.tcl
 source scripts/mininginfo/users.tcl
 source scripts/mininginfo/marketdata.tcl

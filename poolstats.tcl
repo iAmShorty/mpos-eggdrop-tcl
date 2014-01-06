@@ -6,74 +6,15 @@
 # -> getting worker from specified user
 # -> getting userinfo from specified user
 #
-set scriptversion "v0.6"
-
-# time to wait before next command in seconds
-#
-set help_blocktime "5"
-
-# interval to check for new blocks in seconds
-# if set to 0, the bot will do no automatic
-# check for new blocks in seconds
-#
-set blockchecktime "60"
-
-# debug mode
-# set to 1 to display debug messages
-#
-set debug "0"
-
-# debug output
-# set to 1 to display json output
-# beware, lots of data
-#
-set debugoutput "0"
-
-# confirmations before a block will be advertised
-#
-set confirmations "10"
-
-# setting the output style
-#
-# -> CHAN   - put all infos in channel
-# -> NOTICE - sends notice to the user who triggered the command
-#
-set output "CHAN"
-
-# setting coin name
-#
-set coinname "LTC"
-
-# script path
-# 
-# path where poolstats.tcl is located
-#
-# if your script is installed in /usr/src/eggdrop/scripts/mininginfo/poolstats.tcl
-# scriptpath is "./scripts/mininginfo/"
-# 
-set scriptpath "./scripts/mininginfo/"
-
-# file to save last blocks
-#
-set lastblockfile "lastblock"
-
-# channels to advertise new block information
-#
-set channels "#firstchannel #secondchannel #thirdchannel"
-
-# url where mpos is installed
-#
-set apiurl "http://yourdomain.tld/"
-
-# api key from mpos
-#
-set apikey "YOURAPIKEYFROMMPOS"
 
 
 ######################################################################
 ##########           nothing to edit below this line        ##########
+##########           use config.tcl for setting options     ##########
 ######################################################################
 
+
+#
 # key bindings
 #
 bind pub - !pool pool_info
@@ -83,7 +24,6 @@ bind pub - !user user_info
 bind pub - !round round_info
 bind pub - !worker worker_info
 bind pub - !balance balance_info
-bind pub - !help printUsage
 
 # start timer if set
 # and check if started when bot rehashes
@@ -98,24 +38,6 @@ if {$blockchecktime ne "0"} {
  	   	utimer $blockchecktime checknewblocks
 	    set checknewblocks_running 1
 	}
-}
-
-# print bot usage info
-#
-
-proc printUsage {nick host hand chan arg} {
-	putquick "NOTICE $nick :Usage:"
-    putquick "NOTICE $nick :       !adduser <ircnick> <mposuser> <password> - Adding User to userfile"
-    putquick "NOTICE $nick :       !deluser <ircnick> <mposuser> <password> - Deleting User from userfile"
-    putquick "NOTICE $nick :       !block                                   - Blockstats"
-    putquick "NOTICE $nick :       !pool                                    - Pool Information"
-    putquick "NOTICE $nick :       !round                                   - Round Information"
-    putquick "NOTICE $nick :       !last                                    - Last found Block"
-    putquick "NOTICE $nick :       !user <user>                             - User Information"
-    putquick "NOTICE $nick :       !worker <user>                           - User Workers"
-    putquick "NOTICE $nick :       !balance <user>                          - User Wallet Balance"
-    putquick "NOTICE $nick :       !price                                   - Get actual Coinprice"
-    putquick "NOTICE $nick :       !help                                    - This help text"
 }
 
 # checking for new blocks
@@ -155,6 +77,7 @@ proc checknewblocks {} {
   	if {$usehttps eq "1"} {
   		::http::register https 443 tls::socket
   	}
+  	
     set token [::http::geturl "$newurl"]
     set data [::http::data $token]
     ::http::cleanup $token
@@ -165,15 +88,24 @@ proc checknewblocks {} {
     if {$debugoutput eq "1"} { putlog "xml: $data" }
     
     if {$data eq "Access denied"} {
-    foreach advert $channels {
-    	putquick "PRIVMSG $advert :Access to Newblockdata denied"
-    }
-    	
+    	foreach advert $channels {
+    		putquick "PRIVMSG $advert :Access to Newblockdata denied"
+    	}
     } elseif {$data eq ""} {
     	putlog "no data: $data"
     } else {
 
-  	  set results [::json::json2dict $data]
+
+	if {[catch { set results [ [::json::json2dict $data] ]
+ 	   	putlog "no data: $data"
+  	  	utimer $blockchecktime checknewblocks
+   	 	return 0
+	}]} {
+   	 	putlog "data found"
+	}
+
+
+  	  	set results [::json::json2dict $data]
 	
 		foreach {key value} $results {
 			#putlog "Key: $key - $value"
@@ -612,10 +544,10 @@ proc pool_info {nick host hand chan arg} {
 	
  	if {$output eq "CHAN"} {
 		putquick "PRIVMSG $chan :Pool Stats"
-		putquick "PRIVMSG $chan :$pool_hashrate | $pool_efficiency | $pool_workers | $pool_nethashrate"	
+		putquick "PRIVMSG $chan :$pool_hashrate | $pool_efficiency | $pool_workers | $pool_nethashrate"	
 	} elseif {$output eq "NOTICE"} {
 		putquick "NOTICE $nick :Pool Stats"
-		putquick "NOTICE $nick :$pool_hashrate | $pool_efficiency | $pool_workers | $pool_nethashrate"	
+		putquick "NOTICE $nick :$pool_hashrate | $pool_efficiency | $pool_workers | $pool_nethashrate"	
 	} else {
 		putquick "PRIVMSG $chan :please set output in config file"
 	}
