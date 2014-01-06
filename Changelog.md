@@ -1,3 +1,10 @@
+v. 0.7
+
+* code cleanup
+* config.tcl for script settings
+* new marketapis for vircurex and coins-e
+* solved bug with marketdata.tcl
+
 v. 0.6
 
 * added https detection
