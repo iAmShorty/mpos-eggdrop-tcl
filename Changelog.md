@@ -4,6 +4,8 @@ v. 0.7
 * config.tcl for script settings
 * new marketapis for vircurex and coins-e
 * solved bug with marketdata.tcl
+* support for fast finding block pools
+* solved bug where only every second block is announced
 
 v. 0.6
 
