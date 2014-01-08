@@ -33,7 +33,7 @@ if {$blockchecktime ne "0"} {
 	# check if timer is running
 	# else a rehash starts a new timer
 	if {![info exists checknewblocks_running]} {
-		if {$debug eq "1"} { putlog "Timer aktiviert" }
+		if {$debug eq "1"} { putlog "Timer active" }
 		
  	   	utimer $blockchecktime checknewblocks
 	    set checknewblocks_running 1
@@ -51,8 +51,9 @@ proc checknewblocks {} {
 	
 	if {$debug eq "1"} { putlog "checking for new blocks" }
 	
- 	set action "index.php?page=api&action=getblocksfound&limit=1&api_key="
+ 	set action "index.php?page=api&action=getblocksfound&api_key="
  	set advertise_block 0
+ 	set writeblockfile "no"
  	
  	set last_block "null"
  	set last_shares "null"
@@ -92,88 +93,159 @@ proc checknewblocks {} {
     		putquick "PRIVMSG $advert :Access to Newblockdata denied"
     	}
     } elseif {$data eq ""} {
-    	putlog "no data: $data"
+    	if {$debug eq "1"} { putlog "no data: $data" }
     } else {
 
-
-	if {[catch { set results [ [::json::json2dict $data] ]
- 	   	putlog "no data: $data"
-  	  	utimer $blockchecktime checknewblocks
-   	 	return 0
-	}]} {
-   	 	putlog "data found"
-	}
-
+		if {[catch { set results [ [::json::json2dict $data] ]
+ 	  	 	if {$debug eq "1"} { putlog "no data: $data" }
+  	  		utimer $blockchecktime checknewblocks
+   	 		return 0
+		}]} {
+   		 	if {$debug eq "1"} { putlog "data found" }
+		}
 
   	  	set results [::json::json2dict $data]
-	
+  	  	
+  	  	set blocklist {}
+  	  	
 		foreach {key value} $results {
 			#putlog "Key: $key - $value"
 			foreach {sub_key sub_value} $value {
 				#putlog "Sub1: $sub_key - $sub_value"
 				if {$sub_key eq "data"} {
 					#putlog "Sub2: $sub_value"
-					foreach {elem elem_val} $sub_value {
-						#putlog "Ele1: $elem - Val: $elem_val"
+					foreach {elem} $sub_value {
+						#putlog "Ele1: $elem"
 						foreach {elem2 elem_val2} $elem {
 							#putlog "Ele2: $elem2 - Val: $elem_val2"
-      						if {$elem2 eq "height"} { set last_block "$elem_val2" }
+      						if {$elem2 eq "height"} { 
+      							set last_block "$elem_val2" 
+      							#putlog "Block: $elem_val2"
+      						}
       						if {$elem2 eq "shares"} { set last_shares "Shares: $elem_val2" } 
 							if {$elem2 eq "finder"} { set last_finder "Finder: $elem_val2" }
 							if {$elem2 eq "confirmations"} {
 								set last_confirmations $elem_val2
 								if {$elem_val2 eq "-1"} {
-									set last_status "Status: Orphaned"
+									set last_status "Status: Orphan"
 								} else {
 									set last_status "Status: Valid | Confirmations: $elem_val2"
 								}
 							}
 						}
-						break
+						
+						set advertise_block [check_block $last_block $last_confirmations]
+						
+						if {$advertise_block eq "0"} {
+							#if {$debug eq "1"} { putlog "No New Block: $last_block" }
+							lappend blocklist $last_block
+						} elseif {$advertise_block eq "notconfirmed"} {
+							#if {$debug eq "1"} { putlog "Block not confirmed" }
+						} else {
+							set writeblockfile "yes"
+							advertise_block $last_block $last_status $last_shares $last_finder
+							lappend blocklist $last_block
+						}
+						
 					}
 				}
 			}
 		}
-
-		if { [file_read $logfilepath] eq "0" } {
-			
-			# check if lastblocksfile exists
-			#
-			if { [file_check $logfilepath] eq "0" } {
-				if {$debug eq "1"} { putlog "file $logfilepath does not exist" }
-				if {[file_write $logfilepath new] eq "1" } { putlog "file $logfilepath created" }
-			} else {
-				if {$debug eq "1"} { putlog "can't read $logfilepath"}
-			}
-
-		} else {
-			set lastarchivedblock [file_read $logfilepath]
-			if {"$lastarchivedblock" eq "$last_block"} {
-				if {$debug eq "1"} { putlog "No New Block - $lastarchivedblock" }
-			} else {
-				if {$last_confirmations eq "-1"} {
-					set advertise_block 1
-				} elseif {$last_confirmations > $confirmations} {
-					set advertise_block 1
-				} else {
-					putlog "block not confirmed: $last_confirmations - $confirmations"
-					set advertise_block 0
-				}
-			}
-		}
-
-		if {$advertise_block eq "1"} {
-			if {$debug eq "1"} { putlog "New / Last: $last_block - $lastarchivedblock" }
-			foreach advert $channels {
-				putquick "PRIVMSG $advert :New Block: #$last_block | Last Block: #$lastarchivedblock | $last_status | $last_shares | $last_finder"
-			}
-			#write new block to file
-			if {[file_write $logfilepath $last_block] eq "1" } { putlog "Block saved" }
-		}
 	}
+	
+	if {$writeblockfile eq "yes"} {
+		set fh [open $logfilepath w]
+		foreach arr_elem $blocklist {
+    		#putlog "arr: $arr_elem"
+    		puts $fh [join $arr_elem "\n"]
+		}
+		close $fh
+	} else {
+		set lastblock [FileTextReadLine $logfilepath 0 0]
+		putlog "No New Block found - $lastblock"
+	}
+
 	utimer $blockchecktime checknewblocks
 }                                      
   
+
+
+
+proc check_block {blockheight blockconfirmations} {
+	global debug debugoutput confirmations scriptpath lastblockfile
+	
+	#if {$debug eq "1"} { putlog "Checking Block: $blockheight" }
+
+  	# setting logfile to right path
+  	set logfilepath $scriptpath
+  	append logfilepath $lastblockfile
+  	
+	if { [file_read $logfilepath] eq "0" } {
+			
+		# check if lastblocksfile exists
+		#
+		if { [file_check $logfilepath] eq "0" } {
+			if {$debug eq "1"} { putlog "file $logfilepath does not exist" }
+			if {[file_write $logfilepath new] eq "1" } { putlog "file $logfilepath created" }
+		} else {
+			if {$debug eq "1"} { putlog "can't read $logfilepath"}
+		}
+
+	} else {
+	
+		set blockfile [open $logfilepath]
+		# Read until we find the start pattern
+		while {[gets $blockfile line] >= 0} {
+			#putlog "LINE: $line"
+  	  		if { [string match "$blockheight" $line] } {
+				set newblock "0"
+				break
+  	  		} else {
+				set newblock $line
+			}
+		}
+		close $blockfile
+		
+		if {$newblock ne "0"} {
+			if {$blockconfirmations eq "-1"} {
+				return $newblock
+			} elseif {$blockconfirmations > $confirmations} {
+				return $newblock
+			} else {
+				if {$debug eq "1"} { putlog "block not confirmed: $blockconfirmations - $confirmations" }
+				return "notconfirmed"
+			}
+		} else {
+			return "0"
+		}
+
+	}
+
+}
+
+
+proc advertise_block {newblock laststatus lastshares lastfinder} {
+	global channels debug debugoutput scriptpath lastblockfile
+
+  	# setting logfile to right path
+  	set logfilepath $scriptpath
+  	append logfilepath $lastblockfile
+  	
+  	set lastblock [FileTextReadLine $logfilepath 0 0]
+  	
+	if {$debug eq "1"} { putlog "New Block: $newblock" }
+	if {$debug eq "1"} { putlog "New / Last: $newblock - $lastblock" }
+	
+	foreach advert $channels {
+		putquick "PRIVMSG $advert :New Block: #$newblock | Last Block: #$lastblock | $laststatus | $lastshares | $lastfinder"
+	}
+
+}
+
+
+
+
+
 
 # info for specific user
 #
@@ -828,13 +900,29 @@ proc balance_info {nick host hand chan arg} {
 # basic file operations
 #
 
-proc file_write {filename blocknumber} {
-    set FILE [open $filename w]
+proc file_write {filename blocknumber {AUTOAPPEND 0} {NEWLINE 1}} {
+    #set FILE [open $filename w]
+    ## write buffer
+    #puts -nonewline $FILE $blocknumber
+    ## release and return 1 for OK
+    #close $FILE
+    #return 1
+
+
+    # when no file exists or not autoappend is on = create/overwrite
+    if {![file exists $filename] && $AUTOAPPEND!=1} then {
+        # open for writemode
+        set FILE [open $filename w]
+    } else {
+        # open for appendmode
+        set FILE [open $filename a]
+    }
     # write buffer
-    puts -nonewline $FILE $blocknumber
+    if $NEWLINE {puts $FILE $blocknumber} {puts -nonewline $FILE $blocknumber}
     # release and return 1 for OK
     close $FILE
     return 1
+
 }
 
 proc file_read {filename} {
@@ -862,6 +950,65 @@ proc file_check {filename} {
     }
 }
 
+proc FileTextRead {FILENAME {LINEMODE 0}} {
+    # check exists and readable
+    if {[file exists $FILENAME] && [file readable $FILENAME]} then {
+        # open for readmode
+        set FILE [open $FILENAME r]
+        if {$LINEMODE!=1} then {
+            # read buffer
+            set READ [read -nonewline $FILE]
+        } else {
+            # read line
+            set READ [get $FILE]
+        }
+        # release and return
+        close $FILE
+        return $READ
+    }
+    # not readable
+    return 0
+}
+
+proc FileTextReadLine {FILENAME LINENR {METHODE 1}} {
+    # starts with LINENR 0 = line1, 1=line2, ..., 199=line200, ..
+
+    proc ReadWithEof {FILE LINENR} {
+        set ReadNUM 0
+        # not end of file reached? read nexline
+        while ![eof $FILE] {
+            set LINE [gets $FILE]
+            if {$LINENR==$ReadNUM} {return $LINE}
+            incr ReadNUM
+        }
+        # failed
+        return 0
+    }
+
+    proc ReadFullAndSplit {FILE LINENR} {
+        # read full file
+        set BUFFER [read -nonewline $FILE]
+        # convert to a list
+        set LIST [split $BUFFER \n]
+        # return Result
+        return [lindex $LIST $LINENR]
+    }
+
+    # check file and parameter, return when failed
+    if {![file exist $FILENAME] || ![file readable $FILENAME] || ![string is digit $LINENR]} {return 0}
+    # open file
+    set FILE [open $FILENAME r]
+    if {$METHODE!=1} {
+        # use first read method
+        set LINE [ReadWithEof $FILE $LINENR]
+    } {
+        # use second (default) read method
+        set LINE [ReadFullAndSplit $FILE $LINENR]
+    }
+    close $FILE
+    return $LINE
+}
+
 # wordwrap proc that accepts multiline data 
 # (empty lines will be stripped because there's no way to relay them via irc) 
 proc wordwrap {data len} { 
@@ -884,7 +1031,7 @@ proc wordwrap {data len} {
       } 
    } 
    set out 
-} 
+}
 
 
 putlog "===>> Mining-Pool-Stats - Version $scriptversion loaded"

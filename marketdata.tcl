@@ -1,5 +1,5 @@
 #
-# Cryptocoin Market Data
+# Cryptsy Market Data
 #
 #
 
@@ -34,6 +34,11 @@ proc price_info {nick host hand chan arg} {
   	
   	set newurl $marketapi
   	
+    set trade_price "0"
+    set trade_trime "0"
+    set trade_label "0"
+    set trade_volume "0"
+    
     if {$activemarket eq "1"} {
     	set market_name "Coins-E"
     } elseif {$activemarket eq "2"} {

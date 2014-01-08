@@ -14,9 +14,9 @@ set scriptversion "v0.7"
 set help_blocktime "5"
 
 # debug mode
-# set to 1 to display debug messages
+# set to 1 to display debug messages in partyline and logfile
 #
-set debug "1"
+set debug "0"
 
 # debug output
 # set to 1 to display json output
