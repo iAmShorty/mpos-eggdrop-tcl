@@ -7,12 +7,10 @@
 # -> getting userinfo from specified user
 #
 
-
 ######################################################################
 ##########           nothing to edit below this line        ##########
 ##########           use config.tcl for setting options     ##########
 ######################################################################
-
 
 #
 # key bindings
@@ -40,11 +38,35 @@ if {$blockchecktime ne "0"} {
 	}
 }
 
+# getting the pool vars from dictionary
+# set in config for specific pool
+#
+proc pool_vars {coinname} {
+	global pools
+	set pool_found "false"
+	#putlog "Number of Pools: [dict size $pools]"
+	dict for {id info} $pools {
+   	 	if {[string toupper $id] eq [string toupper $coinname]} {
+   	 		set pool_found "true"
+   	 		#putlog "Pool: [string toupper $id]"
+    		dict with info {
+       			set pool_data "[string toupper $id] $apiurl $apikey"
+    		}
+   	 	}
+	}
+	
+	if {$pool_found eq "true"} {
+		return $pool_data
+	} else {
+		return "0"
+	}
+	
+}
+
 # checking for new blocks
 #
-
 proc checknewblocks {} {
-	global blockchecktime channels apiurl apikey debug debugoutput confirmations scriptpath lastblockfile
+	global blockchecktime channels debug debugoutput confirmations scriptpath lastblockfile cointocheck
 	package require http
 	package require json
 	package require tls
@@ -60,16 +82,28 @@ proc checknewblocks {} {
  	set last_finder "null"
  	set last_status "null"
  	set last_confirmations "null"
- 	
-  	set newurl $apiurl
+   	set last_estshares "null"
+ 
+  	set pool_info [regexp -all -inline {\S+} [pool_vars $cointocheck]]
+  	
+  	if {$pool_info ne "0"} {
+  		if {$debug eq "1"} { putlog "COIN: [lindex $pool_info 0]" }
+  		if {$debug eq "1"} { putlog "URL: [lindex $pool_info 1]" }
+  		if {$debug eq "1"} { putlog "KEY: [lindex $pool_info 2]" }
+  	} else {
+  		if {$debug eq "1"} { putlog "no pool data" }
+  		return
+  	} 
+  	
+  	set newurl [lindex $pool_info 1]
   	append newurl $action
-  	append newurl $apikey
+  	append newurl [lindex $pool_info 2]
   	
   	# setting logfile to right path
   	set logfilepath $scriptpath
   	append logfilepath $lastblockfile
   	
-    if {[string match "*https*" [string tolower $apiurl]]} {
+    if {[string match "*https*" [string tolower $newurl]]} {
   		set usehttps 1
     } else {
     	set usehttps 0
@@ -122,7 +156,8 @@ proc checknewblocks {} {
       							set last_block "$elem_val2" 
       							#putlog "Block: $elem_val2"
       						}
-      						if {$elem2 eq "shares"} { set last_shares "Shares: $elem_val2" } 
+      						if {$elem2 eq "shares"} { set last_shares "$elem_val2" } 
+      						if {$elem2 eq "estshares"} { set last_estshares "$elem_val2" }
 							if {$elem2 eq "finder"} { set last_finder "Finder: $elem_val2" }
 							if {$elem2 eq "confirmations"} {
 								set last_confirmations $elem_val2
@@ -143,7 +178,7 @@ proc checknewblocks {} {
 							#if {$debug eq "1"} { putlog "Block not confirmed" }
 						} else {
 							set writeblockfile "yes"
-							advertise_block $last_block $last_status $last_shares $last_finder
+							advertise_block $last_block $last_status $last_estshares $last_shares $last_finder
 							lappend blocklist $last_block
 						}
 						
@@ -167,10 +202,9 @@ proc checknewblocks {} {
 
 	utimer $blockchecktime checknewblocks
 }                                      
-  
 
-
-
+# checking the block
+#
 proc check_block {blockheight blockconfirmations} {
 	global debug debugoutput confirmations scriptpath lastblockfile
 	
@@ -223,9 +257,10 @@ proc check_block {blockheight blockconfirmations} {
 
 }
 
-
-proc advertise_block {newblock laststatus lastshares lastfinder} {
-	global channels debug debugoutput scriptpath lastblockfile
+# advertising the block
+#
+proc advertise_block {newblock laststatus lastestshares lastshares lastfinder} {
+	global channels debug debugoutput scriptpath lastblockfile cointocheck
 
   	# setting logfile to right path
   	set logfilepath $scriptpath
@@ -236,27 +271,28 @@ proc advertise_block {newblock laststatus lastshares lastfinder} {
 	if {$debug eq "1"} { putlog "New Block: $newblock" }
 	if {$debug eq "1"} { putlog "New / Last: $newblock - $lastblock" }
 	
+	set percentage [format "%.2f" [expr {double((double($lastshares)/double($lastestshares))*100)}]]
+	
 	foreach advert $channels {
-		putquick "PRIVMSG $advert :New Block: #$newblock | Last Block: #$lastblock | $laststatus | $lastshares | $lastfinder"
+		putquick "PRIVMSG $advert :\[$cointocheck\] New Block: #$newblock | Last Block: #$lastblock | $laststatus | Est. Shares: $lastestshares | Shares: $lastshares | Percentage: $percentage % | $lastfinder"
 	}
 
 }
 
-
-
-
-
-
 # info for specific user
 #
-
 proc user_info {nick host hand chan arg} {
- 	global apiurl apikey help_blocktime help_blocked channels debug debugoutput output
+ 	global help_blocktime help_blocked channels debug debugoutput output
 	package require http
 	package require json
 	package require tls
+
+	if {$arg eq "" || [llength $arg] < 2} {
+		if {$debug eq "1"} { putlog "wrong arguments, must be !user poolname username" }
+		return
+	}
 	
- 	set action "index.php?page=api&action=getuserstatus&id=$arg&api_key="
+ 	set action "index.php?page=api&action=getuserstatus&id=[lindex $arg 1]&api_key="
  	
  	set mask [string trimleft $host ~]
  	regsub -all {@([^\.]*)\.} $mask {@*.} mask	 	
@@ -267,11 +303,22 @@ proc user_info {nick host hand chan arg} {
     	  return
   	}
   	
-  	set newurl $apiurl
+  	set pool_info [regexp -all -inline {\S+} [pool_vars [lindex $arg 0]]]
+  	
+  	if {$pool_info ne "0"} {
+  		if {$debug eq "1"} { putlog "COIN: [lindex $pool_info 0]" }
+  		if {$debug eq "1"} { putlog "URL: [lindex $pool_info 1]" }
+  		if {$debug eq "1"} { putlog "KEY: [lindex $pool_info 2]" }
+  	} else {
+  		if {$debug eq "1"} { putlog "no pool data" }
+  		return
+  	} 
+  	
+  	set newurl [lindex $pool_info 1]
   	append newurl $action
-  	append newurl $apikey
+  	append newurl [lindex $pool_info 2]
 
-    if {[string match "*https*" [string tolower $apiurl]]} {
+    if {[string match "*https*" [string tolower $newurl]]} {
   		set usehttps 1
     } else {
     	set usehttps 0
@@ -319,10 +366,10 @@ proc user_info {nick host hand chan arg} {
 	}
 	
 	if {$output eq "CHAN"} {
-		putquick "PRIVMSG $chan :User Info for $arg"
+		putquick "PRIVMSG $chan :User Info for [string tolower [lindex $arg 1]] on [string toupper [lindex $arg 0]] Pool"
 		putquick "PRIVMSG $chan :$user_hashrate | $user_validround | $user_invalidround | $user_sharerate"
 	} elseif {$output eq "NOTICE"} {
-		putquick "NOTICE $nick :User Info for $arg"
+		putquick "NOTICE $nick :User Info for [string tolower [lindex $arg 1]] on [string toupper [lindex $arg 0]] Pool"
 		putquick "NOTICE $nick :$user_hashrate | $user_validround | $user_invalidround | $user_sharerate"
 	} else {
 		putquick "PRIVMSG $chan :please set output in config file"
@@ -333,15 +380,18 @@ proc user_info {nick host hand chan arg} {
 
 }
 
-
 # round info
 #
-
 proc round_info {nick host hand chan arg } {
- 	global apiurl apikey help_blocktime help_blocked channels debug debugoutput output
+ 	global help_blocktime help_blocked channels debug debugoutput output
 	package require http
 	package require json
 	package require tls
+
+	if {$arg eq ""} {
+		if {$debug eq "1"} { putlog "no pool submitted" }
+		return
+	}
 	
  	set action "index.php?page=api&action=getdashboarddata&api_key="
  	
@@ -354,11 +404,22 @@ proc round_info {nick host hand chan arg } {
     	  return
   	}
 
-  	set newurl $apiurl
+  	set pool_info [regexp -all -inline {\S+} [pool_vars $arg]]
+  	
+  	if {$pool_info ne "0"} {
+  		if {$debug eq "1"} { putlog "COIN: [lindex $pool_info 0]" }
+  		if {$debug eq "1"} { putlog "URL: [lindex $pool_info 1]" }
+  		if {$debug eq "1"} { putlog "KEY: [lindex $pool_info 2]" }
+  	} else {
+  		if {$debug eq "1"} { putlog "no pool data" }
+  		return
+  	} 
+  	
+  	set newurl [lindex $pool_info 1]
   	append newurl $action
-  	append newurl $apikey
+  	append newurl [lindex $pool_info 2]
 
-    if {[string match "*https*" [string tolower $apiurl]]} {
+    if {[string match "*https*" [string tolower $newurl]]} {
   		set usehttps 1
     } else {
     	set usehttps 0
@@ -426,10 +487,10 @@ proc round_info {nick host hand chan arg } {
 	set allshares [expr $shares_valid+$shares_invalid]
 
 	if {$output eq "CHAN"} {
-		putquick "PRIVMSG $chan :Actual Round"
+		putquick "PRIVMSG $chan :Actual Round on [string toupper [lindex $arg 0]] Pool"
  		putquick "PRIVMSG $chan :$net_block | $net_diff | $shares_estimated | Sharecount: $allshares | Shares valid: $shares_valid | Shares invalid: $shares_invalid | $shares_progress"	
 	} elseif {$output eq "NOTICE"} {
-		putquick "NOTICE $nick :Actual Round"
+		putquick "NOTICE $nick :Actual Round on [string toupper [lindex $arg 0]] Pool"
  		putquick "NOTICE $nick :$net_block | $net_diff | $shares_estimated | Sharecount: $allshares | Shares valid: $shares_valid | Shares invalid: $shares_invalid | $shares_progress"	
 	} else {
 		putquick "PRIVMSG $chan :please set output in config file"
@@ -440,15 +501,18 @@ proc round_info {nick host hand chan arg } {
 
 }
 
-
 # last block found
 #
-
 proc last_info {nick host hand chan arg } {
- 	global apiurl apikey help_blocktime help_blocked channels debug debugoutput output
+ 	global help_blocktime help_blocked channels debug debugoutput output
 	package require http
 	package require json
 	package require tls
+
+	if {$arg eq ""} {
+		if {$debug eq "1"} { putlog "no pool submitted" }
+		return
+	}
 	
  	set action "index.php?page=api&action=getblocksfound&limit=1&api_key="
  	
@@ -469,11 +533,22 @@ proc last_info {nick host hand chan arg } {
  	set last_estshares "null"
  	set last_timefound "null"
  	
-  	set newurl $apiurl
+  	set pool_info [regexp -all -inline {\S+} [pool_vars $arg]]
+  	
+  	if {$pool_info ne "0"} {
+  		if {$debug eq "1"} { putlog "COIN: [lindex $pool_info 0]" }
+  		if {$debug eq "1"} { putlog "URL: [lindex $pool_info 1]" }
+  		if {$debug eq "1"} { putlog "KEY: [lindex $pool_info 2]" }
+  	} else {
+  		if {$debug eq "1"} { putlog "no pool data" }
+  		return
+  	} 
+  	
+  	set newurl [lindex $pool_info 1]
   	append newurl $action
-  	append newurl $apikey
+  	append newurl [lindex $pool_info 2]
 
-    if {[string match "*https*" [string tolower $apiurl]]} {
+    if {[string match "*https*" [string tolower $newurl]]} {
   		set usehttps 1
     } else {
     	set usehttps 0
@@ -534,8 +609,10 @@ proc last_info {nick host hand chan arg } {
 	}
 	
  	if {$output eq "CHAN"} {
+ 		putquick "PRIVMSG $chan :Last Block on [string toupper [lindex $arg 0]] Pool"
 		putquick "PRIVMSG $chan :$last_block | $last_confirmed | $last_difficulty | $last_timefound | $last_shares | $last_estshares | $last_finder"
 	} elseif {$output eq "NOTICE"} {
+		putquick "NOTICE $nick :Last Block on [string toupper [lindex $arg 0]] Pool"
 		putquick "NOTICE $nick :$last_block | $last_confirmed | $last_difficulty | $last_timefound | $last_shares | $last_estshares | $last_finder"
 	} else {
 		putquick "PRIVMSG $chan :please set output in config file"
@@ -546,15 +623,18 @@ proc last_info {nick host hand chan arg } {
 
 }
 
-
 # Pool Stats
 #
-
 proc pool_info {nick host hand chan arg} {
-    global apiurl apikey help_blocktime help_blocked channels debug debugoutput output
+    global help_blocktime help_blocked channels debug debugoutput output
 	package require http
 	package require json
 	package require tls
+
+	if {$arg eq ""} {
+		if {$debug eq "1"} { putlog "no pool submitted" }
+		return
+	}
 	
 	set action "index.php?page=api&action=getpoolstatus&api_key="
 	
@@ -566,12 +646,23 @@ proc pool_info {nick host hand chan arg} {
     	  putquick "NOTICE $nick : You have been blocked for $help_blocktime Seconds, please be patient..."
     	  return
   	}
-
-  	set newurl $apiurl
+  	
+  	set pool_info [regexp -all -inline {\S+} [pool_vars $arg]]
+  	
+  	if {$pool_info ne "0"} {
+  		if {$debug eq "1"} { putlog "COIN: [lindex $pool_info 0]" }
+  		if {$debug eq "1"} { putlog "URL: [lindex $pool_info 1]" }
+  		if {$debug eq "1"} { putlog "KEY: [lindex $pool_info 2]" }
+  	} else {
+  		if {$debug eq "1"} { putlog "no pool data" }
+  		return
+  	} 
+  	
+  	set newurl [lindex $pool_info 1]
   	append newurl $action
-  	append newurl $apikey
+  	append newurl [lindex $pool_info 2]
 
-    if {[string match "*https*" [string tolower $apiurl]]} {
+    if {[string match "*https*" [string tolower $newurl]]} {
   		set usehttps 1
     } else {
     	set usehttps 0
@@ -615,10 +706,10 @@ proc pool_info {nick host hand chan arg} {
 	}
 	
  	if {$output eq "CHAN"} {
-		putquick "PRIVMSG $chan :Pool Stats"
+		putquick "PRIVMSG $chan :Pool Stats: [string toupper [lindex $arg 0]]"
 		putquick "PRIVMSG $chan :$pool_hashrate | $pool_efficiency | $pool_workers | $pool_nethashrate"	
 	} elseif {$output eq "NOTICE"} {
-		putquick "NOTICE $nick :Pool Stats"
+		putquick "NOTICE $nick :Pool Stats: [string toupper [lindex $arg 0]]"
 		putquick "NOTICE $nick :$pool_hashrate | $pool_efficiency | $pool_workers | $pool_nethashrate"	
 	} else {
 		putquick "PRIVMSG $chan :please set output in config file"
@@ -626,15 +717,18 @@ proc pool_info {nick host hand chan arg} {
 	
 }
 
-
 # Block Stats
 #
-
 proc block_info {nick host hand chan arg} {
-    global apiurl apikey help_blocktime help_blocked channels debug debugoutput output
+    global help_blocktime help_blocked channels debug debugoutput output
 	package require http
 	package require json
 	package require tls
+
+	if {$arg eq ""} {
+		if {$debug eq "1"} { putlog "no pool submitted" }
+		return
+	}
 	
 	set action "index.php?page=api&action=getpoolstatus&api_key="
 	
@@ -647,11 +741,22 @@ proc block_info {nick host hand chan arg} {
     	  return
   	}
   	
-  	set newurl $apiurl
+  	set pool_info [regexp -all -inline {\S+} [pool_vars $arg]]
+  	
+  	if {$pool_info ne "0"} {
+  		if {$debug eq "1"} { putlog "COIN: [lindex $pool_info 0]" }
+  		if {$debug eq "1"} { putlog "URL: [lindex $pool_info 1]" }
+  		if {$debug eq "1"} { putlog "KEY: [lindex $pool_info 2]" }
+  	} else {
+  		if {$debug eq "1"} { putlog "no pool data" }
+  		return
+  	} 
+  	
+  	set newurl [lindex $pool_info 1]
   	append newurl $action
-  	append newurl $apikey
+  	append newurl [lindex $pool_info 2]
 
-    if {[string match "*https*" [string tolower $apiurl]]} {
+    if {[string match "*https*" [string tolower $newurl]]} {
   		set usehttps 1
     } else {
     	set usehttps 0
@@ -706,10 +811,10 @@ proc block_info {nick host hand chan arg} {
 	}
 	
  	if {$output eq "CHAN"} {
-  		putquick "PRIVMSG $chan :Block Stats"
+  		putquick "PRIVMSG $chan :Block Stats: [string toupper [lindex $arg 0]]"
 		putquick "PRIVMSG $chan :$block_current | $block_next | $block_last | $block_diff | $block_time | $block_shares | $block_timelast"	
 	} elseif {$output eq "NOTICE"} {
-  		putquick "NOTICE $nick :Block Stats"
+  		putquick "NOTICE $nick :Block Stats: [string toupper [lindex $arg 0]]"
 		putquick "NOTICE $nick :$block_current | $block_next | $block_last | $block_diff | $block_time | $block_shares | $block_timelast"	
 	} else {
 		putquick "PRIVMSG $chan :please set output in config file"
@@ -717,17 +822,20 @@ proc block_info {nick host hand chan arg} {
 	
 }
 
-
 # Get Workers
 #
-
 proc worker_info {nick host hand chan arg} {
-    global apiurl apikey help_blocktime help_blocked channels debug debugoutput output
+    global help_blocktime help_blocked channels debug debugoutput output
 	package require http
 	package require json
 	package require tls
+
+	if {$arg eq "" || [llength $arg] < 2} {
+		if {$debug eq "1"} { putlog "wrong arguments, must be !worker poolname username" }
+		return
+	}
 	
-	set action "index.php?page=api&action=getuserworkers&id=$arg&api_key="
+	set action "index.php?page=api&action=getuserworkers&id=[lindex $arg 1]&api_key="
 	
  	set mask [string trimleft $host ~]
  	regsub -all {@([^\.]*)\.} $mask {@*.} mask	 	
@@ -738,11 +846,22 @@ proc worker_info {nick host hand chan arg} {
     	  return
   	}
   	
-  	set newurl $apiurl
+  	set pool_info [regexp -all -inline {\S+} [pool_vars [lindex $arg 0]]]
+  	
+  	if {$pool_info ne "0"} {
+  		if {$debug eq "1"} { putlog "COIN: [lindex $pool_info 0]" }
+  		if {$debug eq "1"} { putlog "URL: [lindex $pool_info 1]" }
+  		if {$debug eq "1"} { putlog "KEY: [lindex $pool_info 2]" }
+  	} else {
+  		if {$debug eq "1"} { putlog "no pool data" }
+  		return
+  	} 
+  	
+  	set newurl [lindex $pool_info 1]
   	append newurl $action
-  	append newurl $apikey
+  	append newurl [lindex $pool_info 2]
 
-    if {[string match "*https*" [string tolower $apiurl]]} {
+    if {[string match "*https*" [string tolower $newurl]]} {
   		set usehttps 1
     } else {
     	set usehttps 0
@@ -775,7 +894,6 @@ proc worker_info {nick host hand chan arg} {
 					#putlog "Ele: $elem"
 					foreach {elem2 elem_val2} $elem {
 						#putlog "Ele: $elem2 - Val: $elem_val2"
-						
       					if {$elem2 eq "username"} {
       						#if {$elem_val2 ne $arg} {
       						#	putquick "PRIVMSG $chan :Access to user $elem_val2 denied"
@@ -817,17 +935,20 @@ proc worker_info {nick host hand chan arg} {
 	
 }
 
-
 # Account balance
 #
-
 proc balance_info {nick host hand chan arg} {
-    global apiurl apikey help_blocktime help_blocked channels debug debugoutput output coinname
+    global help_blocktime help_blocked channels debug debugoutput output
 	package require http
 	package require json
 	package require tls
+
+	if {$arg eq "" || [llength $arg] < 2} {
+		if {$debug eq "1"} { putlog "wrong arguments, must be !balance poolname username" }
+		return
+	}
 	
-	set action "index.php?page=api&action=getuserbalance&id=$arg&api_key="
+	set action "index.php?page=api&action=getuserbalance&id=[lindex $arg 1]&api_key="
 	
  	set mask [string trimleft $host ~]
  	regsub -all {@([^\.]*)\.} $mask {@*.} mask	 	
@@ -838,11 +959,22 @@ proc balance_info {nick host hand chan arg} {
     	  return
   	}
   	
-  	set newurl $apiurl
+  	set pool_info [regexp -all -inline {\S+} [pool_vars [lindex $arg 0]]]
+  	
+  	if {$pool_info ne "0"} {
+  		if {$debug eq "1"} { putlog "COIN: [lindex $pool_info 0]" }
+  		if {$debug eq "1"} { putlog "URL: [lindex $pool_info 1]" }
+  		if {$debug eq "1"} { putlog "KEY: [lindex $pool_info 2]" }
+  	} else {
+  		if {$debug eq "1"} { putlog "no pool data" }
+  		return
+  	} 
+  	
+  	set newurl [lindex $pool_info 1]
   	append newurl $action
-  	append newurl $apikey
+  	append newurl [lindex $pool_info 2]
 
-    if {[string match "*https*" [string tolower $apiurl]]} {
+    if {[string match "*https*" [string tolower $newurl]]} {
   		set usehttps 1
     } else {
     	set usehttps 0
@@ -874,9 +1006,9 @@ proc balance_info {nick host hand chan arg} {
 				foreach {elem elem_val} $sub_value {
 					#putlog "Ele: $elem - Val: $elem_val"
 					
-      				if {$elem eq "confirmed"} { set balance_confirmed "Confirmed: $elem_val $coinname" } 
-      				if {$elem eq "unconfirmed"} { set balance_unconfirmed "Unconfirmed: $elem_val $coinname" } 
-      				if {$elem eq "orphaned"} { set balance_orphaned "Orphan: $elem_val $coinname" } 
+      				if {$elem eq "confirmed"} { set balance_confirmed "Confirmed: $elem_val [string toupper [lindex $arg 0]]" } 
+      				if {$elem eq "unconfirmed"} { set balance_unconfirmed "Unconfirmed: $elem_val [string toupper [lindex $arg 0]]" } 
+      				if {$elem eq "orphaned"} { set balance_orphaned "Orphan: $elem_val [string toupper [lindex $arg 0]]" } 
 
 				}
 			}
@@ -884,10 +1016,10 @@ proc balance_info {nick host hand chan arg} {
 	}
 	
  	if {$output eq "CHAN"} {
-  		putquick "PRIVMSG $chan :Account Balance"
+  		putquick "PRIVMSG $chan :[string toupper [lindex $arg 0]] Account Balance for User [lindex $arg 1]"
 		putquick "PRIVMSG $chan :$balance_confirmed | $balance_unconfirmed | $balance_orphaned"	
 	} elseif {$output eq "NOTICE"} {
-  		putquick "NOTICE $nick :Account Balance"
+  		putquick "NOTICE $nick :[string toupper [lindex $arg 0]] Account Balance for User [lindex $arg 1]"
 		putquick "NOTICE $nick :$balance_confirmed | $balance_unconfirmed | $balance_orphaned"	
 	} else {
 		putquick "PRIVMSG $chan :please set output in config file"
@@ -899,7 +1031,6 @@ proc balance_info {nick host hand chan arg} {
 
 # basic file operations
 #
-
 proc file_write {filename blocknumber {AUTOAPPEND 0} {NEWLINE 1}} {
     #set FILE [open $filename w]
     ## write buffer
@@ -1032,6 +1163,5 @@ proc wordwrap {data len} {
    } 
    set out 
 }
-
 
 putlog "===>> Mining-Pool-Stats - Version $scriptversion loaded"

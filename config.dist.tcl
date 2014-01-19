@@ -7,7 +7,7 @@
 # General Config
 ##################################################################
 
-set scriptversion "v0.7"
+set scriptversion "v0.8"
 
 # time to wait before next command in seconds
 #
@@ -35,8 +35,14 @@ set output "CHAN"
 # 
 # path to tcl files
 #
+# scriptpath is relative to you eggdrop install folder
 # if your script is installed in /usr/src/eggdrop/scripts/mininginfo/
-# scriptpath is "./scripts/mininginfo/"
+# scriptpath is "./scripts/mininginfo/
+#
+# NOTE:
+# The user running the bot, must have rights set to 777 to
+# the specified folder, otherwise the lastblock file for found
+# and advertised block can not be written by the bot
 # 
 set scriptpath "./scripts/mininginfo/"
 
@@ -49,17 +55,25 @@ set channels "#channel1 #channel2"
 # MPOS Config
 ##################################################################
 
-# url where mpos is installed
+# Setting URLs and API Keys for multiple Pools
+# you can add as many as you want
 #
-set apiurl "https://yourmposapiurl/"
+# Syntax is
+# dict set pools COINNAME apiurl "YOURMPOSAPIURL"
+# dict set pools COINNAME apikey "YOURMPOSAPIKEY"
 
-# api key from mpos
-#
-set apikey "YOURMPOSAPIKEY"
+dict set pools btc apiurl 		"https://pool1.tld/"
+dict set pools btc apikey   	"YOURMPOSAPIKEY"
 
-# setting coin name
+#dict set pools ltc apiurl 		"https://pool2.tld/"
+#dict set pools ltc apikey   	"YOURMPOSAPIKEY"
+
+# set to the coin you want to check for new
+# blocks found. querying multiple pools is not
+# possible at the moment, will add that in a 
+# future release
 #
-set coinname "LTC"
+set cointocheck "LTC"
 
 # file to save last blocks
 #
