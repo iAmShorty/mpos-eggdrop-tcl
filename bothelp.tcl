@@ -24,3 +24,4 @@ proc printUsage {nick host hand chan arg} {
     putquick "NOTICE $nick :       !help                                    - This help text"
 }
 
+putlog "===>> Mining-Pool-Bothelp - Version $scriptversion loaded"
