@@ -24,6 +24,20 @@ with some hard earned coins feel free to donate:
 * Litecoin:    `Lhiuh9Zv4dypuHn8gTphcveQydViUdKLux`
 * Bitcoin:     `1HeUGoZGrSQPDmq24s9768J7oH6tdMeJBa`
 
+FEATURES
+================
+
+* Support for multiple Pools
+* Get Userbalance
+* Get User Workers
+* Show Pool Stats
+* Show Round Stats
+* Show Last Block Info
+* Checking for new Blocks on multiple Pools
+* Advertise new Blocks to Channel
+* Advertise Stats and Infos directly into the channel or send via private Message
+* Show actual Coin Price from Crypts, Coins-E or Vircurex
+
 Contributing
 ================
 
