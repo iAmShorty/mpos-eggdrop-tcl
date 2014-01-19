@@ -189,7 +189,7 @@ proc check_block {coinname blockheight blockconfirmations} {
 
   	# setting logfile to right path
 	set logfilepath $scriptpath
-  	append logfilepath "[string tolower [$coinname]]/"
+  	append logfilepath "[string tolower $coinname]/"
   	if {![file isdirectory $logfilepath]} {
   		file mkdir $logfilepath
 	}
@@ -245,7 +245,7 @@ proc advertise_block {coinname newblock laststatus lastestshares lastshares last
 
   	# setting logfile to right path
 	set logfilepath $scriptpath
-  	append logfilepath "[string tolower [$coinname]]/"
+  	append logfilepath "[string tolower $coinname]/"
   	if {![file isdirectory $logfilepath]} {
   		file mkdir $logfilepath
 	}
