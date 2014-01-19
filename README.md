@@ -65,6 +65,34 @@ source scripts/mininginfo/users.tcl
 source scripts/mininginfo/marketdata.tcl
 </pre>
 
+Adding multiple Pools
+================
+
+Setting up multiple Pools in Config is very easy
+
+<pre>
+dict set pools btc apiurl 		"https://pool1.tld/"
+dict set pools btc apikey   	"YOURMPOSAPIKEY"
+
+dict set pools ltc apiurl 		"https://pool2.tld/"
+dict set pools ltc apikey   	"YOURMPOSAPIKEY"
+</pre>
+
+You can add as many as you want. For example, the Value "btc" is the Pool Name, used to query the Pool.
+Apiurl and Apikey are the Values from your MPOS installation. So, if your Pool Name is set to "btc"
+you can query the bot with following command
+
+<pre>
+!pool BTC
+</pre>
+
+Querying userinfos works like that
+
+<pre>
+!user BTC USERNAME
+</pre>
+
+
 USAGE
 ================
 
