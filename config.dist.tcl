@@ -2,12 +2,16 @@
 # Config File for eggdrop scripts
 #
 #
+# some functions ONLY work with admin api key
+# -> getting worker from specified user
+# -> getting userinfo from specified user
 #
+
 ##################################################################
 # General Config
 ##################################################################
 
-set scriptversion "v0.7"
+set scriptversion "v0.8"
 
 # time to wait before next command in seconds
 #
@@ -35,8 +39,14 @@ set output "CHAN"
 # 
 # path to tcl files
 #
+# scriptpath is relative to you eggdrop install folder
 # if your script is installed in /usr/src/eggdrop/scripts/mininginfo/
-# scriptpath is "./scripts/mininginfo/"
+# scriptpath is "./scripts/mininginfo/
+#
+# NOTE:
+# The user running the bot, must have rights set to 777 to
+# the specified folder, otherwise the lastblock file for found
+# and advertised block can not be written by the bot
 # 
 set scriptpath "./scripts/mininginfo/"
 
@@ -49,17 +59,24 @@ set channels "#channel1 #channel2"
 # MPOS Config
 ##################################################################
 
-# url where mpos is installed
+# Setting URLs and API Keys for multiple Pools
+# you can add as many as you want
 #
-set apiurl "https://yourmposapiurl/"
+# Syntax is
+# dict set pools COINNAME apiurl "YOURMPOSAPIURL"
+# dict set pools COINNAME apikey "YOURMPOSAPIKEY"
 
-# api key from mpos
-#
-set apikey "YOURMPOSAPIKEY"
+dict set pools btc apiurl 		"https://pool1.tld/"
+dict set pools btc apikey   	"YOURMPOSAPIKEY"
 
-# setting coin name
+dict set pools ltc apiurl 		"https://pool2.tld/"
+dict set pools ltc apikey   	"YOURMPOSAPIKEY"
+
+# set to the coin you want to check for new
+# blocks found. separate multiple pools with
+# whitespace
 #
-set coinname "LTC"
+set poolstocheck "BTC LTC"
 
 # file to save last blocks
 #
@@ -72,6 +89,15 @@ set registereduserfile "mposuser"
 # confirmations before a block will be advertised
 #
 set confirmations "10"
+
+# NOT USED AT THE MOMENT
+# use one timer for all pools
+# or use a timer for each pool
+# 
+# set to 0 if you want to use a timer for all pools
+# set to 1 if you want to use a timer for each pool
+#
+set pooltimer "0"
 
 # interval to check for new blocks in seconds
 # if set to 0, the bot will do no automatic

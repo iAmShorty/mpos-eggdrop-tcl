@@ -1,6 +1,7 @@
 #
 # MPOS eggdrop Calls
-#
+# 
+# Worker Information
 #
 
 ######################################################################
@@ -8,20 +9,20 @@
 ##########           use config.tcl for setting options     ##########
 ######################################################################
 
-# Pool Stats
+# Get Workers
 #
-proc pool_info {nick host hand chan arg} {
+proc worker_info {nick host hand chan arg} {
     global help_blocktime help_blocked channels debug debugoutput output
 	package require http
 	package require json
 	package require tls
 
-	if {$arg eq ""} {
-		if {$debug eq "1"} { putlog "no pool submitted" }
+	if {$arg eq "" || [llength $arg] < 2} {
+		if {$debug eq "1"} { putlog "wrong arguments, must be !worker poolname username" }
 		return
 	}
 	
-	set action "index.php?page=api&action=getpoolstatus&api_key="
+	set action "index.php?page=api&action=getuserworkers&id=[lindex $arg 1]&api_key="
 	
  	set mask [string trimleft $host ~]
  	regsub -all {@([^\.]*)\.} $mask {@*.} mask	 	
@@ -32,7 +33,7 @@ proc pool_info {nick host hand chan arg} {
     	  return
   	}
   	
-  	set pool_info [regexp -all -inline {\S+} [pool_vars $arg]]
+  	set pool_info [regexp -all -inline {\S+} [pool_vars [lindex $arg 0]]]
   	
   	if {$pool_info ne "0"} {
   		if {$debug eq "1"} { putlog "COIN: [lindex $pool_info 0]" }
@@ -66,40 +67,59 @@ proc pool_info {nick host hand chan arg} {
     if {$debugoutput eq "1"} { putlog "xml: $data" }
     
     if {$data eq "Access denied"} { 
-    	putquick "PRIVMSG $chan :Access to Poolinfo denied"
+    	putquick "PRIVMSG $chan :Access to Workers denied"
     	return 0
     }
     
     set results [::json::json2dict $data]
-
+    
 	foreach {key value} $results {
 		foreach {sub_key sub_value} $value {
-			#putlog "Sub: $sub_key - $sub_value"
 			if {$sub_key eq "data"} {
 				#putlog "Sub: $sub_value"
-				foreach {elem elem_val} $sub_value {
-					#putlog "Ele: $elem - Val: $elem_val"
-				
-      				if {$elem eq "hashrate"} { set pool_hashrate "Hashrate: $elem_val kh/s" }
-      				if {$elem eq "efficiency"} { set pool_efficiency "Efficiency: $elem_val %" } 
-      				if {$elem eq "workers"} { set pool_workers "Workers: $elem_val" } 
-      				if {$elem eq "nethashrate"} { set pool_nethashrate "Net Hashrate: $elem_val kh/s" } 
-				
+				foreach {elem} $sub_value {
+					#putlog "Ele: $elem"
+					foreach {elem2 elem_val2} $elem {
+						#putlog "Ele: $elem2 - Val: $elem_val2"
+      					if {$elem2 eq "username"} {
+      						#if {$elem_val2 ne $arg} {
+      						#	putquick "PRIVMSG $chan :Access to user $elem_val2 denied"
+      						#	return 0
+      						#}
+      						
+      						if {![info exists worker_name]} {
+      							set worker_name "$elem_val2"
+      						} else {
+      							append worker_name "$elem_val2"
+      						}
+      					} 
+      					if {$elem2 eq "hashrate"} { 
+      						if {![info exists worker_name]} {
+      							set worker_name " - $elem_val2 KH/s | " 
+      						} else {
+      							append worker_name " - $elem_val2 KH/s | "
+      						}
+      					} 						
+					}
 				}
 			}
 		}
 	}
 	
- 	if {$output eq "CHAN"} {
-		putquick "PRIVMSG $chan :Pool Stats: [string toupper [lindex $arg 0]]"
-		putquick "PRIVMSG $chan :$pool_hashrate | $pool_efficiency | $pool_workers | $pool_nethashrate"	
-	} elseif {$output eq "NOTICE"} {
-		putquick "NOTICE $nick :Pool Stats: [string toupper [lindex $arg 0]]"
-		putquick "NOTICE $nick :$pool_hashrate | $pool_efficiency | $pool_workers | $pool_nethashrate"	
-	} else {
-		putquick "PRIVMSG $chan :please set output in config file"
-	}
+	# split message if buffer is to big
+	#
+   	set len [expr {512-[string len ":$::botname PRIVMSG $chan :\r\n"]}] 
+   	foreach line [wordwrap $worker_name $len] { 
+ 		if {$output eq "CHAN"} {
+  			putquick "PRIVMSG $chan :$line"	
+		} elseif {$output eq "NOTICE"} {
+  			putquick "NOTICE $nick :$line"		
+		} else {
+			putquick "PRIVMSG $chan :please set output in config file"
+			return 0
+		}      
+   	}
 	
 }
 
-putlog "===>> Mining-Pool-Poolstats - Version $scriptversion loaded"
+putlog "===>> Mining-Pool-Workers - Version $scriptversion loaded"
