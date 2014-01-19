@@ -42,10 +42,25 @@ lines at the end of your eggdrop.conf
 #
 ### Mininginfo
 #
+# basic scripts for settings and functions
+#
 source scripts/mininginfo/http.tcl
 source scripts/mininginfo/config.tcl
+source scripts/mininginfo/basics.tcl
 source scripts/mininginfo/bothelp.tcl
+
+# statistic scripts
+#
+source scripts/mininginfo/balance.tcl
+source scripts/mininginfo/blockstats.tcl
+source scripts/mininginfo/findblocks.tcl
 source scripts/mininginfo/poolstats.tcl
+source scripts/mininginfo/roundstats.tcl
+source scripts/mininginfo/userstats.tcl
+source scripts/mininginfo/workers.tcl
+
+# additional scripts - non mpos related
+#
 source scripts/mininginfo/users.tcl
 source scripts/mininginfo/marketdata.tcl
 </pre>
@@ -59,13 +74,13 @@ communicate with the bot and get the output right in the channel
 <pre>
 !adduser ircnick mposuser password       - Adding User to userfile"
 !deluser ircnick mposuser password       - Deleting User from userfile"
-!block                                   - Blockstats
-!pool                                    - Pool Information
-!round                                   - Actual Round Information
-!last                                    - Information about last found Block
-!user username                           - Information about a specific User
-!worker username                         - Workers for specific User
-!balance username                        - Get User Wallet Balance
+!block POOLNAME                          - Blockstats
+!pool POOLNAME                           - Pool Information
+!round POOLNAME                          - Actual Round Information
+!last POOLNAME                           - Information about last found Block
+!user POOLNAME username                  - Information about a specific User
+!worker POOLNAME username                - Workers for specific User
+!balance POOLNAME username               - Get User Wallet Balance
 !price                                   - Get actual Coinprice
 !help                                    - This help text
 </pre>
