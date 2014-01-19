@@ -264,4 +264,4 @@ proc advertise_block {coinname newblock laststatus lastestshares lastshares last
 
 }
 
-putlog "===>> Mining-Pool-Findb
+putlog "===>> Mining-Pool-Findblocks - Version $scriptversion loaded"
