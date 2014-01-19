@@ -42,7 +42,6 @@ proc pool_vars {coinname} {
 	} else {
 		return "0"
 	}
-	
 }
 
 # wordwrap proc that accepts multiline data 

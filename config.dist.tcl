@@ -69,15 +69,14 @@ set channels "#channel1 #channel2"
 dict set pools btc apiurl 		"https://pool1.tld/"
 dict set pools btc apikey   	"YOURMPOSAPIKEY"
 
-#dict set pools ltc apiurl 		"https://pool2.tld/"
-#dict set pools ltc apikey   	"YOURMPOSAPIKEY"
+dict set pools ltc apiurl 		"https://pool2.tld/"
+dict set pools ltc apikey   	"YOURMPOSAPIKEY"
 
 # set to the coin you want to check for new
-# blocks found. querying multiple pools is not
-# possible at the moment, will add that in a 
-# future release
+# blocks found. separate multiple pools with
+# whitespace
 #
-set cointocheck "LTC"
+set poolstocheck "BTC LTC"
 
 # file to save last blocks
 #
@@ -90,6 +89,15 @@ set registereduserfile "mposuser"
 # confirmations before a block will be advertised
 #
 set confirmations "10"
+
+# NOT USED AT THE MOMENT
+# use one timer for all pools
+# or use a timer for each pool
+# 
+# set to 0 if you want to use a timer for all pools
+# set to 1 if you want to use a timer for each pool
+#
+set pooltimer "0"
 
 # interval to check for new blocks in seconds
 # if set to 0, the bot will do no automatic
