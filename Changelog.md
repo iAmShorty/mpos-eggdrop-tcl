@@ -1,3 +1,8 @@
+v. 0.8
+
+* added Multipool environment
+* splitted functions to separate files
+
 v. 0.7
 
 * code cleanup
