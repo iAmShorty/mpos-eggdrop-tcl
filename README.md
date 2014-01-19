@@ -27,6 +27,7 @@ with some hard earned coins feel free to donate:
 FEATURES
 ================
 
+* Easy Setup
 * Support for multiple Pools
 * Get Userbalance
 * Get User Workers
@@ -36,15 +37,14 @@ FEATURES
 * Checking for new Blocks on multiple Pools
 * Advertise new Blocks to Channel
 * Advertise Stats and Infos directly into the channel or send via private Message
-* Show actual Coin Price from Crypts, Coins-E or Vircurex
+* Show actual Coin Price from Cryptsy, Coins-E or Vircurex
 
-Contributing
+Requirements 
 ================
 
-You can contribute to this project in different ways:
-
-* Report outstanding issues and bugs by creating an [Issue][1]
-* Suggest feature enhancements also via [Issues][1]
+ - <a href="http://www.tcl.tk" target="_blank">TCL</a> (with JSON and TLS Support)
+ - <a href="http://www.eggheads.org" target="_blank">eggdrop</a> IRC Bot
+ - <a href="https://github.com/TheSerapher/php-mpos" target="_blank">MPOS</a>
 
 INSTALL
 ================
@@ -127,13 +127,13 @@ communicate with the bot and get the output right in the channel
 !help                                    - This help text
 </pre>
 
-Requirements 
+Contributing
 ================
 
- - <a href="http://www.tcl.tk" target="_blank">TCL</a> (with JSON Support)
- - <a href="http://www.eggheads.org" target="_blank">eggdrop</a> IRC Bot
- - <a href="https://github.com/TheSerapher/php-mpos" target="_blank">MPOS</a>
+You can contribute to this project in different ways:
 
+* Report outstanding issues and bugs by creating an [Issue][1]
+* Suggest feature enhancements also via [Issues][1]
 
 Contact
 ================
