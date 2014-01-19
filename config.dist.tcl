@@ -62,8 +62,8 @@ set channels "#channel1 #channel2"
 # dict set pools COINNAME apiurl "YOURMPOSAPIURL"
 # dict set pools COINNAME apikey "YOURMPOSAPIKEY"
 
-dict set pools btc apiurl 		"https://pool1.tld/"
-dict set pools btc apikey   	"YOURMPOSAPIKEY"
+dict set pools btc apiurl	"https://pool1.tld/"
+dict set pools btc apikey	"YOURMPOSAPIKEY"
 
 #dict set pools ltc apiurl 		"https://pool2.tld/"
 #dict set pools ltc apikey   	"YOURMPOSAPIKEY"
