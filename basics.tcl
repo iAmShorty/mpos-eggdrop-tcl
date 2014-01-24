@@ -192,4 +192,8 @@ proc FileDeleteLine {FILENAME LINENR {TOLINENR -1}} {
     return 1
 }
 
-proc charfilter {arg} { return [string map {"\\" "\\\\" "\{" "\\\{" "\}" "\\\}" "\[" "\\\[" "\]
+proc charfilter {arg} { return [string map {"\\" "\\\\" "\{" "\\\{" "\}" "\\\}" "\[" "\\\[" "\]" "\\\]" "\'" "\\\'" "\"" "\\\""} $arg] }
+
+putlog "===>> Mining-Pool-Basics - Version $scriptversion loaded"
+
+
