@@ -114,8 +114,8 @@ If you are on IRC and the Bot sits in your channel, type one of the following co
 communicate with the bot and get the output right in the channel
 
 <pre>
-!adduser ircnick mposuser password       - Adding User to userfile"
-!deluser ircnick mposuser password       - Deleting User from userfile"
+!adduser ircnick                         - Adding User to userfile"
+!deluser ircnick                         - Deleting User from userfile"
 !block POOLNAME                          - Blockstats
 !pool POOLNAME                           - Pool Information
 !round POOLNAME                          - Actual Round Information
