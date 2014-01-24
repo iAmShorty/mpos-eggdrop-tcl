@@ -195,6 +195,8 @@ proc check_block {coinname blockheight blockconfirmations} {
 	}
   	append logfilepath $lastblockfile
   	
+  	set newblock "0"
+  	
 	if { [file_read $logfilepath] eq "0" } {
 			
 		# check if lastblocksfile exists
