@@ -12,10 +12,19 @@
 # Block Stats
 #
 proc block_info {nick host hand chan arg} {
-    global help_blocktime help_blocked channels debug debugoutput output
+    global help_blocktime help_blocked channels debug debugoutput output onlyallowregisteredusers
 	package require http
 	package require json
 	package require tls
+
+	if {$onlyallowregisteredusers eq "1"} {
+		set hostmask "$nick!*[getchanhost $nick $chan]"
+		if {[check_mpos_user $nick $hostmask] eq "false"} {
+			putquick "NOTICE $nick :you are not allowed to use this command"
+			putquick "NOTICE $nick :please use !request command to get access to the bot"
+			return
+		}
+	}
 
 	if {$arg eq ""} {
 		if {$debug eq "1"} { putlog "no pool submitted" }
@@ -117,10 +126,19 @@ proc block_info {nick host hand chan arg} {
 # last block found
 #
 proc last_info {nick host hand chan arg } {
- 	global help_blocktime help_blocked channels debug debugoutput output
+ 	global help_blocktime help_blocked channels debug debugoutput output onlyallowregisteredusers
 	package require http
 	package require json
 	package require tls
+
+	if {$onlyallowregisteredusers eq "1"} {
+		set hostmask "$nick!*[getchanhost $nick $chan]"
+		if {[check_mpos_user $nick $hostmask] eq "false"} {
+			putquick "NOTICE $nick :you are not allowed to use this command"
+			putquick "NOTICE $nick :please use !request command to get access to the bot"
+			return
+		}
+	}
 
 	if {$arg eq ""} {
 		if {$debug eq "1"} { putlog "no pool submitted" }

@@ -82,6 +82,30 @@ set poolstocheck "BTC LTC"
 #
 set lastblockfile "lastblock"
 
+# only allow registered users
+# to use channel commands
+#
+# NOTE:
+# users must have a valid auth on irc network
+# and a valid and static hostmask to check for
+# otherwise users can change their nick to a nick
+# that belongs to another user and use the commands
+# not allowed for them
+#
+set onlyallowregisteredusers "0"
+
+# only allow botowners query users balances
+# if set to "0" every user can query balances
+# from all users available in mpos
+#
+set ownersbalanceonly "0"
+
+# only allow botowners query users workers
+# if set to "0" every user can query workers
+# from all users available in mpos
+#
+set ownersworkeronly "0"
+
 # file to save users
 #
 set registereduserfile "mposuser"

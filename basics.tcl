@@ -72,14 +72,6 @@ proc wordwrap {data len} {
 # basic file operations
 #
 proc file_write {filename blocknumber {AUTOAPPEND 0} {NEWLINE 1}} {
-    #set FILE [open $filename w]
-    ## write buffer
-    #puts -nonewline $FILE $blocknumber
-    ## release and return 1 for OK
-    #close $FILE
-    #return 1
-
-
     # when no file exists or not autoappend is on = create/overwrite
     if {![file exists $filename] && $AUTOAPPEND!=1} then {
         # open for writemode
@@ -93,7 +85,6 @@ proc file_write {filename blocknumber {AUTOAPPEND 0} {NEWLINE 1}} {
     # release and return 1 for OK
     close $FILE
     return 1
-
 }
 
 proc file_read {filename} {
@@ -180,4 +171,25 @@ proc FileTextReadLine {FILENAME LINENR {METHODE 1}} {
     return $LINE
 }
 
-putlog "===>> Mining-Pool-Basics - Version $scriptversion loaded"
+proc FileDeleteLine {FILENAME LINENR {TOLINENR -1}} {
+    if {![file exist $FILENAME] || ![file readable $FILENAME]} {return 0}
+    if {![string is digit $LINENR] || ![string is digit $TOLINENR]} {return 0}
+    if {$TOLINENR==-1} {set TOLINENR $LINENR}
+    # open file and read into a list
+    set FILE [open $FILENAME r]
+    set LIST [split [read -nonewline $FILE] \n]
+    close $FILE
+    # remove to lines from list
+    set LIST [lreplace $LIST $LINENR $TOLINENR]
+    # overwrite file and puts file back
+    set FILE [open $FILENAME w]
+    puts -nonewline $FILE [join $LIST \n]
+    #add new line to the end of file
+    #no clue why it deletes the last line
+    #and does not add the \n
+    puts -nonewline $FILE "\n"
+    close $FILE
+    return 1
+}
+
+proc charfilter {arg} { return [string map {"\\" "\\\\" "\{" "\\\{" "\}" "\\\}" "\[" "\\\[" "\]

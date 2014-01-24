@@ -12,10 +12,32 @@
 # Account balance
 #
 proc balance_info {nick host hand chan arg} {
-    global help_blocktime help_blocked channels debug debugoutput output
+    global help_blocktime help_blocked channels debug debugoutput output onlyallowregisteredusers ownersbalanceonly
 	package require http
 	package require json
 	package require tls
+
+	# only allow bot owners to get balances for 
+	# specified users
+	#
+	if {$ownersbalanceonly eq "1"} {
+		if {[matchattr $nick +n]} {
+			putlog "$nick is botowner"
+		} else {
+			putlog "$nick tried to get balance for user $arg"
+			putquick "PRIVMSG $chan :Access to Balance denied, only Botowners can check balances"
+			return
+		}
+	} else {
+		if {$onlyallowregisteredusers eq "1"} {
+			set hostmask "$nick!*[getchanhost $nick $chan]"
+			if {[check_mpos_user $nick $hostmask] eq "false"} {
+				putquick "NOTICE $nick :you are not allowed to use this command"
+				putquick "NOTICE $nick :please use !request command to get access to the bot"
+				return
+			}
+		}
+	}
 
 	if {$arg eq "" || [llength $arg] < 2} {
 		if {$debug eq "1"} { putlog "wrong arguments, must be !balance poolname username" }
@@ -102,3 +124,5 @@ proc balance_info {nick host hand chan arg} {
 }
 
 putlog "===>> Mining-Pool-Balanceinfo - Version $scriptversion loaded"
+
+
