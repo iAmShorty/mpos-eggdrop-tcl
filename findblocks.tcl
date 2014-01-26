@@ -148,6 +148,8 @@ proc checknewblocks {} {
 										set advertise_block [check_block [string tolower [lindex $pool_info 0]] $last_block $last_confirmations]
 										
 										if {$debug eq "1"} { putlog "advertise_block: $advertise_block"}
+										if {$debug eq "1"} { putlog "values: $last_block $last_status $last_estshares $last_shares $last_finder"}
+										
 
 										if {$advertise_block eq "0"} {
 											#if {$debug eq "1"} { putlog "No New Block: $last_block" }
@@ -262,6 +264,8 @@ proc advertise_block {coinname newblock laststatus lastestshares lastshares last
   	
 	if {$debug eq "1"} { putlog "New Block: $newblock" }
 	if {$debug eq "1"} { putlog "New / Last: $newblock - $lastblock" }
+	
+	if {$debug eq "1"} { putlog "calc: [expr {double((double($lastshares)/double($lastestshares))*100)}]" }
 	
 	set percentage [format "%.2f" [expr {double((double($lastshares)/double($lastestshares))*100)}]]
 	
