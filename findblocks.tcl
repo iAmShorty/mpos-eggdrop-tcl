@@ -127,13 +127,14 @@ proc checknewblocks {} {
 											#putlog "Ele2: $elem2 - Val: $elem_val2"
       										if {$elem2 eq "height"} { 
       											set last_block "$elem_val2" 
-      											#putlog "Block: $elem_val2"
+      											if {$debug eq "1"} { putlog "Block: $elem_val2" }
       										}
       										if {$elem2 eq "shares"} { set last_shares "$elem_val2" } 
       										if {$elem2 eq "estshares"} { set last_estshares "$elem_val2" }
 											if {$elem2 eq "finder"} { set last_finder "Finder: $elem_val2" }
 											if {$elem2 eq "confirmations"} {
 												set last_confirmations $elem_val2
+												if {$debug eq "1"} { putlog "Confirmation: $elem_val2" }
 												if {$elem_val2 eq "-1"} {
 													set last_status "Status: Orphan"
 												} else {
@@ -141,9 +142,13 @@ proc checknewblocks {} {
 												}
 											}
 										}
-						
+										
+										if {$debug eq "1"} { putlog "check values: [string tolower [lindex $pool_info 0]] $last_block $last_confirmations" }
+
 										set advertise_block [check_block [string tolower [lindex $pool_info 0]] $last_block $last_confirmations]
-						
+										
+										if {$debug eq "1"} { putlog "advertise_block: $advertise_block"}
+
 										if {$advertise_block eq "0"} {
 											#if {$debug eq "1"} { putlog "No New Block: $last_block" }
 											lappend blocklist $last_block
