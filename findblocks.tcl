@@ -145,10 +145,10 @@ proc checknewblocks {} {
 										
 										if {$debug eq "1"} { putlog "check values: [string tolower [lindex $pool_info 0]] - $last_block - $last_confirmations" }
 										
-										 if {$debug eq "null"} {
+										 if {$last_shares eq "null"} {
 											if {$debug eq "1"} {
-												putlog "skipping block because last shares has a value of null"
-												putlog "last shares: $last_shares"
+												if {$debug eq "1"} { putlog "skipping block because last shares has a value of null" }
+												if {$debug eq "1"} { putlog "last shares: $last_shares" }
 											}
 										} else {
 											set advertise_block [check_block [string tolower [lindex $pool_info 0]] $last_block $last_confirmations]
