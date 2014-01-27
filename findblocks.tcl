@@ -143,28 +143,33 @@ proc checknewblocks {} {
 											}
 										}
 										
-										if {$debug eq "1"} { putlog "check values: [string tolower [lindex $pool_info 0]] $last_block $last_confirmations" }
-
-										set advertise_block [check_block [string tolower [lindex $pool_info 0]] $last_block $last_confirmations]
+										if {$debug eq "1"} { putlog "check values: [string tolower [lindex $pool_info 0]] - $last_block - $last_confirmations" }
 										
-										if {$debug eq "1"} { putlog "advertise_block: $advertise_block"}
-										if {$debug eq "1"} { putlog "values: $last_block $last_status $last_estshares $last_shares $last_finder"}
-										
-
-										if {$advertise_block eq "0"} {
-											#if {$debug eq "1"} { putlog "No New Block: $last_block" }
-											lappend blocklist $last_block
-										} elseif {$advertise_block eq "notconfirmed"} {
-											#if {$debug eq "1"} { putlog "Block not confirmed" }
+										 if {$debug eq "null"} {
+											if {$debug eq "1"} {
+												putlog "skipping block because last shares has a value of null"
+												putlog "last shares: $last_shares"
+											}
 										} else {
-											set writeblockfile "yes"
-											advertise_block [string toupper [lindex $pool_info 0]] $last_block $last_status $last_estshares $last_shares $last_finder
-											lappend blocklist $last_block
+											set advertise_block [check_block [string tolower [lindex $pool_info 0]] $last_block $last_confirmations]
+										
+											if {$debug eq "1"} { putlog "advertise_block: $advertise_block"}
+											if {$debug eq "1"} { putlog "values: $last_block - $last_status - $last_estshares - $last_shares - $last_finder"}
+										
+											if {$advertise_block eq "0"} {
+												#if {$debug eq "1"} { putlog "No New Block: $last_block" }
+												lappend blocklist $last_block
+											} elseif {$advertise_block eq "notconfirmed"} {
+												#if {$debug eq "1"} { putlog "Block not confirmed" }
+											} else {
+												set writeblockfile "yes"
+												advertise_block [string toupper [lindex $pool_info 0]] $last_block $last_status $last_estshares $last_shares $last_finder
+												lappend blocklist $last_block
+											}
 										}
-						
 									}
 								}
-									}
+							}
 						}
 					}
 	
