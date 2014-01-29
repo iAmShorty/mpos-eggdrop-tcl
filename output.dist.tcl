@@ -105,8 +105,9 @@ set output_lastblock "Coin: %blockstats_coin% | Block: #%blockstats_lastblock% |
 # -> %blockfinder_lastfinder%
 # -> %blockfinder_diff%
 # -> %blockfinder_worker%
+# -> %blockfinder_amount%
 #
-set output_findblocks "Coin: %blockfinder_coinname% | New Block: #%blockfinder_newblock% | Last Block: #%blockfinder_lastblock% | Status: %blockfinder_laststatus% | Confirmations: %blockfinder_confirmations% | Est. Shares: %blockfinder_lastestshares% | Shares: %blockfinder_lastshares% | Percentage: %blockfinder_percentage% % | Difficulty: %blockfinder_diff% | Finder: %blockfinder_lastfinder%  | Worker: %blockfinder_worker%"
+set output_findblocks "Coin: %blockfinder_coinname% | New Block: #%blockfinder_newblock% | Last Block: #%blockfinder_lastblock% | Status: %blockfinder_laststatus% | Confirmations: %blockfinder_confirmations% | Est. Shares: %blockfinder_lastestshares% | Shares: %blockfinder_lastshares% | Percentage: %blockfinder_percentage% % | Difficulty: %blockfinder_diff% | Amount: %blockfinder_amount% | Finder: %blockfinder_lastfinder%  | Worker: %blockfinder_worker%"
 
 #
 # output for marketdata
