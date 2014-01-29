@@ -143,6 +143,9 @@ proc checknewblocks {} {
       										if {$elem2 eq "shares"} { set last_shares "$elem_val2" } 
       										if {$elem2 eq "estshares"} { set last_estshares "$elem_val2" }
 											if {$elem2 eq "finder"} { set last_finder "$elem_val2" }
+											if {$elem2 eq "difficulty"} { set last_diff "$elem_val2" }
+											if {$elem2 eq "is_anonymous"} { set last_anon "$elem_val2" }
+											if {$elem2 eq "worker_name"} { set last_worker "$elem_val2" }
 											if {$elem2 eq "confirmations"} {
 												#if {$debug eq "1"} { putlog "Confirmation: $elem_val2" }
 												set last_confirmations "$elem_val2"
@@ -174,7 +177,7 @@ proc checknewblocks {} {
 												#if {$debug eq "1"} { putlog "Block not confirmed" }
 											} else {
 												set writeblockfile "yes"
-												advertise_block [string toupper [lindex $pool_info 0]] $last_block $last_status $last_estshares $last_shares $last_finder $last_confirmations
+												advertise_block [string toupper [lindex $pool_info 0]] $last_block $last_status $last_estshares $last_shares $last_finder $last_confirmations $last_diff $last_anon $last_worker
 												lappend blocklist $last_block
 											}
 										}
@@ -265,7 +268,7 @@ proc check_block {coinname blockheight blockconfirmations} {
 
 # advertising the block
 #
-proc advertise_block {blockfinder_coinname blockfinder_newblock blockfinder_laststatus blockfinder_lastestshares blockfinder_lastshares blockfinder_lastfinder blockfinder_confirmations} {
+proc advertise_block {blockfinder_coinname blockfinder_newblock blockfinder_laststatus blockfinder_lastestshares blockfinder_lastshares blockfinder_lastfinder blockfinder_confirmations blockfinder_diff blockfinder_anon blockfinder_worker} {
 	global channels debug debugoutput scriptpath lastblockfile output_findblocks
 
   	# setting logfile to right path
@@ -293,8 +296,15 @@ proc advertise_block {blockfinder_coinname blockfinder_newblock blockfinder_last
 	set lineoutput [replacevar $lineoutput "%blockfinder_lastestshares%" $blockfinder_lastestshares]
 	set lineoutput [replacevar $lineoutput "%blockfinder_lastshares%" $blockfinder_lastshares]
 	set lineoutput [replacevar $lineoutput "%blockfinder_percentage%" $blockfinder_percentage]
-	set lineoutput [replacevar $lineoutput "%blockfinder_lastfinder%" $blockfinder_lastfinder]
+	if {$blockfinder_anon eq "1"} {
+		set lineoutput [replacevar $lineoutput "%blockfinder_lastfinder%" "anonymous"]
+	} else {
+		set lineoutput [replacevar $lineoutput "%blockfinder_lastfinder%" $blockfinder_lastfinder]
+	}
 	set lineoutput [replacevar $lineoutput "%blockfinder_confirmations%" $blockfinder_confirmations]
+	set lineoutput [replacevar $lineoutput "%blockfinder_diff%" $blockfinder_diff]
+	set lineoutput [replacevar $lineoutput "%blockfinder_worker%" $blockfinder_worker]
+	  
 	
 	foreach advert $channels {
 		putquick "PRIVMSG $advert :$lineoutput"

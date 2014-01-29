@@ -50,8 +50,9 @@ Requirements
 INSTALL
 ================
 
-copy or rename config.dist.tcl to config.tcl, configure the settings and add the following
-lines at the end of your eggdrop.conf
+* copy or rename config.dist.tcl to config.tcl and configure the settings to suit your need
+* copy or rename output.dist.tcl to output.tcl and set the output to what you like
+* add the following lines at the end of your eggdrop.conf and rehash or reload the bot
 
 <pre>
 #
@@ -80,6 +81,9 @@ source scripts/mininginfo/workers.tcl
 source scripts/mininginfo/users.tcl
 source scripts/mininginfo/marketdata.tcl
 </pre>
+
+
+
 
 Adding multiple Pools
 ================
