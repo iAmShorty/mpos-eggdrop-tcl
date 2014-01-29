@@ -38,6 +38,7 @@ FEATURES
 * Advertise new Blocks to Channel
 * Advertise Stats and Infos directly into the channel or send via private Message
 * Show actual Coin Price from Cryptsy, Coins-E or Vircurex
+* Create own Channel Output with predefined variables
 
 Requirements 
 ================
@@ -49,8 +50,9 @@ Requirements
 INSTALL
 ================
 
-copy or rename config.dist.tcl to config.tcl, configure the settings and add the following
-lines at the end of your eggdrop.conf
+* copy or rename config.dist.tcl to config.tcl and configure the settings to suit your need
+* copy or rename output.dist.tcl to output.tcl and set the output to what you like
+* add the following lines at the end of your eggdrop.conf and rehash or reload the bot
 
 <pre>
 #
@@ -62,6 +64,7 @@ source scripts/mininginfo/http.tcl
 source scripts/mininginfo/config.tcl
 source scripts/mininginfo/basics.tcl
 source scripts/mininginfo/bothelp.tcl
+source scripts/mininginfo/output.tcl
 
 # statistic scripts
 #
@@ -78,6 +81,9 @@ source scripts/mininginfo/workers.tcl
 source scripts/mininginfo/users.tcl
 source scripts/mininginfo/marketdata.tcl
 </pre>
+
+
+
 
 Adding multiple Pools
 ================
@@ -105,6 +111,14 @@ Querying userinfos works like that
 <pre>
 !user BTC USERNAME
 </pre>
+
+Creating self defined Output
+================
+
+In output.tcl, there are predefined output variables. If you want to create your own message that will
+be posted to channel or by private message, you have to create your own text in the putput variables
+of each section. Now there are predefined standard messages, which can be used to post the relevant
+information.
 
 
 USAGE

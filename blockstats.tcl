@@ -23,7 +23,7 @@
 # Block Stats
 #
 proc block_info {nick host hand chan arg} {
-    global help_blocktime help_blocked channels debug debugoutput output onlyallowregisteredusers
+    global help_blocktime help_blocked channels debug debugoutput output onlyallowregisteredusers output_blockinfo
 	package require http
 	package require json
 	package require tls
@@ -100,21 +100,21 @@ proc block_info {nick host hand chan arg} {
 				foreach {elem elem_val} $sub_value {
 					#putlog "Ele: $elem - Val: $elem_val"
 
-      				if {$elem eq "currentnetworkblock"} { set block_current "Current Block: #$elem_val" } 
-      				if {$elem eq "nextnetworkblock"} { set block_next "Next Block: #$elem_val" } 
-      				if {$elem eq "lastblock"} { set block_last "Last Block: #$elem_val" }
-      				if {$elem eq "networkdiff"} { set block_diff "Difficulty: $elem_val" } 
+      				if {$elem eq "currentnetworkblock"} { set blockstats_current "$elem_val" } 
+      				if {$elem eq "nextnetworkblock"} { set blockstats_next "$elem_val" } 
+      				if {$elem eq "lastblock"} { set blockstats_last "$elem_val" }
+      				if {$elem eq "networkdiff"} { set blockstats_diff "$elem_val" } 
       				if {$elem eq "esttime"} {
       					#set timediff [expr {$elem_val / 60}]
       					set timediff [expr {double(round(100*[expr {$elem_val / 60}]))/100}]
-      					set block_time "Est. Time to resolve: $timediff minutes" 
+      					set blockstats_time "$timediff" 
       				} 
-      				if {$elem eq "estshares"} { set block_shares "Est. Shares to resolve: $elem_val" } 
+      				if {$elem eq "estshares"} { set blockstats_shares "$elem_val" } 
       				if {$elem eq "timesincelast"} { 
       					#set timediff [expr {$elem_val / 60}]
       					set timediff [expr {double(round(100*[expr {$elem_val / 60}]))/100}]
       					#set timediff $elem_val
-      					set block_timelast "Time since last Block: $timediff minutes"
+      					set blockstats_timelast "$timediff"
       				}
 				
 				}
@@ -122,12 +122,20 @@ proc block_info {nick host hand chan arg} {
 		}
 	}
 	
+	set lineoutput $output_blockinfo
+	set lineoutput [replacevar $lineoutput "%blockstats_coin%" [string toupper [lindex $arg 0]]]
+	set lineoutput [replacevar $lineoutput "%blockstats_current%" $blockstats_current]
+	set lineoutput [replacevar $lineoutput "%blockstats_next%" $blockstats_next]
+	set lineoutput [replacevar $lineoutput "%blockstats_last%" $blockstats_last]
+	set lineoutput [replacevar $lineoutput "%blockstats_diff%" $blockstats_diff]
+	set lineoutput [replacevar $lineoutput "%blockstats_time%" $blockstats_time]
+	set lineoutput [replacevar $lineoutput "%blockstats_shares%" $blockstats_shares]
+	set lineoutput [replacevar $lineoutput "%blockstats_timelast%" $blockstats_timelast]
+	
  	if {$output eq "CHAN"} {
-  		putquick "PRIVMSG $chan :Block Stats: [string toupper [lindex $arg 0]]"
-		putquick "PRIVMSG $chan :$block_current | $block_next | $block_last | $block_diff | $block_time | $block_shares | $block_timelast"	
+  		putquick "PRIVMSG $chan :$lineoutput"	
 	} elseif {$output eq "NOTICE"} {
-  		putquick "NOTICE $nick :Block Stats: [string toupper [lindex $arg 0]]"
-		putquick "NOTICE $nick :$block_current | $block_next | $block_last | $block_diff | $block_time | $block_shares | $block_timelast"	
+  		putquick "NOTICE $nick :$lineoutput"	
 	} else {
 		putquick "PRIVMSG $chan :please set output in config file"
 	}
@@ -137,7 +145,7 @@ proc block_info {nick host hand chan arg} {
 # last block found
 #
 proc last_info {nick host hand chan arg } {
- 	global help_blocktime help_blocked channels debug debugoutput output onlyallowregisteredusers
+ 	global help_blocktime help_blocked channels debug debugoutput output onlyallowregisteredusers output_lastblock
 	package require http
 	package require json
 	package require tls
@@ -167,13 +175,14 @@ proc last_info {nick host hand chan arg } {
     	  return
   	}
 
- 	set last_block "null"
- 	set last_confirmed "null"
- 	set last_difficulty "null"
- 	set last_shares "null"
- 	set last_finder "null"
- 	set last_estshares "null"
- 	set last_timefound "null"
+ 	set blockstats_lastblock "null"
+ 	set blockstats_lastconfirmed "null"
+ 	set blockstats_lastconfirmations "null"
+ 	set blockstats_lastdifficulty "null"
+ 	set blockstats_lasttimefound "null"
+ 	set blockstats_lastshares "null"
+ 	set blockstats_lastfinder "null"
+ 	set blockstats_lastestshares "null"
  	
   	set pool_info [regexp -all -inline {\S+} [pool_vars $arg]]
   	
@@ -226,22 +235,24 @@ proc last_info {nick host hand chan arg } {
 					foreach {elem2 elem_val2} $elem {
 						#putlog "Ele: $elem2 - Val: $elem_val2"
 
-      					if {$elem2 eq "height"} { set last_block "Last Block: #$elem_val2" }
+      					if {$elem2 eq "height"} { set blockstats_lastblock "$elem_val2" }
       					if {$elem2 eq "confirmations"} {
       						if {"$elem_val2" eq "-1"} {
-      							set last_confirmed "Status: Orphaned"
+      							set blockstats_lastconfirmed "Orphan"
+      							set blockstats_lastconfirmations "$elem_val2"
       						} else {
-      							set last_confirmed "Status: Valid | Confirmations: $elem_val2"
+      							set blockstats_lastconfirmed "Valid"
+      							set blockstats_lastconfirmations "$elem_val2"
       						}
       					} 
-      					if {$elem2 eq "difficulty"} { set last_difficulty "Difficulty: $elem_val2" }
+      					if {$elem2 eq "difficulty"} { set blockstats_lastdifficulty "$elem_val2" }
       					if {$elem2 eq "time"} {
       						set converttimestamp [strftime "%d.%m.%Y - %T" $elem_val2]
-      						set last_timefound "Time found: $converttimestamp" 
+      						set blockstats_lasttimefound "$converttimestamp" 
       					}
-      					if {$elem2 eq "shares"} { set last_shares "Shares: $elem_val2" } 
-						if {$elem2 eq "finder"} { set last_finder "Finder: $elem_val2" } 
-						if {$elem2 eq "estshares"} { set last_estshares "Est. Shares: $elem_val2" } 
+      					if {$elem2 eq "shares"} { set blockstats_lastshares "$elem_val2" } 
+						if {$elem2 eq "finder"} { set blockstats_lastfinder "$elem_val2" } 
+						if {$elem2 eq "estshares"} { set blockstats_lastestshares "$elem_val2" } 
 						
 					}
 					break
@@ -249,13 +260,22 @@ proc last_info {nick host hand chan arg } {
 			}
 		}
 	}
+
+	set lineoutput $output_lastblock
+	set lineoutput [replacevar $lineoutput "%blockstats_coin%" [string toupper [lindex $arg 0]]]
+	set lineoutput [replacevar $lineoutput "%blockstats_lastblock%" $blockstats_lastblock]
+	set lineoutput [replacevar $lineoutput "%blockstats_lastconfirmed%" $blockstats_lastconfirmed]
+	set lineoutput [replacevar $lineoutput "%blockstats_lastconfirmations%" $blockstats_lastconfirmations]
+	set lineoutput [replacevar $lineoutput "%blockstats_lastdifficulty%" $blockstats_lastdifficulty]
+	set lineoutput [replacevar $lineoutput "%blockstats_lasttimefound%" $blockstats_lasttimefound]
+	set lineoutput [replacevar $lineoutput "%blockstats_lastshares%" $blockstats_lastshares]
+	set lineoutput [replacevar $lineoutput "%blockstats_lastestshares%" $blockstats_lastestshares]
+	set lineoutput [replacevar $lineoutput "%blockstats_lastfinder%" $blockstats_lastfinder]
 	
  	if {$output eq "CHAN"} {
- 		putquick "PRIVMSG $chan :Last Block on [string toupper [lindex $arg 0]] Pool"
-		putquick "PRIVMSG $chan :$last_block | $last_confirmed | $last_difficulty | $last_timefound | $last_shares | $last_estshares | $last_finder"
+ 		putquick "PRIVMSG $chan :$lineoutput"
 	} elseif {$output eq "NOTICE"} {
-		putquick "NOTICE $nick :Last Block on [string toupper [lindex $arg 0]] Pool"
-		putquick "NOTICE $nick :$last_block | $last_confirmed | $last_difficulty | $last_timefound | $last_shares | $last_estshares | $last_finder"
+		putquick "NOTICE $nick :$lineoutput"
 	} else {
 		putquick "PRIVMSG $chan :please set output in config file"
 	}

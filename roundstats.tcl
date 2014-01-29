@@ -23,7 +23,7 @@
 # round info
 #
 proc round_info {nick host hand chan arg } {
- 	global help_blocktime help_blocked channels debug debugoutput output onlyallowregisteredusers
+ 	global help_blocktime help_blocked channels debug debugoutput output onlyallowregisteredusers output_roundstats
 	package require http
 	package require json
 	package require tls
@@ -111,8 +111,8 @@ proc round_info {nick host hand chan arg } {
 								
 								if {$elem3 eq "valid"} { set shares_valid "$elem_val3" }
 								if {$elem3 eq "invalid"} { set shares_invalid "$elem_val3" }
-								if {$elem3 eq "estimated"} { set shares_estimated "Estimated Shares: $elem_val3" }
-								if {$elem3 eq "progress"} { set shares_progress "Progress: $elem_val3 %" }
+								if {$elem3 eq "estimated"} { set shares_estimated "$elem_val3" }
+								if {$elem3 eq "progress"} { set shares_progress "$elem_val3 %" }
 								
 							}
 						}
@@ -123,8 +123,8 @@ proc round_info {nick host hand chan arg } {
 					#putlog "Ele: $elem - Val: $elem_val"
 					foreach {elem2 elem_val2} $elem_val {
 
-						if {$elem2 eq "block"} { set net_block "Block: #$elem_val2" }
-						if {$elem2 eq "difficulty"} { set net_diff "Difficulty: $elem_val2" }
+						if {$elem2 eq "block"} { set net_block "$elem_val2" }
+						if {$elem2 eq "difficulty"} { set net_diff "$elem_val2" }
 
 					}				
 				}				
@@ -133,14 +133,20 @@ proc round_info {nick host hand chan arg } {
 		}
 	}
 	
-	set allshares [expr $shares_valid+$shares_invalid]
-
+	set lineoutput $output_roundstats
+	set lineoutput [replacevar $lineoutput "%roundstats_coin%" [string toupper [lindex $arg 0]]]
+	set lineoutput [replacevar $lineoutput "%roundstats_block%" $net_block]
+	set lineoutput [replacevar $lineoutput "%roundstats_diff%" $net_diff]
+	set lineoutput [replacevar $lineoutput "%roundstats_estshares%" $shares_estimated]
+	set lineoutput [replacevar $lineoutput "%roundstats_allshares%" [expr $shares_valid+$shares_invalid]]
+	set lineoutput [replacevar $lineoutput "%roundstats_validshares%" $shares_valid]
+	set lineoutput [replacevar $lineoutput "%roundstats_invalidshares%" $shares_invalid]
+	set lineoutput [replacevar $lineoutput "%roundstats_progress%" $shares_progress]	
+	
 	if {$output eq "CHAN"} {
-		putquick "PRIVMSG $chan :Actual Round on [string toupper [lindex $arg 0]] Pool"
- 		putquick "PRIVMSG $chan :$net_block | $net_diff | $shares_estimated | Sharecount: $allshares | Shares valid: $shares_valid | Shares invalid: $shares_invalid | $shares_progress"	
+ 		putquick "PRIVMSG $chan :$lineoutput"	
 	} elseif {$output eq "NOTICE"} {
-		putquick "NOTICE $nick :Actual Round on [string toupper [lindex $arg 0]] Pool"
- 		putquick "NOTICE $nick :$net_block | $net_diff | $shares_estimated | Sharecount: $allshares | Shares valid: $shares_valid | Shares invalid: $shares_invalid | $shares_progress"	
+		putquick "NOTICE $nick :$lineoutput"	
 	} else {
 		putquick "PRIVMSG $chan :please set output in config file"
 	}

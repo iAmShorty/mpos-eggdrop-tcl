@@ -23,7 +23,7 @@
 # Account balance
 #
 proc balance_info {nick host hand chan arg} {
-    global help_blocktime help_blocked channels debug debugoutput output onlyallowregisteredusers ownersbalanceonly
+    global help_blocktime help_blocked channels debug debugoutput output onlyallowregisteredusers ownersbalanceonly output_balance
 	package require http
 	package require json
 	package require tls
@@ -113,21 +113,26 @@ proc balance_info {nick host hand chan arg} {
 				foreach {elem elem_val} $sub_value {
 					#putlog "Ele: $elem - Val: $elem_val"
 					
-      				if {$elem eq "confirmed"} { set balance_confirmed "Confirmed: $elem_val [string toupper [lindex $arg 0]]" } 
-      				if {$elem eq "unconfirmed"} { set balance_unconfirmed "Unconfirmed: $elem_val [string toupper [lindex $arg 0]]" } 
-      				if {$elem eq "orphaned"} { set balance_orphaned "Orphan: $elem_val [string toupper [lindex $arg 0]]" } 
+      				if {$elem eq "confirmed"} { set balance_confirmed "$elem_val" } 
+      				if {$elem eq "unconfirmed"} { set balance_unconfirmed "$elem_val" } 
+      				if {$elem eq "orphaned"} { set balance_orphan "$elem_val" } 
 
 				}
 			}
 		}
 	}
 	
+	set lineoutput $output_balance
+	set lineoutput [replacevar $lineoutput "%balance_coin%" [string toupper [lindex $arg 0]]]
+	set lineoutput [replacevar $lineoutput "%balance_user%" [lindex $arg 1]]
+	set lineoutput [replacevar $lineoutput "%balance_confirmed%" $balance_confirmed]
+	set lineoutput [replacevar $lineoutput "%balance_unconfirmed%" $balance_unconfirmed]
+	set lineoutput [replacevar $lineoutput "%balance_orphan%" $balance_orphan]
+
  	if {$output eq "CHAN"} {
-  		putquick "PRIVMSG $chan :[string toupper [lindex $arg 0]] Account Balance for User [lindex $arg 1]"
-		putquick "PRIVMSG $chan :$balance_confirmed | $balance_unconfirmed | $balance_orphaned"	
+		putquick "PRIVMSG $chan :$lineoutput"
 	} elseif {$output eq "NOTICE"} {
-  		putquick "NOTICE $nick :[string toupper [lindex $arg 0]] Account Balance for User [lindex $arg 1]"
-		putquick "NOTICE $nick :$balance_confirmed | $balance_unconfirmed | $balance_orphaned"	
+  		putquick "NOTICE $nick :$lineoutput"	
 	} else {
 		putquick "PRIVMSG $chan :please set output in config file"
 	}
