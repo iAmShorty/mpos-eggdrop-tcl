@@ -11,7 +11,7 @@
 # Pool Stats
 #
 proc pool_info {nick host hand chan arg} {
-    global help_blocktime help_blocked channels debug debugoutput output onlyallowregisteredusers
+    global help_blocktime help_blocked channels debug debugoutput output onlyallowregisteredusers shownethashrate showpoolhashrate
 	package require http
 	package require json
 	package require tls
@@ -89,10 +89,40 @@ proc pool_info {nick host hand chan arg} {
 				foreach {elem elem_val} $sub_value {
 					#putlog "Ele: $elem - Val: $elem_val"
 				
-      				if {$elem eq "hashrate"} { set pool_hashrate "Hashrate: $elem_val kh/s" }
+      				if {$elem eq "hashrate"} {
+      					if {[string toupper $showpoolhashrate] eq "KH"} {
+      						set pooldivider 1
+      						set poolhashratevalue "KH/s"
+      					} elseif {[string toupper $showpoolhashrate] eq "MH"} {
+      						set pooldivider 1000
+      						set poolhashratevalue "MH/s"
+      					} elseif {[string toupper $showpoolhashrate] eq "GH"} {
+      						set pooldivider 1000000
+      						set poolhashratevalue "GH/s"
+      					} else {
+      						set pooldivider 1
+      						set poolhashratevalue "KH/s"
+      					}
+      					set pool_hashrate [format "%.2f" [expr {double(double($elem_val)/double($pooldivider))}]]
+      				}
       				if {$elem eq "efficiency"} { set pool_efficiency "Efficiency: $elem_val %" } 
       				if {$elem eq "workers"} { set pool_workers "Workers: $elem_val" } 
-      				if {$elem eq "nethashrate"} { set pool_nethashrate "Net Hashrate: $elem_val kh/s" } 
+      				if {$elem eq "nethashrate"} {
+      					if {[string toupper $shownethashrate] eq "KH"} {
+      						set netdivider 1000
+      						set nethashratevalue "KH/s"
+      					} elseif {[string toupper $shownethashrate] eq "MH"} {
+      						set netdivider 1000000
+      						set nethashratevalue "MH/s"
+      					} elseif {[string toupper $shownethashrate]eq "GH"} {
+      						set netdivider 1000000000
+      						set nethashratevalue "GH/s"
+      					} else {
+      						set netdivider 1
+      						set nethashratevalue "H/s"
+      					}
+      					set pool_nethashrate [format "%.2f" [expr {double(double($elem_val)/double($netdivider))}]]
+      				} 
 				
 				}
 			}
@@ -101,10 +131,10 @@ proc pool_info {nick host hand chan arg} {
 	
  	if {$output eq "CHAN"} {
 		putquick "PRIVMSG $chan :Pool Stats: [string toupper [lindex $arg 0]]"
-		putquick "PRIVMSG $chan :$pool_hashrate | $pool_efficiency | $pool_workers | $pool_nethashrate"	
+		putquick "PRIVMSG $chan :Hashrate: $pool_hashrate $poolhashratevalue | $pool_efficiency | $pool_workers | Net Hashrate: $pool_nethashrate $nethashratevalue"	
 	} elseif {$output eq "NOTICE"} {
 		putquick "NOTICE $nick :Pool Stats: [string toupper [lindex $arg 0]]"
-		putquick "NOTICE $nick :$pool_hashrate | $pool_efficiency | $pool_workers | $pool_nethashrate"	
+		putquick "NOTICE $nick :Hashrate: $pool_hashrate $poolhashratevalue | $pool_efficiency | $pool_workers | Net Hashrate: $pool_nethashrate $nethashratevalue"	
 	} else {
 		putquick "PRIVMSG $chan :please set output in config file"
 	}
