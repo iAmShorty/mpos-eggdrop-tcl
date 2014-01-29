@@ -29,7 +29,7 @@ bind pub - !price price_info
 #
 
 proc price_info {nick host hand chan arg} {
- 	global help_blocktime help_blocked channels debug debugoutput usehttps output marketapi activemarket vircurex_querycoin cryptsy_marketid onlyallowregisteredusers
+ 	global help_blocktime help_blocked channels debug debugoutput usehttps output marketapi activemarket vircurex_querycoin cryptsy_marketid onlyallowregisteredusers output_marketdata
 	package require http
 	package require json
 	package require tls
@@ -119,7 +119,7 @@ proc price_info {nick host hand chan arg} {
 
 
 proc market_coinse {chan marketdataresult} {
-	global channels debug debugoutput output coinse_querycoin
+	global channels debug debugoutput output coinse_querycoin output_marketdata_coinse
 	
 	foreach {key value} $marketdataresult {
 		#putlog "DATA: $key"
@@ -134,7 +134,7 @@ proc market_coinse {chan marketdataresult} {
 							set basecoin $elem_val
 						}
 						if {$elem eq "c1"} {
-							set altcoin "Coin: $elem_val"
+							set altcoin "$elem_val"
 						}						
 
 						foreach {elem2 elem_val2} $elem_val {
@@ -143,10 +143,10 @@ proc market_coinse {chan marketdataresult} {
 							if {$elem2 eq "24h"} {
 								foreach {elem3 elem_val3} $elem_val2 {
 									#putlog "DATA: $elem3 - $elem_val3"
-									if {$elem3 eq "volume"} { set trade_volume "Volume: $elem_val3" }
-									if {$elem3 eq "h"} { set trade_high "High: $elem_val3" }
-									if {$elem3 eq "l"} { set trade_low "Low: $elem_val3" }
-									if {$elem3 eq "avg_rate"} { set trade_avg "AVG: $elem_val3" }
+									if {$elem3 eq "volume"} { set trade_volume "$elem_val3" }
+									if {$elem3 eq "h"} { set trade_high "$elem_val3" }
+									if {$elem3 eq "l"} { set trade_low "$elem_val3" }
+									if {$elem3 eq "avg_rate"} { set trade_avg "$elem_val3" }
 								}
 							}
 						}
@@ -156,10 +156,19 @@ proc market_coinse {chan marketdataresult} {
 		}
 	}
 
+	set lineoutput $output_marketdata_coinse
+	set lineoutput [replacevar $lineoutput "%marketdata_market%" "Coins-E"]
+	set lineoutput [replacevar $lineoutput "%marketdata_altcoin%" $altcoin]
+	set lineoutput [replacevar $lineoutput "%marketdata_tradehigh%" $trade_high]
+	set lineoutput [replacevar $lineoutput "%marketdata_tradelow%" $trade_low]
+	set lineoutput [replacevar $lineoutput "%marketdata_tradeavg%" $trade_avg]
+	set lineoutput [replacevar $lineoutput "%marketdata_tradevolume%" $trade_volume]
+	set lineoutput [replacevar $lineoutput "%marketdata_basecoin%" $basecoin]
+
 	if {$output eq "CHAN"} {
-		putquick "PRIVMSG $chan :Market: Coins-E | $altcoin | $trade_high $basecoin | $trade_low $basecoin | $trade_avg $basecoin | $trade_volume"
+		putquick "PRIVMSG $chan :$lineoutput"
 	} elseif {$output eq "NOTICE"} {
-		putquick "NOTICE $nick :Market: Coins-E | $altcoin | $trade_high $basecoin | $trade_low $basecoin | $trade_avg $basecoin | $trade_volume"
+		putquick "NOTICE $nick :$lineoutput"
 	} else {
 		putquick "PRIVMSG $chan :please set output in config file"
 	}
@@ -167,7 +176,7 @@ proc market_coinse {chan marketdataresult} {
 
 
 proc market_vircurex {chan marketdataresult} {
-	global channels debug debugoutput output
+	global channels debug debugoutput output output_marketdata_vircurex
 	
 	if {$marketdataresult eq "Unknown currency"} {
 		putquick "PRIVMSG $chan :Unknown currency, please check api settings"
@@ -178,13 +187,19 @@ proc market_vircurex {chan marketdataresult} {
 		#putlog "Key: $key - $value"
 		if {$key eq "base"} { set trade_base "Coin: $value" }
 		if {$key eq "alt"} { set trade_alt $value }
-		if {$key eq "value"} { set trade_price "Latest Price: $value" }
+		if {$key eq "value"} { set trade_price "$value" }
 	}
+
+	set lineoutput $output_marketdata_vircurex
+	set lineoutput [replacevar $lineoutput "%marketdata_market%" "Vircurex"]
+	set lineoutput [replacevar $lineoutput "%trade_base%" $trade_base]
+	set lineoutput [replacevar $lineoutput "%trade_price%" $trade_price]
+	set lineoutput [replacevar $lineoutput "%trade_alt%" $trade_alt]
 	
 	if {$output eq "CHAN"} {
-		putquick "PRIVMSG $chan :Market: Vircurex | $trade_base | $trade_price $trade_alt"
+		putquick "PRIVMSG $chan :$lineoutput"
 	} elseif {$output eq "NOTICE"} {
-		putquick "NOTICE $nick :Market: Vircurex | $trade_base | $trade_price $trade_alt"
+		putquick "NOTICE $nick :$lineoutput"
 	} else {
 		putquick "PRIVMSG $chan :please set output in config file"
 	}
@@ -192,7 +207,7 @@ proc market_vircurex {chan marketdataresult} {
 
 
 proc market_cryptsy {chan marketdataresult} {
-	global channels debug debugoutput output
+	global channels debug debugoutput output output_marketdata_cryptsy
 	
 	foreach {key value} $marketdataresult {
 		#putlog "Key: $key - $value"
@@ -206,10 +221,10 @@ proc market_cryptsy {chan marketdataresult} {
 						#putlog "Key: $elem2"
 						#putlog "Subkey: $elem_val2"
 											
-						if {$elem2 eq "lasttradeprice"} { set trade_price "Latest Price: $elem_val2" }
-						if {$elem2 eq "lasttradetime"} { set trade_trime "Last Trade: $elem_val2" }
-						if {$elem2 eq "label"} { set trade_label "$elem_val2" }
-						if {$elem2 eq "volume"} { set trade_volume "Volume: $elem_val2" }
+						if {$elem2 eq "lasttradeprice"} { set marketdata_tradeprice "$elem_val2" }
+						if {$elem2 eq "lasttradetime"} { set marketdata_tradetrime "$elem_val2" }
+						if {$elem2 eq "label"} { set marketdata_tradelabel "$elem_val2" }
+						if {$elem2 eq "volume"} { set marketdata_tradevolume "$elem_val2" }
 					
 					}
 				}
@@ -217,10 +232,17 @@ proc market_cryptsy {chan marketdataresult} {
 		}
 	}
 
+	set lineoutput $output_marketdata_cryptsy
+	set lineoutput [replacevar $lineoutput "%marketdata_market%" "Cryptsy"]
+	set lineoutput [replacevar $lineoutput "%marketdata_tradeprice%" $marketdata_tradeprice]
+	set lineoutput [replacevar $lineoutput "%marketdata_tradelabel%" $marketdata_tradelabel]
+	set lineoutput [replacevar $lineoutput "%marketdata_tradetrime%" $marketdata_tradetrime]
+	set lineoutput [replacevar $lineoutput "%marketdata_tradevolume%" $marketdata_tradevolume]
+	
 	if {$output eq "CHAN"} {
-		putquick "PRIVMSG $chan :Market: Cryptsy | $trade_price $trade_label | $trade_trime | $trade_volume"
+		putquick "PRIVMSG $chan :$lineoutput"
 	} elseif {$output eq "NOTICE"} {
-		putquick "NOTICE $nick :Market: Cryptsy | $trade_price $trade_label | $trade_trime | $trade_volume"
+		putquick "NOTICE $nick :$lineoutput"
 	} else {
 		putquick "PRIVMSG $chan :please set output in config file"
 	}

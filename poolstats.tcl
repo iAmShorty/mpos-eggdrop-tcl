@@ -23,7 +23,7 @@
 # Pool Stats
 #
 proc pool_info {nick host hand chan arg} {
-    global help_blocktime help_blocked channels debug debugoutput output onlyallowregisteredusers shownethashrate showpoolhashrate
+    global help_blocktime help_blocked channels debug debugoutput output onlyallowregisteredusers shownethashrate showpoolhashrate output_poolstats
 	package require http
 	package require json
 	package require tls
@@ -120,8 +120,8 @@ proc pool_info {nick host hand chan arg} {
       					}
       					set pool_hashrate [format "%.2f" [expr {double(double($elem_val)/double($pooldivider))}]]
       				}
-      				if {$elem eq "efficiency"} { set pool_efficiency "Efficiency: $elem_val %" } 
-      				if {$elem eq "workers"} { set pool_workers "Workers: $elem_val" } 
+      				if {$elem eq "efficiency"} { set pool_efficiency "$elem_val" } 
+      				if {$elem eq "workers"} { set pool_workers "$elem_val" } 
       				if {$elem eq "nethashrate"} {
       					if {[string toupper $shownethashrate] eq "KH"} {
       						set netdivider 1000
@@ -147,12 +147,19 @@ proc pool_info {nick host hand chan arg} {
 		}
 	}
 	
+	set lineoutput $output_poolstats
+	set lineoutput [replacevar $lineoutput "%poolstats_coin%" [string toupper [lindex $arg 0]]]
+	set lineoutput [replacevar $lineoutput "%poolstats_hashrate%" $pool_hashrate]
+	set lineoutput [replacevar $lineoutput "%poolstats_poolhashratevalue%" $poolhashratevalue]
+	set lineoutput [replacevar $lineoutput "%poolstats_efficiency%" $pool_efficiency]
+	set lineoutput [replacevar $lineoutput "%poolstats_workers%" $pool_workers]
+	set lineoutput [replacevar $lineoutput "%poolstats_nethashrate%" $pool_nethashrate]
+	set lineoutput [replacevar $lineoutput "%poolstats_nethashratevalue%" $nethashratevalue]	
+	
  	if {$output eq "CHAN"} {
-		putquick "PRIVMSG $chan :Pool Stats: [string toupper [lindex $arg 0]]"
-		putquick "PRIVMSG $chan :Hashrate: $pool_hashrate $poolhashratevalue | $pool_efficiency | $pool_workers | Net Hashrate: $pool_nethashrate $nethashratevalue"	
+		putquick "PRIVMSG $chan :$lineoutput"	
 	} elseif {$output eq "NOTICE"} {
-		putquick "NOTICE $nick :Pool Stats: [string toupper [lindex $arg 0]]"
-		putquick "NOTICE $nick :Hashrate: $pool_hashrate $poolhashratevalue | $pool_efficiency | $pool_workers | Net Hashrate: $pool_nethashrate $nethashratevalue"	
+		putquick "NOTICE $nick :$lineoutput"	
 	} else {
 		putquick "PRIVMSG $chan :please set output in config file"
 	}

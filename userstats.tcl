@@ -23,7 +23,7 @@
 # info for specific user
 #
 proc user_info {nick host hand chan arg} {
- 	global help_blocktime help_blocked channels debug debugoutput output onlyallowregisteredusers
+ 	global help_blocktime help_blocked channels debug debugoutput output onlyallowregisteredusers output_userstats
 	package require http
 	package require json
 	package require tls
@@ -103,24 +103,31 @@ proc user_info {nick host hand chan arg} {
 					foreach {subelem subelem_val} $elem_val {
 						#putlog "SubEle: $subelem - SubVal: $subelem_val"
 						
-						if {$subelem eq "valid"} { set user_validround "Valid this round: $subelem_val" }
-						if {$subelem eq "invalid"} { set user_invalidround "Invalid this round: $subelem_val" }
+						if {$subelem eq "valid"} { set user_validround "$subelem_val" }
+						if {$subelem eq "invalid"} { set user_invalidround "$subelem_val" }
 						
 					}
 					
-					if {$elem eq "hashrate"} { set user_hashrate "Hashrate: $elem_val kh/s" }
-					if {$elem eq "sharerate"} { set user_sharerate "Sharerate: $elem_val S/s" }
+					if {$elem eq "hashrate"} { set user_hashrate "$elem_val" }
+					if {$elem eq "sharerate"} { set user_sharerate "$elem_val" }
 				}
 			}
 		}
 	}
+
+	set lineoutput $output_userstats
+	set lineoutput [replacevar $lineoutput "%userstats_coin%" [string toupper [string toupper [lindex $arg 0]]]]
+	set lineoutput [replacevar $lineoutput "%userstats_user%" [string tolower [lindex $arg 1]]]
+	set lineoutput [replacevar $lineoutput "%userstats_hashrate%" $user_hashrate]
+	set lineoutput [replacevar $lineoutput "%userstats_validround%" $user_validround]
+	set lineoutput [replacevar $lineoutput "%userstats_invalidround%" $user_invalidround]
+	set lineoutput [replacevar $lineoutput "%userstats_sharerate%" $user_sharerate]
+	
 	
 	if {$output eq "CHAN"} {
-		putquick "PRIVMSG $chan :User Info for [string tolower [lindex $arg 1]] on [string toupper [lindex $arg 0]] Pool"
-		putquick "PRIVMSG $chan :$user_hashrate | $user_validround | $user_invalidround | $user_sharerate"
+		putquick "PRIVMSG $chan :$lineoutput"
 	} elseif {$output eq "NOTICE"} {
-		putquick "NOTICE $nick :User Info for [string tolower [lindex $arg 1]] on [string toupper [lindex $arg 0]] Pool"
-		putquick "NOTICE $nick :$user_hashrate | $user_validround | $user_invalidround | $user_sharerate"
+		putquick "NOTICE $nick :$lineoutput"
 	} else {
 		putquick "PRIVMSG $chan :please set output in config file"
 	}
