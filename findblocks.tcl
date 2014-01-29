@@ -305,8 +305,7 @@ proc advertise_block {blockfinder_coinname blockfinder_newblock blockfinder_last
 	set lineoutput [replacevar $lineoutput "%blockfinder_confirmations%" $blockfinder_confirmations]
 	set lineoutput [replacevar $lineoutput "%blockfinder_diff%" $blockfinder_diff]
 	set lineoutput [replacevar $lineoutput "%blockfinder_worker%" $blockfinder_worker]
-	set lineoutput [replacevar $lineoutput "%blockfinder_amount%" $blockfinder_amount}
-	  
+	set lineoutput [replacevar $lineoutput "%blockfinder_amount%" $blockfinder_amount]
 	
 	foreach advert $channels {
 		putquick "PRIVMSG $advert :$lineoutput"
