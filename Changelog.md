@@ -2,6 +2,9 @@ v. 0.8
 
 * added Multipool environment
 * splitted functions to separate files
+* added Hashrate modifiers to config
+* added license info
+* solved bug with findblocks
 
 v. 0.7
 
