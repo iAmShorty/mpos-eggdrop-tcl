@@ -1,9 +1,20 @@
 #
-# MPOS eggdrop Calls
-# 
-# Basic TCL Commands used in Poolstat Scripts
+# Basic TCL Commands used in MPOS Api Scripts
 #
-
+# Copyright: 2014, iAmShorty
+# 
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# 
+# http://www.apache.org/licenses/LICENSE-2.0
+# 
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
 ######################################################################
 ##########           nothing to edit below this line        ##########
 ##########           use config.tcl for setting options     ##########
@@ -195,5 +206,3 @@ proc FileDeleteLine {FILENAME LINENR {TOLINENR -1}} {
 proc charfilter {arg} { return [string map {"\\" "\\\\" "\{" "\\\{" "\}" "\\\}" "\[" "\\\[" "\]" "\\\]" "\'" "\\\'" "\"" "\\\""} $arg] }
 
 putlog "===>> Mining-Pool-Basics - Version $scriptversion loaded"
-
-

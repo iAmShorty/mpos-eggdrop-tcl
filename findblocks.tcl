@@ -1,9 +1,20 @@
 #
-# MPOS eggdrop Calls
-# 
 # Checking for new blocks
 #
-
+# Copyright: 2014, iAmShorty
+# 
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# 
+# http://www.apache.org/licenses/LICENSE-2.0
+# 
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
 ######################################################################
 ##########           nothing to edit below this line        ##########
 ##########           use config.tcl for setting options     ##########
@@ -134,7 +145,7 @@ proc checknewblocks {} {
 											if {$elem2 eq "finder"} { set last_finder "Finder: $elem_val2" }
 											if {$elem2 eq "confirmations"} {
 												set last_confirmations $elem_val2
-												if {$debug eq "1"} { putlog "Confirmation: $elem_val2" }
+												#if {$debug eq "1"} { putlog "Confirmation: $elem_val2" }
 												if {$elem_val2 eq "-1"} {
 													set last_status "Status: Orphan"
 												} else {
@@ -143,18 +154,18 @@ proc checknewblocks {} {
 											}
 										}
 										
-										if {$debug eq "1"} { putlog "check values: [string tolower [lindex $pool_info 0]] - $last_block - $last_confirmations" }
+										#if {$debug eq "1"} { putlog "check values: [string tolower [lindex $pool_info 0]] - $last_block - $last_confirmations" }
 										
 										 if {$last_shares eq "null"} {
-											if {$debug eq "1"} {
-												if {$debug eq "1"} { putlog "skipping block because last shares has a value of null" }
-												if {$debug eq "1"} { putlog "last shares: $last_shares" }
-											}
+											#if {$debug eq "1"} {
+											#	putlog "skipping block because last shares has a value of null"
+											#	putlog "last shares: $last_shares"
+											#}
 										} else {
 											set advertise_block [check_block [string tolower [lindex $pool_info 0]] $last_block $last_confirmations]
 										
-											if {$debug eq "1"} { putlog "advertise_block: $advertise_block"}
-											if {$debug eq "1"} { putlog "values: $last_block - $last_status - $last_estshares - $last_shares - $last_finder"}
+											#if {$debug eq "1"} { putlog "advertise_block: $advertise_block"}
+											#if {$debug eq "1"} { putlog "values: $last_block - $last_status - $last_estshares - $last_shares - $last_finder"}
 										
 											if {$advertise_block eq "0"} {
 												#if {$debug eq "1"} { putlog "No New Block: $last_block" }
