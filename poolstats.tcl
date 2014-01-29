@@ -111,6 +111,9 @@ proc pool_info {nick host hand chan arg} {
       					} elseif {[string toupper $showpoolhashrate] eq "GH"} {
       						set pooldivider 1000000
       						set poolhashratevalue "GH/s"
+      					} elseif {[string toupper $showpoolhashrate] eq "TH"} {
+      						set pooldivider 1000000000
+      						set poolhashratevalue "TH/s"
       					} else {
       						set pooldivider 1
       						set poolhashratevalue "KH/s"
@@ -129,6 +132,9 @@ proc pool_info {nick host hand chan arg} {
       					} elseif {[string toupper $shownethashrate]eq "GH"} {
       						set netdivider 1000000000
       						set nethashratevalue "GH/s"
+      					} elseif {[string toupper $shownethashrate]eq "TH"} {
+      						set netdivider 1000000000000
+      						set nethashratevalue "TH/s"
       					} else {
       						set netdivider 1
       						set nethashratevalue "H/s"

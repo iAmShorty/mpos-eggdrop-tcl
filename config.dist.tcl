@@ -91,12 +91,12 @@ dict set pools ltc apikey   	"YOURMPOSAPIKEY"
 set poolstocheck "BTC LTC"
 
 # show net hashrate as 
-# KH, MH or GH
+# KH, MH, GH or TH
 #
 set shownethashrate "KH"
 
 # show pool hashrate as 
-# KH, MH or GH
+# KH, MH, GH or TH
 #
 set showpoolhashrate "KH"
 
