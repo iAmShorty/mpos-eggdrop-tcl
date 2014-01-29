@@ -32,7 +32,8 @@
 # colors may or may not work in your irc client
 # tested with XChat Azure on MAC, there are no
 # colors shown. So don't blame me if the output
-# is not colored
+# is not colored. Sometimes you have to set channelmode
+# in IRC to -c to get colors working
 #
 # 0  = white
 # 1  = black
@@ -50,6 +51,18 @@
 # 13 = pink
 # 14 = darkgrey
 # 15 = lightgrey
+#
+# setting colors with \003X where X is the colorcode
+# and resetting color with \003 where color should be
+# normal again
+#
+# other options
+#
+# \027 = underline
+# \002 = bold
+#
+# reset with \027 or \002 at the end of the value
+#
 
 #
 # output for user balance
@@ -60,7 +73,11 @@
 # -> %balance_unconfirmed%
 # -> %balance_orphaned%
 #
-set output_balance "Coin: %balance_coin% | User: %balance_user% | Confirmed: %balance_confirmed% | Unconfirmed: %balance_unconfirmed% | Orphan: %balance_orphan%"
+set output_balance "Coin: \0032%balance_coin%\003\
+| User: %balance_user%\
+| Confirmed: %balance_confirmed%\
+| Unconfirmed: %balance_unconfirmed%\
+| Orphan: %balance_orphan%"
 
 #
 # output for current block information
@@ -74,7 +91,14 @@ set output_balance "Coin: %balance_coin% | User: %balance_user% | Confirmed: %ba
 # -> %blockstats_shares%
 # -> %blockstats_timelast%
 #
-set output_blockinfo "Coin: %blockstats_coin% | Current Block: %blockstats_current% | Next Block: %blockstats_next% | Last Block: %blockstats_last% | Difficulty: %blockstats_diff% | Est. Time to resolve: %blockstats_time% minutes | Est. Shares to resolve: %blockstats_shares% | Time since last Block: %blockstats_timelast% minutes"
+set output_blockinfo "Coin: \0032%blockstats_coin%\003\
+| Current Block: %blockstats_current%\
+| Next Block: %blockstats_next%\
+| Last Block: %blockstats_last%\
+| Difficulty: %blockstats_diff%\
+| Est. Time to resolve: %blockstats_time% minutes\
+| Est. Shares to resolve: %blockstats_shares%\
+| Time since last Block: %blockstats_timelast% minutes"
 
 #
 # output for last block information
@@ -89,7 +113,15 @@ set output_blockinfo "Coin: %blockstats_coin% | Current Block: %blockstats_curre
 # -> %blockstats_lastestshares%
 # -> %blockstats_lastfinder%
 #
-set output_lastblock "Coin: %blockstats_coin% | Block: #%blockstats_lastblock% | Status: %blockstats_lastconfirmed% | Confirmations: %blockstats_lastconfirmations% | Difficulty: %blockstats_lastdifficulty% | Time found: %blockstats_lasttimefound% | Shares: %blockstats_lastshares% | Est. Shares: %blockstats_lastestshares% | Finder: %blockstats_lastfinder%"
+set output_lastblock "Coin: \0032%blockstats_coin%\003\
+| Block: #%blockstats_lastblock%\
+| Status: %blockstats_lastconfirmed%\
+| Confirmations: %blockstats_lastconfirmations%\
+| Difficulty: %blockstats_lastdifficulty%\
+| Time found: %blockstats_lasttimefound%\
+| Shares: %blockstats_lastshares%\
+| Est. Shares: %blockstats_lastestshares%\
+| Finder: %blockstats_lastfinder%"
 
 #
 # output for advertising blocks
@@ -107,7 +139,18 @@ set output_lastblock "Coin: %blockstats_coin% | Block: #%blockstats_lastblock% |
 # -> %blockfinder_worker%
 # -> %blockfinder_amount%
 #
-set output_findblocks "Coin: %blockfinder_coinname% | New Block: #%blockfinder_newblock% | Last Block: #%blockfinder_lastblock% | Status: %blockfinder_laststatus% | Confirmations: %blockfinder_confirmations% | Est. Shares: %blockfinder_lastestshares% | Shares: %blockfinder_lastshares% | Percentage: %blockfinder_percentage% % | Difficulty: %blockfinder_diff% | Amount: %blockfinder_amount% | Finder: %blockfinder_lastfinder%  | Worker: %blockfinder_worker%"
+set output_findblocks "Coin: \0032%blockfinder_coinname%\003\
+| New Block: #%blockfinder_newblock%\
+| Last Block: #%blockfinder_lastblock%\
+| Status: %blockfinder_laststatus%\
+| Confirmations: %blockfinder_confirmations%\
+| Est. Shares: %blockfinder_lastestshares%\
+| Shares: %blockfinder_lastshares%\
+| Percentage: %blockfinder_percentage% %\
+| Difficulty: %blockfinder_diff%\
+| Amount: %blockfinder_amount%\
+| Finder: %blockfinder_lastfinder%\
+| Worker: %blockfinder_worker%"
 
 #
 # output for marketdata
@@ -120,7 +163,10 @@ set output_findblocks "Coin: %blockfinder_coinname% | New Block: #%blockfinder_n
 # -> %marketdata_tradelabel%
 # -> %marketdata_tradevolume%
 #
-set output_marketdata_cryptsy "Market: %marketdata_market% | Latest Price: %marketdata_tradeprice% %marketdata_tradelabel% | Last Trade: %marketdata_tradetrime% | Volume: %marketdata_tradevolume%"
+set output_marketdata_cryptsy "Market: \0032%marketdata_market%\003\
+| Latest Price: %marketdata_tradeprice% %marketdata_tradelabel%\
+| Last Trade: %marketdata_tradetrime%\
+| Volume: %marketdata_tradevolume%"
 
 #
 # - Vircurex
@@ -130,7 +176,9 @@ set output_marketdata_cryptsy "Market: %marketdata_market% | Latest Price: %mark
 # -> %trade_price%
 # -> %trade_alt%
 #
-set output_marketdata_vircurex "Market: %marketdata_market% | Coin: %trade_base% | Latest Price: %trade_price% %trade_alt%"
+set output_marketdata_vircurex "Market: \0032%marketdata_market%\003\
+| Coin: %trade_base%\
+| Latest Price: %trade_price% %trade_alt%"
 
 #
 # - Coins-E
@@ -143,7 +191,12 @@ set output_marketdata_vircurex "Market: %marketdata_market% | Coin: %trade_base%
 # -> %marketdata_tradevolume%
 # -> %marketdata_basecoin%
 #
-set output_marketdata_coinse "Market: %marketdata_market% | Coin: %marketdata_altcoin% | High: %marketdata_tradehigh% %marketdata_basecoin% | Low: %marketdata_tradelow% %basecoin% | AVG: %marketdata_tradeavg% %marketdata_basecoin% | Volume: %marketdata_tradevolume%"
+set output_marketdata_coinse "Market: \0032%marketdata_market%\003\
+| Coin: %marketdata_altcoin%\
+| High: %marketdata_tradehigh% %marketdata_basecoin%\
+| Low: %marketdata_tradelow% %basecoin%\
+| AVG: %marketdata_tradeavg% %marketdata_basecoin%\
+| Volume: %marketdata_tradevolume%"
 
 #
 # output for poolstats
@@ -156,7 +209,11 @@ set output_marketdata_coinse "Market: %marketdata_market% | Coin: %marketdata_al
 # -> %poolstats_nethashrate%
 # -> %poolstats_nethashratevalue%
 #
-set output_poolstats "Pool: %poolstats_coin% | Hashrate: %poolstats_hashrate% %poolstats_poolhashratevalue% | Efficiency: %poolstats_efficiency% % | Workers: %poolstats_workers% | Net Hashrate: %poolstats_nethashrate% %poolstats_nethashratevalue%"
+set output_poolstats "Pool: \0032%poolstats_coin%\003\
+| Hashrate: %poolstats_hashrate% %poolstats_poolhashratevalue%\
+| Efficiency: %poolstats_efficiency% %\
+| Workers: %poolstats_workers%\
+| Net Hashrate: %poolstats_nethashrate% %poolstats_nethashratevalue%"
 
 #
 # output for roundstats
@@ -170,7 +227,14 @@ set output_poolstats "Pool: %poolstats_coin% | Hashrate: %poolstats_hashrate% %p
 # -> %roundstats_invalidshares%
 # -> %roundstats_progress%
 #
-set output_roundstats "Pool: %roundstats_coin% | Block: #%roundstats_block% | Difficulty: %roundstats_diff% | Estimated Shares: %roundstats_estshares% | Sharecount: %roundstats_allshares% | Shares valid: %roundstats_validshares% | Shares invalid: %roundstats_invalidshares% | Progress: %roundstats_progress%"
+set output_roundstats "Pool: \0032%roundstats_coin%\003\
+| Block: #%roundstats_block%\
+| Difficulty: %roundstats_diff%\
+| Estimated Shares: %roundstats_estshares%\
+| Sharecount: %roundstats_allshares%\
+| Shares valid: %roundstats_validshares%\
+| Shares invalid: %roundstats_invalidshares%\
+| Progress: %roundstats_progress%"
 
 #
 # output for userstats
@@ -182,7 +246,12 @@ set output_roundstats "Pool: %roundstats_coin% | Block: #%roundstats_block% | Di
 # -> %userstats_invalidround%
 # -> %userstats_sharerate%
 #
-set output_userstats "Pool: %userstats_coin% | User: %userstats_user% | Hashrate: %userstats_hashrate% KH/s | Valid this round: %userstats_validround% | Invalid this round: %userstats_invalidround% | Sharerate: %userstats_sharerate% S/s"
+set output_userstats "Pool: \0032%userstats_coin%\003\
+| User: %userstats_user%\
+| Hashrate: %userstats_hashrate% KH/s\
+| Valid this round: %userstats_validround%\
+| Invalid this round: %userstats_invalidround%\
+| Sharerate: %userstats_sharerate% S/s"
 
 
 putlog "===>> Mining-Pool-Outputconfig - Version $scriptversion loaded"

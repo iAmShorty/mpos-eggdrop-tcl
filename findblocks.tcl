@@ -299,12 +299,13 @@ proc advertise_block {blockfinder_coinname blockfinder_newblock blockfinder_last
 	set lineoutput [replacevar $lineoutput "%blockfinder_percentage%" $blockfinder_percentage]
 	if {$blockfinder_anon eq "1"} {
 		set lineoutput [replacevar $lineoutput "%blockfinder_lastfinder%" "anonymous"]
+		set lineoutput [replacevar $lineoutput "%blockfinder_worker%" "anonymous"]
 	} else {
 		set lineoutput [replacevar $lineoutput "%blockfinder_lastfinder%" $blockfinder_lastfinder]
+		set lineoutput [replacevar $lineoutput "%blockfinder_worker%" $blockfinder_worker]
 	}
 	set lineoutput [replacevar $lineoutput "%blockfinder_confirmations%" $blockfinder_confirmations]
 	set lineoutput [replacevar $lineoutput "%blockfinder_diff%" $blockfinder_diff]
-	set lineoutput [replacevar $lineoutput "%blockfinder_worker%" $blockfinder_worker]
 	set lineoutput [replacevar $lineoutput "%blockfinder_amount%" $blockfinder_amount]
 	
 	foreach advert $channels {
