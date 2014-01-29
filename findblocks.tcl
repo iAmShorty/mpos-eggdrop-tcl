@@ -142,7 +142,7 @@ proc checknewblocks {} {
       										}
       										if {$elem2 eq "shares"} { set last_shares "$elem_val2" } 
       										if {$elem2 eq "estshares"} { set last_estshares "$elem_val2" }
-											if {$elem2 eq "finder"} { set last_finder "Finder: $elem_val2" }
+											if {$elem2 eq "finder"} { set last_finder "$elem_val2" }
 											if {$elem2 eq "confirmations"} {
 												#if {$debug eq "1"} { putlog "Confirmation: $elem_val2" }
 												set last_confirmations "$elem_val2"
