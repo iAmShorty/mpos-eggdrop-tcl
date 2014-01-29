@@ -136,12 +136,12 @@ proc checknewblocks {} {
 										#putlog "Ele1: $elem"
 										foreach {elem2 elem_val2} $elem {
 											#putlog "Ele2: $elem2 - Val: $elem_val2"
-      										if {$elem2 eq "height"} { 
-      											set last_block "$elem_val2" 
-      											if {$debug eq "1"} { putlog "Block: $elem_val2" }
-      										}
-      										if {$elem2 eq "shares"} { set last_shares "$elem_val2" } 
-      										if {$elem2 eq "estshares"} { set last_estshares "$elem_val2" }
+											if {$elem2 eq "height"} { 
+												set last_block "$elem_val2" 
+												if {$debug eq "1"} { putlog "Block: $elem_val2" }
+											}
+											if {$elem2 eq "shares"} { set last_shares "$elem_val2" } 
+											if {$elem2 eq "estshares"} { set last_estshares "$elem_val2" }
 											if {$elem2 eq "finder"} { set last_finder "$elem_val2" }
 											if {$elem2 eq "difficulty"} { set last_diff "$elem_val2" }
 											if {$elem2 eq "is_anonymous"} { set last_anon "$elem_val2" }
@@ -159,7 +159,7 @@ proc checknewblocks {} {
 										
 										#if {$debug eq "1"} { putlog "check values: [string tolower [lindex $pool_info 0]] - $last_block - $last_confirmations" }
 										
-										 if {$last_shares eq "null"} {
+										if {$last_shares eq "null"} {
 											#if {$debug eq "1"} {
 											#	putlog "skipping block because last shares has a value of null"
 											#	putlog "last shares: $last_shares"
