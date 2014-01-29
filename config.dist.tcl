@@ -78,6 +78,16 @@ dict set pools ltc apikey   	"YOURMPOSAPIKEY"
 #
 set poolstocheck "BTC LTC"
 
+# show net hashrate as 
+# KH, MH or GH
+#
+set shownethashrate "KH"
+
+# show pool hashrate as 
+# KH, MH or GH
+#
+set showpoolhashrate "KH"
+
 # file to save last blocks
 #
 set lastblockfile "lastblock"
