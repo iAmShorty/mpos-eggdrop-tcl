@@ -23,14 +23,14 @@
 # General Config
 ##################################################################
 
-set scriptversion "v0.8"
+set scriptversion "v0.9"
 
 # time to wait before next command in seconds
 #
 set help_blocktime "5"
 
 # debug mode
-# set to 1 to display debug messages in partyline and logfile
+# set to 1 to display debug messages
 #
 set debug "0"
 
@@ -72,7 +72,7 @@ set channels "#channel1 #channel2"
 ##################################################################
 
 # Setting URLs and API Keys for multiple Pools
-# you can add as many as you want
+# you can add as much as you want
 #
 # Syntax is
 # dict set pools COINNAME apiurl "YOURMPOSAPIURL"
@@ -134,7 +134,7 @@ set registereduserfile "mposuser"
 
 # confirmations before a block will be advertised
 #
-set confirmations "10"
+set confirmations "120"
 
 # NOT USED AT THE MOMENT
 # use one timer for all pools
@@ -172,11 +172,13 @@ set activemarket "3"
 # https://www.coins-e.com/api/v2/markets/data/
 #
 # Vircurex
-# https://vircurex.com/api/get_highest_bid.json?base=NMC&alt=BTC
+# https://vircurex.com/api/get_highest_bid.json
 # 
 # Cryptsy
 # http://pubapi.cryptsy.com/api.php?method=singlemarketdata&marketid=
 #
+#set marketapi "https://www.coins-e.com/api/v2/markets/data/"
+#set marketapi "https://vircurex.com/api/get_highest_bid.json"
 set marketapi "http://pubapi.cryptsy.com/api.php?method=singlemarketdata&marketid="
 
 #
@@ -204,9 +206,6 @@ set vircurex_querycoin "LTC"
 # Feathercoin = 5
 # Alphacoin = 57
 #
-set marketid "3"
+set cryptsy_marketid "3"
 
-
-
-
-
+putlog "===>> Mining-Pool-Config - Version $scriptversion loaded"

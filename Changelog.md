@@ -1,3 +1,10 @@
+v. 0.9
+
+* output variables
+* user defined messages
+* adding color codes
+* added license info
+
 v. 0.8
 
 * added Multipool environment

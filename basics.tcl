@@ -55,6 +55,16 @@ proc pool_vars {coinname} {
 	}
 }
 
+# replace variables
+#
+proc replacevar {string cookie value} {
+	variable zeroconvert
+	if {[string length $value] == 0 && [info exists zeroconvert($cookie)]} {
+		set value $zeroconvert($cookie)
+	}
+	return [string map [list $cookie $value] $string]
+}
+        
 # wordwrap proc that accepts multiline data 
 # (empty lines will be stripped because there's no way to relay them via irc) 
 #

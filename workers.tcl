@@ -23,7 +23,7 @@
 # Get Workers
 #
 proc worker_info {nick host hand chan arg} {
-    global help_blocktime help_blocked channels debug debugoutput output onlyallowregisteredusers ownersworkeronly
+    global help_blocktime help_blocked channels debug debugoutput output onlyallowregisteredusers ownersworkeronly output_workers
 	package require http
 	package require json
 	package require tls
@@ -139,19 +139,19 @@ proc worker_info {nick host hand chan arg} {
 		}
 	}
 	
-        # split message if buffer is to big
-        #
-           set len [expr {512-[string len ":$::botname PRIVMSG $chan :\r\n"]}] 
-           foreach line [wordwrap $worker_name $len] { 
-                 if {$output eq "CHAN"} {
-                          putquick "PRIVMSG $chan :$line"        
-                } elseif {$output eq "NOTICE"} {
-                          putquick "NOTICE $nick :$line"                
-                } else {
-                        putquick "PRIVMSG $chan :please set output in config file"
-                        return 0
-                }      
-           }
+    # split message if buffer is to big
+	#
+	set len [expr {512-[string len ":$::botname PRIVMSG $chan :\r\n"]}] 
+	foreach line [wordwrap $worker_name $len] { 
+		if {$output eq "CHAN"} {
+			putquick "PRIVMSG $chan :$line"        
+		} elseif {$output eq "NOTICE"} {
+			putquick "NOTICE $nick :$line"                
+		} else {
+			putquick "PRIVMSG $chan :please set output in config file"
+			return 0
+		}      
+	}
         
 }
 

@@ -25,14 +25,12 @@
 # prevent from double timers
 #
 if {$blockchecktime ne "0"} {
-	# check if timer is running
-	# else a rehash starts a new timer
-	if {![info exists checknewblocks_running]} {
-		if {$debug eq "1"} { putlog "Timer active" }
-		
- 	   	utimer $blockchecktime checknewblocks
-	    set checknewblocks_running 1
+	## Start the log timer
+	if {[info exists checknewblocks_running] && [catch {killutimer $checknewblocks_running} error]} {
+		putlog "\[findblocks\] Warning : Unable to kill findblock timer ($error)."
+		putlog "\[findblocks\] Warning : You should .restart the bot to be safe."
 	}
+	set checknewblocks_running [utimer $blockchecktime checknewblocks]
 }
 
 # checking for new blocks
@@ -142,14 +140,18 @@ proc checknewblocks {} {
       										}
       										if {$elem2 eq "shares"} { set last_shares "$elem_val2" } 
       										if {$elem2 eq "estshares"} { set last_estshares "$elem_val2" }
-											if {$elem2 eq "finder"} { set last_finder "Finder: $elem_val2" }
+											if {$elem2 eq "finder"} { set last_finder "$elem_val2" }
+											if {$elem2 eq "difficulty"} { set last_diff "$elem_val2" }
+											if {$elem2 eq "is_anonymous"} { set last_anon "$elem_val2" }
+											if {$elem2 eq "worker_name"} { set last_worker "$elem_val2" }
+											if {$elem2 eq "amount"} { set last_amount "$elem_val2" }
 											if {$elem2 eq "confirmations"} {
-												set last_confirmations $elem_val2
 												#if {$debug eq "1"} { putlog "Confirmation: $elem_val2" }
+												set last_confirmations "$elem_val2"
 												if {$elem_val2 eq "-1"} {
-													set last_status "Status: Orphan"
+													set last_status "Orphan"
 												} else {
-													set last_status "Status: Valid | Confirmations: $elem_val2"
+													set last_status "Valid"
 												}
 											}
 										}
@@ -174,7 +176,7 @@ proc checknewblocks {} {
 												#if {$debug eq "1"} { putlog "Block not confirmed" }
 											} else {
 												set writeblockfile "yes"
-												advertise_block [string toupper [lindex $pool_info 0]] $last_block $last_status $last_estshares $last_shares $last_finder
+												advertise_block [string toupper [lindex $pool_info 0]] $last_block $last_status $last_estshares $last_shares $last_finder $last_confirmations $last_diff $last_anon $last_worker $last_amount
 												lappend blocklist $last_block
 											}
 										}
@@ -200,7 +202,7 @@ proc checknewblocks {} {
 		}
 	}
 
-	utimer $blockchecktime checknewblocks
+	set checknewblocks_running [utimer $blockchecktime checknewblocks]
 }                                      
 
 # checking the block
@@ -265,28 +267,47 @@ proc check_block {coinname blockheight blockconfirmations} {
 
 # advertising the block
 #
-proc advertise_block {coinname newblock laststatus lastestshares lastshares lastfinder} {
-	global channels debug debugoutput scriptpath lastblockfile
+proc advertise_block {blockfinder_coinname blockfinder_newblock blockfinder_laststatus blockfinder_lastestshares blockfinder_lastshares blockfinder_lastfinder blockfinder_confirmations blockfinder_diff blockfinder_anon blockfinder_worker blockfinder_amount} {
+	global channels debug debugoutput scriptpath lastblockfile output_findblocks
 
   	# setting logfile to right path
 	set logfilepath $scriptpath
-  	append logfilepath "[string tolower $coinname]/"
+  	append logfilepath "[string tolower $blockfinder_coinname]/"
   	if {![file isdirectory $logfilepath]} {
   		file mkdir $logfilepath
 	}
   	append logfilepath $lastblockfile
   	
-  	set lastblock [FileTextReadLine $logfilepath 0 0]
+  	set blockfinder_lastblock [FileTextReadLine $logfilepath 0 0]
   	
-	if {$debug eq "1"} { putlog "New Block: $newblock" }
-	if {$debug eq "1"} { putlog "New / Last: $newblock - $lastblock" }
+	if {$debug eq "1"} { putlog "New Block: $blockfinder_newblock" }
+	if {$debug eq "1"} { putlog "New / Last: $blockfinder_newblock - $blockfinder_lastblock" }
 	
-	if {$debug eq "1"} { putlog "calc: [expr {double((double($lastshares)/double($lastestshares))*100)}]" }
+	if {$debug eq "1"} { putlog "calc: [expr {double((double($blockfinder_lastshares)/double($blockfinder_lastestshares))*100)}]" }
 	
-	set percentage [format "%.2f" [expr {double((double($lastshares)/double($lastestshares))*100)}]]
+	set blockfinder_percentage [format "%.2f" [expr {double((double($blockfinder_lastshares)/double($blockfinder_lastestshares))*100)}]]
+
+	set lineoutput $output_findblocks
+	set lineoutput [replacevar $lineoutput "%blockfinder_coinname%" $blockfinder_coinname]
+	set lineoutput [replacevar $lineoutput "%blockfinder_newblock%" $blockfinder_newblock]
+	set lineoutput [replacevar $lineoutput "%blockfinder_lastblock%" $blockfinder_lastblock]
+	set lineoutput [replacevar $lineoutput "%blockfinder_laststatus%" $blockfinder_laststatus]
+	set lineoutput [replacevar $lineoutput "%blockfinder_lastestshares%" $blockfinder_lastestshares]
+	set lineoutput [replacevar $lineoutput "%blockfinder_lastshares%" $blockfinder_lastshares]
+	set lineoutput [replacevar $lineoutput "%blockfinder_percentage%" $blockfinder_percentage]
+	if {$blockfinder_anon eq "1"} {
+		set lineoutput [replacevar $lineoutput "%blockfinder_lastfinder%" "anonymous"]
+		set lineoutput [replacevar $lineoutput "%blockfinder_worker%" "anonymous"]
+	} else {
+		set lineoutput [replacevar $lineoutput "%blockfinder_lastfinder%" $blockfinder_lastfinder]
+		set lineoutput [replacevar $lineoutput "%blockfinder_worker%" $blockfinder_worker]
+	}
+	set lineoutput [replacevar $lineoutput "%blockfinder_confirmations%" $blockfinder_confirmations]
+	set lineoutput [replacevar $lineoutput "%blockfinder_diff%" $blockfinder_diff]
+	set lineoutput [replacevar $lineoutput "%blockfinder_amount%" $blockfinder_amount]
 	
 	foreach advert $channels {
-		putquick "PRIVMSG $advert :\[$coinname\] New Block: #$newblock | Last Block: #$lastblock | $laststatus | Est. Shares: $lastestshares | Shares: $lastshares | Percentage: $percentage % | $lastfinder"
+		putquick "PRIVMSG $advert :$lineoutput"
 	}
 
 }
