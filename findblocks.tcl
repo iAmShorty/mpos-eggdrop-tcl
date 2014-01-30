@@ -25,10 +25,22 @@
 # prevent from double timers
 #
 if {$blockchecktime ne "0"} {
-	## Start the log timer
-	if {[info exists checknewblocks_running] && [catch {killutimer $checknewblocks_running} error]} {
-		putlog "\[findblocks\] Warning : Unable to kill findblock timer ($error)."
-		putlog "\[findblocks\] Warning : You should .restart the bot to be safe."
+	# loop through the timers
+	# and check if timer exists
+	# if timer exists, kill the timer
+	# and start a new timer
+	foreach timer "[utimers]" {
+		putlog "Timer: [lindex $timer 1]"
+		if {"[lindex $timer 1]" == "checknewblocks"} {
+			if {[catch {killutimer "[lindex $timer 2]"} error]} {
+				if {$debug eq "1"} { putlog "\[FINDBLOCKS\] Warning : Unable to kill findblock timer ($error)." }
+				if {$debug eq "1"} { putlog "\[FINDBLOCKS\] Warning : You should .restart the bot to be safe." }
+			} else {
+				if {$debug eq "1"} { putlog "\[FINDBLOCKS\] NOTE : Timer killed." }
+			}
+		} else {
+			if {$debug eq "1"} { putlog "\[FINDBLOCKS\] NOTE : no timer found." }
+		}
 	}
 	set checknewblocks_running [utimer $blockchecktime checknewblocks]
 }
