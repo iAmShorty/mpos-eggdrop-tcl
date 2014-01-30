@@ -125,7 +125,11 @@ proc user_info {nick host hand chan arg} {
 	
 	
 	if {$output eq "CHAN"} {
-		putquick "PRIVMSG $chan :$lineoutput"
+ 		foreach advert $channels {
+ 			if {$advert eq $chan} {
+ 				putquick "PRIVMSG $chan :$lineoutput"
+ 			}
+		}
 	} elseif {$output eq "NOTICE"} {
 		putquick "NOTICE $nick :$lineoutput"
 	} else {
