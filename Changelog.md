@@ -4,6 +4,10 @@ v. 0.9
 * user defined messages
 * adding color codes
 * added license info
+* timer problem solved
+* more output variables
+* output only to channels set in config
+* command output only in channels set in config
 
 v. 0.8
 
