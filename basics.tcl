@@ -30,6 +30,7 @@ bind pub - !user user_info
 bind pub - !round round_info
 bind pub - !worker worker_info
 bind pub - !balance balance_info
+bind pub - ?help printUsage
 
 # getting the pool vars from dictionary
 # set in config for specific pool
@@ -64,6 +65,7 @@ proc replacevar {string cookie value} {
 	}
 	return [string map [list $cookie $value] $string]
 }
+
         
 # wordwrap proc that accepts multiline data 
 # (empty lines will be stripped because there's no way to relay them via irc) 

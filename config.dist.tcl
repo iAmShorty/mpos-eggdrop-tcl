@@ -63,6 +63,8 @@ set output "CHAN"
 set scriptpath "./scripts/mininginfo/"
 
 # channels to advertise new block information
+# and post requested command output, if the bot
+# sits in other channels, they will be ignored
 #
 set channels "#channel1 #channel2"
 

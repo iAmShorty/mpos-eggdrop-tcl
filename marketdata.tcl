@@ -166,7 +166,11 @@ proc market_coinse {chan marketdataresult} {
 	set lineoutput [replacevar $lineoutput "%marketdata_basecoin%" $basecoin]
 
 	if {$output eq "CHAN"} {
-		putquick "PRIVMSG $chan :$lineoutput"
+ 		foreach advert $channels {
+ 			if {$advert eq $chan} {
+ 				putquick "PRIVMSG $chan :$lineoutput"
+ 			}
+		}
 	} elseif {$output eq "NOTICE"} {
 		putquick "NOTICE $nick :$lineoutput"
 	} else {
@@ -240,7 +244,11 @@ proc market_cryptsy {chan marketdataresult} {
 	set lineoutput [replacevar $lineoutput "%marketdata_tradevolume%" $marketdata_tradevolume]
 	
 	if {$output eq "CHAN"} {
-		putquick "PRIVMSG $chan :$lineoutput"
+ 		foreach advert $channels {
+ 			if {$advert eq $chan} {
+ 				putquick "PRIVMSG $chan :$lineoutput"
+ 			}
+		}
 	} elseif {$output eq "NOTICE"} {
 		putquick "NOTICE $nick :$lineoutput"
 	} else {

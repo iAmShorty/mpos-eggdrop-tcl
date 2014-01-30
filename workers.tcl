@@ -144,7 +144,11 @@ proc worker_info {nick host hand chan arg} {
 	set len [expr {512-[string len ":$::botname PRIVMSG $chan :\r\n"]}] 
 	foreach line [wordwrap $worker_name $len] { 
 		if {$output eq "CHAN"} {
-			putquick "PRIVMSG $chan :$line"        
+ 			foreach advert $channels {
+ 				if {$advert eq $chan} {
+ 					putquick "PRIVMSG $chan :$line"
+ 				}
+			}     
 		} elseif {$output eq "NOTICE"} {
 			putquick "NOTICE $nick :$line"                
 		} else {

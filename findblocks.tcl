@@ -321,7 +321,6 @@ proc advertise_block {blockfinder_coinname blockfinder_newblock blockfinder_last
 	foreach advert $channels {
 		putquick "PRIVMSG $advert :$lineoutput"
 	}
-
 }
 
 putlog "===>> Mining-Pool-Findblocks - Version $scriptversion loaded"

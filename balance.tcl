@@ -57,7 +57,7 @@ proc balance_info {nick host hand chan arg} {
 	
 	set action "index.php?page=api&action=getuserbalance&id=[lindex $arg 1]&api_key="
 	
- 	set mask [string trimleft $host ~]
+	set mask [string trimleft $host ~]
  	regsub -all {@([^\.]*)\.} $mask {@*.} mask	 	
  	set mask *!$mask
  
@@ -130,13 +130,16 @@ proc balance_info {nick host hand chan arg} {
 	set lineoutput [replacevar $lineoutput "%balance_orphan%" $balance_orphan]
 
  	if {$output eq "CHAN"} {
-		putquick "PRIVMSG $chan :$lineoutput"
+ 		foreach advert $channels {
+ 			if {$advert eq $chan} {
+ 				putquick "PRIVMSG $chan :$lineoutput"
+ 			}
+		}
 	} elseif {$output eq "NOTICE"} {
   		putquick "NOTICE $nick :$lineoutput"	
 	} else {
 		putquick "PRIVMSG $chan :please set output in config file"
 	}
-	
 }
 
 putlog "===>> Mining-Pool-Balanceinfo - Version $scriptversion loaded"

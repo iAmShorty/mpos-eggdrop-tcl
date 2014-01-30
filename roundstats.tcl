@@ -144,7 +144,11 @@ proc round_info {nick host hand chan arg } {
 	set lineoutput [replacevar $lineoutput "%roundstats_progress%" $shares_progress]	
 	
 	if {$output eq "CHAN"} {
- 		putquick "PRIVMSG $chan :$lineoutput"	
+ 		foreach advert $channels {
+ 			if {$advert eq $chan} {
+ 				putquick "PRIVMSG $chan :$lineoutput"
+ 			}
+		}
 	} elseif {$output eq "NOTICE"} {
 		putquick "NOTICE $nick :$lineoutput"	
 	} else {

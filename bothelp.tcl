@@ -20,8 +20,7 @@
 ##########           use config.tcl for setting options     ##########
 ######################################################################
 
-bind pub - !help printUsage
-
+#
 # print bot usage info
 #
 
@@ -37,7 +36,7 @@ proc printUsage {nick host hand chan arg} {
     putquick "NOTICE $nick :       !worker COINNAME <user>     - User Workers"
     putquick "NOTICE $nick :       !balance COINNAME <user>    - User Wallet Balance"
     putquick "NOTICE $nick :       !price                      - Get actual Coinprice"
-    putquick "NOTICE $nick :       !help                       - This help text"
+    putquick "NOTICE $nick :       ?help                       - This help text"
 }
 
 putlog "===>> Mining-Pool-Bothelp - Version $scriptversion loaded"
