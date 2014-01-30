@@ -203,12 +203,7 @@ proc pool_info {nick host hand chan arg} {
 	set lineoutput [replacevar $lineoutput "%poolstats_poolhashratevalue%" $poolhashratevalue]
 	set lineoutput [replacevar $lineoutput "%poolstats_poolhashrate%" $poolstats_poolhashrate]
 	set lineoutput [replacevar $lineoutput "%poolstats_poolworkers%" $poolstats_poolworkers]
-	if {$poolstats_sharesinvalid eq "0"} {
-		set lineoutput [replacevar $lineoutput "%poolstats_efficiency%" "100"]
-	} else {
-		set lineoutput [replacevar $lineoutput "%poolstats_efficiency%" [format "%.2f" [expr {100 - double(double($poolstats_sharesinvalid)/double($poolstats_sharesvalid)*100)}]]]
-		
-	}	
+	set lineoutput [replacevar $lineoutput "%poolstats_efficiency%" [format "%.2f" [expr {100 - double(double($poolstats_sharesinvalid)/double($poolstats_sharesvalid)*100)}]]]
 	
  	if {$output eq "CHAN"} {
  		foreach advert $channels {
