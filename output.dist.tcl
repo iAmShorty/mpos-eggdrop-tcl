@@ -201,18 +201,36 @@ set output_marketdata_coinse "Market: \0032%marketdata_market%\003\
 #
 # output for poolstats
 #
-# -> %poolstats_coin%
-# -> %poolstats_hashrate%
-# -> %poolstats_poolhashratevalue%
-# -> %poolstats_efficiency%
-# -> %poolstats_workers%
-# -> %poolstats_nethashrate%
+# -> %roundstats_coin%
+# -> %poolstats_block%
+# -> %poolstats_diffchange%
+# -> %poolstats_diff%
+# -> %poolstats_nextdiff%
+# -> %poolstats_esttime%
 # -> %poolstats_nethashratevalue%
+# -> %poolstats_nethashrate%
+# -> %poolstats_sharesvalid%
+# -> %poolstats_sharesinvalid%
+# -> %poolstats_sharesestimated%
+# -> %poolstats_sharesprogress%
+# -> %poolstats_poolhashratevalue%
+# -> %poolstats_poolhashrate%
+# -> %poolstats_poolworkers%
+# -> %poolstats_efficiency%
 #
 set output_poolstats "Pool: \0032%poolstats_coin%\003\
-| Hashrate: %poolstats_hashrate% %poolstats_poolhashratevalue%\
+| Block: #%poolstats_block%\
+| Diff change in: %poolstats_blocksuntildiffchange% Blocks\
+| Pool Diff: %poolstats_diff%\
+| Next Diff: %poolstats_nextdiff%\
+| Est. Time per Block: %poolstats_esttime% min.\
+| Shares valid: %poolstats_sharesvalid%\
+| Shares invalid: %poolstats_sharesinvalid%\
+| Shares est.: %poolstats_sharesestimated%\
+| Progress: %poolstats_sharesprogress% %\
+| Hashrate: %poolstats_poolhashrate% %poolstats_poolhashratevalue%\
 | Efficiency: %poolstats_efficiency% %\
-| Workers: %poolstats_workers%\
+| Workers: %poolstats_poolworkers%\
 | Net Hashrate: %poolstats_nethashrate% %poolstats_nethashratevalue%"
 
 #

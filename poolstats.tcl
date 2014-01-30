@@ -42,7 +42,7 @@ proc pool_info {nick host hand chan arg} {
 		return
 	}
 	
-	set action "index.php?page=api&action=getpoolstatus&api_key="
+	set action "index.php?page=api&action=getdashboarddata&api_key="
 	
  	set mask [string trimleft $host ~]
  	regsub -all {@([^\.]*)\.} $mask {@*.} mask	 	
@@ -93,68 +93,122 @@ proc pool_info {nick host hand chan arg} {
     
     set results [::json::json2dict $data]
 
+
 	foreach {key value} $results {
+		#putlog "Key: $key - $value"
 		foreach {sub_key sub_value} $value {
 			#putlog "Sub: $sub_key - $sub_value"
-			if {$sub_key eq "data"} {
-				#putlog "Sub: $sub_value"
-				foreach {elem elem_val} $sub_value {
+			foreach {elem elem_val} $sub_value {
+				#putlog "Ele: $elem - Val: $elem_val"
+				
+				
+				if {$elem eq "network"} {
 					#putlog "Ele: $elem - Val: $elem_val"
-				
-      				if {$elem eq "hashrate"} {
-      					if {[string toupper $showpoolhashrate] eq "KH"} {
-      						set pooldivider 1
-      						set poolhashratevalue "KH/s"
-      					} elseif {[string toupper $showpoolhashrate] eq "MH"} {
-      						set pooldivider 1000
-      						set poolhashratevalue "MH/s"
-      					} elseif {[string toupper $showpoolhashrate] eq "GH"} {
-      						set pooldivider 1000000
-      						set poolhashratevalue "GH/s"
-      					} elseif {[string toupper $showpoolhashrate] eq "TH"} {
-      						set pooldivider 1000000000
-      						set poolhashratevalue "TH/s"
-      					} else {
-      						set pooldivider 1
-      						set poolhashratevalue "KH/s"
-      					}
-      					set pool_hashrate [format "%.2f" [expr {double(double($elem_val)/double($pooldivider))}]]
-      				}
-      				if {$elem eq "efficiency"} { set pool_efficiency "$elem_val" } 
-      				if {$elem eq "workers"} { set pool_workers "$elem_val" } 
-      				if {$elem eq "nethashrate"} {
-      					if {[string toupper $shownethashrate] eq "KH"} {
-      						set netdivider 1000
-      						set nethashratevalue "KH/s"
-      					} elseif {[string toupper $shownethashrate] eq "MH"} {
-      						set netdivider 1000000
-      						set nethashratevalue "MH/s"
-      					} elseif {[string toupper $shownethashrate]eq "GH"} {
-      						set netdivider 1000000000
-      						set nethashratevalue "GH/s"
-      					} elseif {[string toupper $shownethashrate]eq "TH"} {
-      						set netdivider 1000000000000
-      						set nethashratevalue "TH/s"
-      					} else {
-      						set netdivider 1
-      						set nethashratevalue "H/s"
-      					}
-      					set pool_nethashrate [format "%.2f" [expr {double(double($elem_val)/double($netdivider))}]]
-      				} 
-				
+					foreach {elem2 elem_val2} $elem_val {
+						#putlog "Ele: $elem2 - Val: $elem_val2"
+						if {$elem2 eq "block"} { set poolstats_block "$elem_val2" }
+						if {$elem2 eq "blocksuntildiffchange"} { set poolstats_blocksuntildiffchange "$elem_val2" }
+						if {$elem2 eq "difficulty"} { set poolstats_diff "$elem_val2" }
+						if {$elem2 eq "nextdifficulty"} { set poolstats_nextdiff "$elem_val2" }
+      					if {$elem2 eq "esttimeperblock"} {
+      						#set timediff [expr {$elem_val / 60}]
+      						set timediff [expr {double(round(100*[expr {$elem_val2 / 60}]))/100}]
+      						set poolstats_esttime "$timediff" 
+      					} 
+					}
 				}
+
+				if {$elem eq "raw"} {
+					#putlog "Ele: $elem - Val: $elem_val"
+					foreach {elem2 elem_val2} $elem_val {
+						#putlog "Ele: $elem2 - Val: $elem_val2"
+						if {$elem2 eq "network"} {
+							foreach {elem3 elem_val3} $elem_val2 {
+      							if {$elem3 eq "hashrate"} {
+      								if {[string toupper $shownethashrate] eq "KH"} {
+      									set netdivider 1
+      									set nethashratevalue "KH/s"
+      								} elseif {[string toupper $shownethashrate] eq "MH"} {
+      									set netdivider 1000
+      									set nethashratevalue "MH/s"
+      								} elseif {[string toupper $shownethashrate]eq "GH"} {
+      									set netdivider 1000000
+      									set nethashratevalue "GH/s"
+      								} elseif {[string toupper $shownethashrate]eq "TH"} {
+      									set netdivider 1000000000
+      									set nethashratevalue "TH/s"
+      								} else {
+      									set netdivider 1
+      									set nethashratevalue "KH/s"
+      								}
+      								set poolstats_nethashrate [format "%.2f" [expr {double(double($elem_val3)/double($netdivider))}]]
+      							} 
+							}
+						}
+					}				
+				}
+
+				if {$elem eq "pool"} {
+					#putlog "Ele: $elem - Val: $elem_val"
+					foreach {elem2 elem_val2} $elem_val {
+						#putlog "Ele: $elem2 - Val: $elem_val2"
+						if {$elem2 eq "shares"} {
+							foreach {elem3 elem_val3} $elem_val2 {
+								#putlog "Ele: $elem3 - Val: $elem_val3"
+								if {$elem3 eq "valid"} { set poolstats_sharesvalid "$elem_val3" }
+								if {$elem3 eq "invalid"} { set poolstats_sharesinvalid "$elem_val3" }
+								if {$elem3 eq "estimated"} { set poolstats_sharesestimated "$elem_val3" }
+								if {$elem3 eq "progress"} { set poolstats_sharesprogress "$elem_val3" }
+							}
+						}
+						if {$elem2 eq "workers"} { set poolstats_poolworkers "$elem_val2" }
+      					if {$elem2 eq "hashrate"} {
+      						if {[string toupper $showpoolhashrate] eq "KH"} {
+      							set pooldivider 1
+      							set poolhashratevalue "KH/s"
+      						} elseif {[string toupper $showpoolhashrate] eq "MH"} {
+      							set pooldivider 1000
+      							set poolhashratevalue "MH/s"
+      						} elseif {[string toupper $showpoolhashrate] eq "GH"} {
+      							set pooldivider 1000000
+      							set poolhashratevalue "GH/s"
+      						} elseif {[string toupper $showpoolhashrate] eq "TH"} {
+      							set pooldivider 1000000000
+      							set poolhashratevalue "TH/s"
+      						} else {
+      							set pooldivider 1
+      							set poolhashratevalue "KH/s"
+      						}
+      						set poolstats_poolhashrate [format "%.2f" [expr {double(double($elem_val2)/double($pooldivider))}]]
+      					}
+					}				
+				}				
 			}
 		}
 	}
-	
+
 	set lineoutput $output_poolstats
 	set lineoutput [replacevar $lineoutput "%poolstats_coin%" [string toupper [lindex $arg 0]]]
-	set lineoutput [replacevar $lineoutput "%poolstats_hashrate%" $pool_hashrate]
+	set lineoutput [replacevar $lineoutput "%poolstats_block%" $poolstats_block]
+	set lineoutput [replacevar $lineoutput "%poolstats_blocksuntildiffchange%" $poolstats_blocksuntildiffchange]
+	set lineoutput [replacevar $lineoutput "%poolstats_diff%" $poolstats_diff]
+	set lineoutput [replacevar $lineoutput "%poolstats_nextdiff%" $poolstats_nextdiff]
+	set lineoutput [replacevar $lineoutput "%poolstats_esttime%" $poolstats_esttime]
+	set lineoutput [replacevar $lineoutput "%poolstats_nethashratevalue%" $nethashratevalue]
+	set lineoutput [replacevar $lineoutput "%poolstats_nethashrate%" $poolstats_nethashrate]
+	set lineoutput [replacevar $lineoutput "%poolstats_sharesvalid%" $poolstats_sharesvalid]
+	set lineoutput [replacevar $lineoutput "%poolstats_sharesinvalid%" $poolstats_sharesinvalid]
+	set lineoutput [replacevar $lineoutput "%poolstats_sharesestimated%" $poolstats_sharesestimated]
+	set lineoutput [replacevar $lineoutput "%poolstats_sharesprogress%" $poolstats_sharesprogress]
 	set lineoutput [replacevar $lineoutput "%poolstats_poolhashratevalue%" $poolhashratevalue]
-	set lineoutput [replacevar $lineoutput "%poolstats_efficiency%" $pool_efficiency]
-	set lineoutput [replacevar $lineoutput "%poolstats_workers%" $pool_workers]
-	set lineoutput [replacevar $lineoutput "%poolstats_nethashrate%" $pool_nethashrate]
-	set lineoutput [replacevar $lineoutput "%poolstats_nethashratevalue%" $nethashratevalue]	
+	set lineoutput [replacevar $lineoutput "%poolstats_poolhashrate%" $poolstats_poolhashrate]
+	set lineoutput [replacevar $lineoutput "%poolstats_poolworkers%" $poolstats_poolworkers]
+	if {$poolstats_sharesinvalid eq "0"} {
+		set lineoutput [replacevar $lineoutput "%poolstats_efficiency%" "100"]
+	} else {
+		set lineoutput [replacevar $lineoutput "%poolstats_efficiency%" [format "%.2f" [expr {100 - double(double($poolstats_sharesinvalid)/double($poolstats_sharesvalid)*100)}]]]
+		
+	}	
 	
  	if {$output eq "CHAN"} {
  		foreach advert $channels {
