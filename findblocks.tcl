@@ -25,14 +25,12 @@
 # prevent from double timers
 #
 if {$blockchecktime ne "0"} {
-	# check if timer is running
-	# else a rehash starts a new timer
-	if {![info exists checknewblocks_running]} {
-		if {$debug eq "1"} { putlog "Timer active" }
-		
- 	   	utimer $blockchecktime checknewblocks
-	    set checknewblocks_running 1
+	## Start the log timer
+	if {[info exists checknewblocks_running] && [catch {killutimer $checknewblocks_running} error]} {
+		putlog "\[findblocks\] Warning : Unable to kill findblock timer ($error)."
+		putlog "\[findblocks\] Warning : You should .restart the bot to be safe."
 	}
+	set checknewblocks_running [utimer $blockchecktime checknewblocks]
 }
 
 # checking for new blocks
@@ -204,7 +202,7 @@ proc checknewblocks {} {
 		}
 	}
 
-	utimer $blockchecktime checknewblocks
+	set checknewblocks_running [utimer $blockchecktime checknewblocks]
 }                                      
 
 # checking the block
