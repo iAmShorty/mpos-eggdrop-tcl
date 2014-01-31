@@ -39,6 +39,10 @@ FEATURES
 * Advertise Stats and Infos directly into the channel or send via private Message
 * Show actual Coin Price from Cryptsy, Coins-E or Vircurex
 * Create own Channel Output with predefined variables
+* Create custom output per Coin
+* Add users to known users, not using eggdrops userfile
+* Only allow known users access to commands
+* Only allow commands in defined channels
 
 Requirements 
 ================
@@ -118,8 +122,23 @@ Creating self defined Output
 In output.tcl, there are predefined output variables. If you want to create your own message that will
 be posted to channel or by private message, you have to create your own text in the putput variables
 of each section. Now there are predefined standard messages, which can be used to post the relevant
-information.
+information. You can also use different messages based on coins you set in config.tcl
 
+Standard Output looks like this and is predefined
+<pre>
+set output_balance "Coin: \0032%balance_coin%\003\
+| User: %balance_user%\
+| Confirmed: %balance_confirmed%\
+| Unconfirmed: %balance_unconfirmed%\
+| Orphan: %balance_orphan%"
+</pre>
+
+Customized output can look like this and is disabled by default
+<pre>
+set output_balance_percoin(btc) "Coin: \0032%balance_coin%\003 - test output btc"
+set output_balance_percoin(ltc) "Coin: \0032%balance_coin%\003 - test output ltc"
+</pre>
+Customized output can be set for every coin added to config
 
 USAGE
 ================

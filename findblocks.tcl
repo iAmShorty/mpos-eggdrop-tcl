@@ -300,8 +300,8 @@ proc advertise_block {blockfinder_coinname blockfinder_newblock blockfinder_last
 	set blockfinder_percentage [format "%.2f" [expr {double((double($blockfinder_lastshares)/double($blockfinder_lastestshares))*100)}]]
 
 	if {[info exists output_findblocks_percoin([string tolower $blockfinder_coinname])]} {
-		if {$debug eq "1"} { putlog "-> $blockfinder_coinname - $output_findblocks_percoin($blockfinder_coinname)" }
-		set lineoutput $output_findblocks_percoin([string tolower [lindex $arg 0]])
+		if {$debug eq "1"} { putlog "-> $blockfinder_coinname - $output_findblocks_percoin([string tolower $blockfinder_coinname])" }
+		set lineoutput $output_findblocks_percoin([string tolower $blockfinder_coinname])
 	} else {
 		if {$debug eq "1"} { putlog "no special output!" }
 		set lineoutput $output_findblocks

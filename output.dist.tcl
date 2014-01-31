@@ -35,22 +35,14 @@
 # is not colored. Sometimes you have to set channelmode
 # in IRC to -c to get colors working
 #
-# 0  = white
-# 1  = black
-# 2  = darkblue
-# 3  = darkgreen
-# 4  = red
-# 5  = brown
-# 6  = magenta
-# 7  = orange
-# 8  = yellow
-# 9  = lightgreen
-# 10 = darkcyan
-# 11 = lightcyan
-# 12 = lightblue
-# 13 = pink
-# 14 = darkgrey
-# 15 = lightgrey
+# 0  = white		8  = yellow
+# 1  = black		9  = lightgreen
+# 2  = darkblue		10 = darkcyan
+# 3  = darkgreen	11 = lightcyan
+# 4  = red			12 = lightblue
+# 5  = brown		13 = pink
+# 6  = magenta		14 = darkgrey
+# 7  = orange		15 = lightgrey
 #
 # setting colors with \003X where X is the colorcode
 # and resetting color with \003 where color should be

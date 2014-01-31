@@ -122,7 +122,7 @@ proc balance_info {nick host hand chan arg} {
 		}
 	}
 
-	if {[info exists output_balance_percoin([string tolower [string toupper [lindex $arg 0]]])]} {
+	if {[info exists output_balance_percoin([string tolower [string tolower [lindex $arg 0]]])]} {
 		if {$debug eq "1"} { putlog "-> [string toupper [lindex $arg 0]] - $output_balance_percoin([string tolower [lindex $arg 0]])" }
 		set lineoutput $output_balance_percoin([string tolower [lindex $arg 0]])
 	} else {
