@@ -23,7 +23,7 @@
 # Pool Stats
 #
 proc pool_info {nick host hand chan arg} {
-    global help_blocktime help_blocked channels debug debugoutput output onlyallowregisteredusers shownethashrate showpoolhashrate output_poolstats
+    global help_blocktime help_blocked channels debug debugoutput output onlyallowregisteredusers shownethashrate showpoolhashrate output_poolstats output_poolstats_percoin
 	package require http
 	package require json
 	package require tls
@@ -198,7 +198,15 @@ proc pool_info {nick host hand chan arg} {
 		}
 	}
 
-	set lineoutput $output_poolstats
+	if {[info exists output_poolstats_percoin([string tolower [lindex $arg 0]])]} {
+		if {$debug eq "1"} { putlog "-> [string toupper [lindex $arg 0]] - $output_poolstats_percoin([string tolower [lindex $arg 0]])" }
+		set lineoutput $output_poolstats_percoin([string tolower [lindex $arg 0]])
+	} else {
+		if {$debug eq "1"} { putlog "no special output!" }
+		set lineoutput $output_poolstats
+	}
+	
+	#set lineoutput $output_poolstats
 	set lineoutput [replacevar $lineoutput "%poolstats_coin%" [string toupper [lindex $arg 0]]]
 	set lineoutput [replacevar $lineoutput "%poolstats_block%" $poolstats_block]
 	set lineoutput [replacevar $lineoutput "%poolstats_blocksuntildiffchange%" $poolstats_blocksuntildiffchange]

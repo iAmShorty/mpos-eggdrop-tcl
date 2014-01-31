@@ -79,6 +79,19 @@ set output_balance "Coin: \0032%balance_coin%\003\
 | Unconfirmed: %balance_unconfirmed%\
 | Orphan: %balance_orphan%"
 
+# different announcements per coin
+# use coins set in config.tcl with config option
+# -> set poolstocheck "BTC LTC"
+# the coins listed here, can be used for different
+# announcements per coin. if not set or commented out
+# the standard announce will be used for announcing
+#
+# NOTE:
+# coinname must be in lowercase
+#
+#set output_balance_percoin(btc) "Coin: \0032%balance_coin%\003 - test output btc"
+#set output_balance_percoin(ltc) "Coin: \0032%balance_coin%\003 - test output ltc"
+
 #
 # output for current block information
 #
@@ -99,6 +112,19 @@ set output_blockinfo "Coin: \0032%blockstats_coin%\003\
 | Est. Time to resolve: %blockstats_time% minutes\
 | Est. Shares to resolve: %blockstats_shares%\
 | Time since last Block: %blockstats_timelast% minutes"
+
+# different announcements per coin
+# use coins set in config.tcl with config option
+# -> set poolstocheck "BTC LTC"
+# the coins listed here, can be used for different
+# announcements per coin. if not set or commented out
+# the standard announce will be used for announcing
+#
+# NOTE:
+# coinname must be in lowercase
+#
+#set output_blockinfo_percoin(btc) "Coin: \0032%blockstats_coin%\003 - test output btc"
+#set output_blockinfo_percoin(ltc) "Coin: \0032%blockstats_coin%\003 - test output ltc"
 
 #
 # output for last block information
@@ -122,6 +148,19 @@ set output_lastblock "Coin: \0032%blockstats_coin%\003\
 | Shares: %blockstats_lastshares%\
 | Est. Shares: %blockstats_lastestshares%\
 | Finder: %blockstats_lastfinder%"
+
+# different announcements per coin
+# use coins set in config.tcl with config option
+# -> set poolstocheck "BTC LTC"
+# the coins listed here, can be used for different
+# announcements per coin. if not set or commented out
+# the standard announce will be used for announcing
+#
+# NOTE:
+# coinname must be in lowercase
+#
+#set output_lastblock_percoin(btc) "Coin: \0032%blockstats_coin%\003 - test output btc"
+#set output_lastblock_percoin(ltc) "Coin: \0032%blockstats_coin%\003 - test output ltc"
 
 #
 # output for advertising blocks
@@ -151,6 +190,19 @@ set output_findblocks "Coin: \0032%blockfinder_coinname%\003\
 | Amount: %blockfinder_amount%\
 | Finder: %blockfinder_lastfinder%\
 | Worker: %blockfinder_worker%"
+
+# different announcements per coin
+# use coins set in config.tcl with config option
+# -> set poolstocheck "BTC LTC"
+# the coins listed here, can be used for different
+# announcements per coin. if not set or commented out
+# the standard announce will be used for announcing
+#
+# NOTE:
+# coinname must be in lowercase
+#
+#set output_findblocks_percoin(btc) "Coin: \0032%blockfinder_coinname%\003 - test output btc"
+#set output_findblocks_percoin(ltc) "Coin: \0032%blockfinder_coinname%\003 - test output ltc"
 
 #
 # output for marketdata
@@ -233,6 +285,19 @@ set output_poolstats "Pool: \0032%poolstats_coin%\003\
 | Workers: %poolstats_poolworkers%\
 | Net Hashrate: %poolstats_nethashrate% %poolstats_nethashratevalue%"
 
+# different announcements per coin
+# use coins set in config.tcl with config option
+# -> set poolstocheck "BTC LTC"
+# the coins listed here, can be used for different
+# announcements per coin. if not set or commented out
+# the standard announce will be used for announcing
+#
+# NOTE:
+# coinname must be in lowercase
+#
+#set output_poolstats_percoin(btc) "Coin: \0032%poolstats_coin%\003 - test output btc"
+#set output_poolstats_percoin(ltc) "Coin: \0032%poolstats_coin%\003 - test output ltc"
+
 #
 # output for roundstats
 #
@@ -254,6 +319,19 @@ set output_roundstats "Pool: \0032%roundstats_coin%\003\
 | Shares invalid: %roundstats_invalidshares%\
 | Progress: %roundstats_progress%"
 
+# different announcements per coin
+# use coins set in config.tcl with config option
+# -> set poolstocheck "BTC LTC"
+# the coins listed here, can be used for different
+# announcements per coin. if not set or commented out
+# the standard announce will be used for announcing
+#
+# NOTE:
+# coinname must be in lowercase
+#
+#set output_roundstats_percoin(btc) "Coin: \0032%roundstats_coin%\003 - test output btc"
+#set output_roundstats_percoin(ltc) "Coin: \0032%roundstats_coin%\003 - test output ltc"
+
 #
 # output for userstats
 #
@@ -271,5 +349,17 @@ set output_userstats "Pool: \0032%userstats_coin%\003\
 | Invalid this round: %userstats_invalidround%\
 | Sharerate: %userstats_sharerate% S/s"
 
+# different announcements per coin
+# use coins set in config.tcl with config option
+# -> set poolstocheck "BTC LTC"
+# the coins listed here, can be used for different
+# announcements per coin. if not set or commented out
+# the standard announce will be used for announcing
+#
+# NOTE:
+# coinname must be in lowercase
+#
+#set output_userstats_percoin(btc) "Coin: \0032%userstats_coin%\003 - test output btc"
+#set output_userstats_percoin(ltc) "Coin: \0032%userstats_coin%\003 - test output ltc"
 
 putlog "===>> Mining-Pool-Outputconfig - Version $scriptversion loaded"
