@@ -100,6 +100,10 @@ proc round_info {nick host hand chan arg } {
 			foreach {elem elem_val} $sub_value {
 				#putlog "Ele: $elem - Val: $elem_val"
 				
+				if {$elem eq "error" && $elem_val eq "disabled" } {
+					putlog "Dashboard API disabled"
+					return
+				}
 				
 				if {$elem eq "pool"} {
 					#putlog "Ele: $elem - Val: $elem_val"
