@@ -20,10 +20,11 @@
 ##########           use config.tcl for setting options     ##########
 ######################################################################
 
-# round info
+#
+# round information
 #
 proc round_info {nick host hand chan arg } {
- 	global help_blocktime help_blocked channels debug debugoutput output onlyallowregisteredusers output_roundstats
+ 	global help_blocktime help_blocked channels debug debugoutput output onlyallowregisteredusers output_roundstats output_roundstats_percoin
 	package require http
 	package require json
 	package require tls
@@ -136,8 +137,15 @@ proc round_info {nick host hand chan arg } {
 			}
 		}
 	}
+
+	if {[info exists output_roundstats_percoin([string tolower [lindex $arg 0]])]} {
+		if {$debug eq "1"} { putlog "-> [string toupper [lindex $arg 0]] - $output_roundstats_percoin([string tolower [lindex $arg 0]])" }
+		set lineoutput $output_roundstats_percoin([string tolower [lindex $arg 0]])
+	} else {
+		if {$debug eq "1"} { putlog "no special output!" }
+		set lineoutput $output_roundstats
+	}
 	
-	set lineoutput $output_roundstats
 	set lineoutput [replacevar $lineoutput "%roundstats_coin%" [string toupper [lindex $arg 0]]]
 	set lineoutput [replacevar $lineoutput "%roundstats_block%" $net_block]
 	set lineoutput [replacevar $lineoutput "%roundstats_diff%" $net_diff]

@@ -8,6 +8,7 @@ v. 0.9
 * more output variables
 * output only to channels set in config
 * command output only in channels set in config
+* custom output per coin or use default
 
 v. 0.8
 

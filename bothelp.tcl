@@ -23,7 +23,6 @@
 #
 # print bot usage info
 #
-
 proc printUsage {nick host hand chan arg} {
 	putquick "NOTICE $nick :Usage:"
     putquick "NOTICE $nick :       !adduser <ircnick>          - Adding User to userfile"

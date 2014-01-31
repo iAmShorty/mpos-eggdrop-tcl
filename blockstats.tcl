@@ -20,10 +20,11 @@
 ##########           use config.tcl for setting options     ##########
 ######################################################################
 
-# Block Stats
+#
+# block information
 #
 proc block_info {nick host hand chan arg} {
-    global help_blocktime help_blocked channels debug debugoutput output onlyallowregisteredusers output_blockinfo
+    global help_blocktime help_blocked channels debug debugoutput output onlyallowregisteredusers output_blockinfo output_blockinfo_percoin
 	package require http
 	package require json
 	package require tls
@@ -121,8 +122,15 @@ proc block_info {nick host hand chan arg} {
 			}
 		}
 	}
+
+	if {[info exists output_blockinfo_percoin([string tolower [lindex $arg 0]])]} {
+		if {$debug eq "1"} { putlog "-> [string toupper [lindex $arg 0]] - $output_blockinfo_percoin([string tolower [lindex $arg 0]])" }
+		set lineoutput $output_blockinfo_percoin([string tolower [lindex $arg 0]])
+	} else {
+		if {$debug eq "1"} { putlog "no special output!" }
+		set lineoutput $output_blockinfo
+	}
 	
-	set lineoutput $output_blockinfo
 	set lineoutput [replacevar $lineoutput "%blockstats_coin%" [string toupper [lindex $arg 0]]]
 	set lineoutput [replacevar $lineoutput "%blockstats_current%" $blockstats_current]
 	set lineoutput [replacevar $lineoutput "%blockstats_next%" $blockstats_next]
@@ -146,10 +154,11 @@ proc block_info {nick host hand chan arg} {
 	
 }
 
+#
 # last block found
 #
 proc last_info {nick host hand chan arg } {
- 	global help_blocktime help_blocked channels debug debugoutput output onlyallowregisteredusers output_lastblock
+ 	global help_blocktime help_blocked channels debug debugoutput output onlyallowregisteredusers output_lastblock output_lastblock_percoin
 	package require http
 	package require json
 	package require tls
@@ -265,7 +274,15 @@ proc last_info {nick host hand chan arg } {
 		}
 	}
 
-	set lineoutput $output_lastblock
+	if {[info exists output_lastblock_percoin([string tolower [lindex $arg 0]])]} {
+		if {$debug eq "1"} { putlog "-> [string toupper [lindex $arg 0]] - $output_lastblock_percoin([string tolower [lindex $arg 0]])" }
+		set lineoutput $output_lastblock_percoin([string tolower [lindex $arg 0]])
+	} else {
+		if {$debug eq "1"} { putlog "no special output!" }
+		set lineoutput $output_lastblock
+	}
+	
+	#set lineoutput $output_lastblock
 	set lineoutput [replacevar $lineoutput "%blockstats_coin%" [string toupper [lindex $arg 0]]]
 	set lineoutput [replacevar $lineoutput "%blockstats_lastblock%" $blockstats_lastblock]
 	set lineoutput [replacevar $lineoutput "%blockstats_lastconfirmed%" $blockstats_lastconfirmed]

@@ -20,10 +20,11 @@
 ##########           use config.tcl for setting options     ##########
 ######################################################################
 
+#
 # info for specific user
 #
 proc user_info {nick host hand chan arg} {
- 	global help_blocktime help_blocked channels debug debugoutput output onlyallowregisteredusers output_userstats
+ 	global help_blocktime help_blocked channels debug debugoutput output onlyallowregisteredusers output_userstats output_userstats_percoin
 	package require http
 	package require json
 	package require tls
@@ -115,8 +116,15 @@ proc user_info {nick host hand chan arg} {
 		}
 	}
 
-	set lineoutput $output_userstats
-	set lineoutput [replacevar $lineoutput "%userstats_coin%" [string toupper [string toupper [lindex $arg 0]]]]
+	if {[info exists output_userstats_percoin([string tolower [lindex $arg 0]])]} {
+		if {$debug eq "1"} { putlog "-> [string toupper [lindex $arg 0]] - $output_userstats_percoin([string tolower [lindex $arg 0]])" }
+		set lineoutput $output_userstats_percoin([string tolower [lindex $arg 0]])
+	} else {
+		if {$debug eq "1"} { putlog "no special output!" }
+		set lineoutput $output_userstats
+	}
+	
+	set lineoutput [replacevar $lineoutput "%userstats_coin%" [string toupper [lindex $arg 0]]]
 	set lineoutput [replacevar $lineoutput "%userstats_user%" [string tolower [lindex $arg 1]]]
 	set lineoutput [replacevar $lineoutput "%userstats_hashrate%" $user_hashrate]
 	set lineoutput [replacevar $lineoutput "%userstats_validround%" $user_validround]

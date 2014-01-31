@@ -20,14 +20,14 @@
 ##########           use config.tcl for setting options     ##########
 ######################################################################
 
-
+#
 # key bindings
 #
 bind pub - !price price_info
 
+#
 # info for specific market set in config
 #
-
 proc price_info {nick host hand chan arg} {
  	global help_blocktime help_blocked channels debug debugoutput usehttps output marketapi activemarket vircurex_querycoin cryptsy_marketid onlyallowregisteredusers output_marketdata
 	package require http
@@ -116,8 +116,9 @@ proc price_info {nick host hand chan arg} {
 	
 }
 
-
-
+#
+# output for coins-e api
+#
 proc market_coinse {chan marketdataresult} {
 	global channels debug debugoutput output coinse_querycoin output_marketdata_coinse
 	
@@ -178,7 +179,9 @@ proc market_coinse {chan marketdataresult} {
 	}
 }
 
-
+#
+# output for vircurex api
+#
 proc market_vircurex {chan marketdataresult} {
 	global channels debug debugoutput output output_marketdata_vircurex
 	
@@ -209,7 +212,9 @@ proc market_vircurex {chan marketdataresult} {
 	}
 }
 
-
+#
+# output for cryptsy api
+#
 proc market_cryptsy {chan marketdataresult} {
 	global channels debug debugoutput output output_marketdata_cryptsy
 	
@@ -258,8 +263,5 @@ proc market_cryptsy {chan marketdataresult} {
 	return
 	
 }
-
-
-
 
 putlog "===>> Market Data - Version $scriptversion loaded"

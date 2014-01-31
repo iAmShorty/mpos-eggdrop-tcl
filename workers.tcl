@@ -20,7 +20,8 @@
 ##########           use config.tcl for setting options     ##########
 ######################################################################
 
-# Get Workers
+#
+# get worker information
 #
 proc worker_info {nick host hand chan arg} {
     global help_blocktime help_blocked channels debug debugoutput output onlyallowregisteredusers ownersworkeronly output_workers

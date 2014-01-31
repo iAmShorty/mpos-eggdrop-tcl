@@ -20,10 +20,11 @@
 ##########           use config.tcl for setting options     ##########
 ######################################################################
 
-# Account balance
+#
+# Account Balance
 #
 proc balance_info {nick host hand chan arg} {
-    global help_blocktime help_blocked channels debug debugoutput output onlyallowregisteredusers ownersbalanceonly output_balance
+    global help_blocktime help_blocked channels debug debugoutput output onlyallowregisteredusers ownersbalanceonly output_balance output_balance_percoin
 	package require http
 	package require json
 	package require tls
@@ -121,8 +122,15 @@ proc balance_info {nick host hand chan arg} {
 			}
 		}
 	}
+
+	if {[info exists output_balance_percoin([string tolower [string tolower [lindex $arg 0]]])]} {
+		if {$debug eq "1"} { putlog "-> [string toupper [lindex $arg 0]] - $output_balance_percoin([string tolower [lindex $arg 0]])" }
+		set lineoutput $output_balance_percoin([string tolower [lindex $arg 0]])
+	} else {
+		if {$debug eq "1"} { putlog "no special output!" }
+		set lineoutput $output_balance
+	}
 	
-	set lineoutput $output_balance
 	set lineoutput [replacevar $lineoutput "%balance_coin%" [string toupper [lindex $arg 0]]]
 	set lineoutput [replacevar $lineoutput "%balance_user%" [lindex $arg 1]]
 	set lineoutput [replacevar $lineoutput "%balance_confirmed%" $balance_confirmed]
@@ -143,5 +151,3 @@ proc balance_info {nick host hand chan arg} {
 }
 
 putlog "===>> Mining-Pool-Balanceinfo - Version $scriptversion loaded"
-
-

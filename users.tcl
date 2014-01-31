@@ -20,13 +20,16 @@
 ##########           use config.tcl for setting options     ##########
 ######################################################################
 
-
+#
 # key bindings
 #
 bind pub - !adduser user_add
 bind pub - !deluser user_del
 bind pub - !request user_request
 
+#
+# check if user is already in userfile
+#
 proc check_mpos_user {username hostmask} {
 	global debug scriptpath registereduserfile
 
@@ -56,6 +59,9 @@ proc check_mpos_user {username hostmask} {
   	
 }
 
+#
+# add user to userfile
+#
 proc user_add {nick uhost hand chan arg} {
 	global debug scriptpath registereduserfile
 
@@ -122,6 +128,9 @@ proc user_add {nick uhost hand chan arg} {
 	
 }
 
+#
+# delete user from userfile
+#
 proc user_del {nick uhost hand chan arg} {
 	global debug scriptpath registereduserfile
 
@@ -162,10 +171,12 @@ proc user_del {nick uhost hand chan arg} {
 
 }
 
+#
+# request from users to add them to userfiles
+#
 proc user_request {nick uhost hand chan arg} {
 	putquick "NOTICE $nick :your request will be processed shortly, please be patient"
 }
 
 
 putlog "===>> Mining-Pool-Users - Version $scriptversion loaded"
-
