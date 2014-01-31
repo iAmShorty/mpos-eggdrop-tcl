@@ -122,13 +122,31 @@ proc pool_info {nick host hand chan arg} {
 					}
 				}
 
-				if {$elem eq "raw"} {
+				if {$elem eq "pool"} {
 					#putlog "Ele: $elem - Val: $elem_val"
 					foreach {elem2 elem_val2} $elem_val {
 						#putlog "Ele: $elem2 - Val: $elem_val2"
+						if {$elem2 eq "shares"} {
+							foreach {elem3 elem_val3} $elem_val2 {
+								#putlog "Ele: $elem3 - Val: $elem_val3"
+								if {$elem3 eq "valid"} { set poolstats_sharesvalid "$elem_val3" }
+								if {$elem3 eq "invalid"} { set poolstats_sharesinvalid "$elem_val3" }
+								if {$elem3 eq "estimated"} { set poolstats_sharesestimated "$elem_val3" }
+								if {$elem3 eq "progress"} { set poolstats_sharesprogress "$elem_val3" }
+							}
+						}
+						if {$elem2 eq "workers"} { set poolstats_poolworkers "$elem_val2" }
+					}				
+				}
+				
+				if {$elem eq "raw"} {
+					foreach {elem2 elem_val2} $elem_val {
+						#putlog "Ele: $elem2 - Val: $elem_val2"
+						
 						if {$elem2 eq "network"} {
 							foreach {elem3 elem_val3} $elem_val2 {
-      							if {$elem3 eq "hashrate"} {
+								if {$elem3 eq "hashrate"} {
+									#putlog "Nethashrate - $elem_val3"
       								if {[string toupper $shownethashrate] eq "KH"} {
       									set netdivider 1
       									set nethashratevalue "KH/s"
@@ -146,47 +164,36 @@ proc pool_info {nick host hand chan arg} {
       									set nethashratevalue "KH/s"
       								}
       								set poolstats_nethashrate [format "%.2f" [expr {double(double($elem_val3)/double($netdivider))}]]
-      							} 
+								}
 							}
 						}
-					}				
-				}
-
-				if {$elem eq "pool"} {
-					#putlog "Ele: $elem - Val: $elem_val"
-					foreach {elem2 elem_val2} $elem_val {
-						#putlog "Ele: $elem2 - Val: $elem_val2"
-						if {$elem2 eq "shares"} {
+						
+						if {$elem2 eq "pool"} {
 							foreach {elem3 elem_val3} $elem_val2 {
-								#putlog "Ele: $elem3 - Val: $elem_val3"
-								if {$elem3 eq "valid"} { set poolstats_sharesvalid "$elem_val3" }
-								if {$elem3 eq "invalid"} { set poolstats_sharesinvalid "$elem_val3" }
-								if {$elem3 eq "estimated"} { set poolstats_sharesestimated "$elem_val3" }
-								if {$elem3 eq "progress"} { set poolstats_sharesprogress "$elem_val3" }
+								if {$elem3 eq "hashrate"} {
+									#putlog "Poolhashrate - $elem_val3"
+      								if {[string toupper $showpoolhashrate] eq "KH"} {
+      									set pooldivider 1
+      									set poolhashratevalue "KH/s"
+      								} elseif {[string toupper $showpoolhashrate] eq "MH"} {
+      									set pooldivider 1000
+      									set poolhashratevalue "MH/s"
+      								} elseif {[string toupper $showpoolhashrate] eq "GH"} {
+      									set pooldivider 1000000
+      									set poolhashratevalue "GH/s"
+      								} elseif {[string toupper $showpoolhashrate] eq "TH"} {
+      									set pooldivider 1000000000
+      									set poolhashratevalue "TH/s"
+      								} else {
+      									set pooldivider 1
+      									set poolhashratevalue "KH/s"
+      								}
+      								set poolstats_poolhashrate [format "%.2f" [expr {double(double($elem_val3)/double($pooldivider))}]]
+								}
 							}
 						}
-						if {$elem2 eq "workers"} { set poolstats_poolworkers "$elem_val2" }
-      					if {$elem2 eq "hashrate"} {
-      						if {[string toupper $showpoolhashrate] eq "KH"} {
-      							set pooldivider 1
-      							set poolhashratevalue "KH/s"
-      						} elseif {[string toupper $showpoolhashrate] eq "MH"} {
-      							set pooldivider 1000
-      							set poolhashratevalue "MH/s"
-      						} elseif {[string toupper $showpoolhashrate] eq "GH"} {
-      							set pooldivider 1000000
-      							set poolhashratevalue "GH/s"
-      						} elseif {[string toupper $showpoolhashrate] eq "TH"} {
-      							set pooldivider 1000000000
-      							set poolhashratevalue "TH/s"
-      						} else {
-      							set pooldivider 1
-      							set poolhashratevalue "KH/s"
-      						}
-      						set poolstats_poolhashrate [format "%.2f" [expr {double(double($elem_val2)/double($pooldivider))}]]
-      					}
-					}				
-				}				
+					}
+				}			
 			}
 		}
 	}
