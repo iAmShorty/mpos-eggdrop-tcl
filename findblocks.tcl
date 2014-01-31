@@ -20,6 +20,7 @@
 ##########           use config.tcl for setting options     ##########
 ######################################################################
 
+#
 # start timer if set
 # and check if started when bot rehashes
 # prevent from double timers
@@ -45,6 +46,7 @@ if {$blockchecktime ne "0"} {
 	set checknewblocks_running [utimer $blockchecktime checknewblocks]
 }
 
+#
 # checking for new blocks
 #
 proc checknewblocks {} {
@@ -217,6 +219,7 @@ proc checknewblocks {} {
 	set checknewblocks_running [utimer $blockchecktime checknewblocks]
 }                                      
 
+#
 # checking the block
 #
 proc check_block {coinname blockheight blockconfirmations} {
@@ -277,6 +280,7 @@ proc check_block {coinname blockheight blockconfirmations} {
 
 }
 
+#
 # advertising the block
 #
 proc advertise_block {blockfinder_coinname blockfinder_newblock blockfinder_laststatus blockfinder_lastestshares blockfinder_lastshares blockfinder_lastfinder blockfinder_confirmations blockfinder_diff blockfinder_anon blockfinder_worker blockfinder_amount} {
@@ -307,7 +311,6 @@ proc advertise_block {blockfinder_coinname blockfinder_newblock blockfinder_last
 		set lineoutput $output_findblocks
 	}
 
-	#set lineoutput $output_findblocks
 	set lineoutput [replacevar $lineoutput "%blockfinder_coinname%" $blockfinder_coinname]
 	set lineoutput [replacevar $lineoutput "%blockfinder_newblock%" $blockfinder_newblock]
 	set lineoutput [replacevar $lineoutput "%blockfinder_lastblock%" $blockfinder_lastblock]

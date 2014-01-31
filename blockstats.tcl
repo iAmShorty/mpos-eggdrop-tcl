@@ -20,7 +20,8 @@
 ##########           use config.tcl for setting options     ##########
 ######################################################################
 
-# Block Stats
+#
+# block information
 #
 proc block_info {nick host hand chan arg} {
     global help_blocktime help_blocked channels debug debugoutput output onlyallowregisteredusers output_blockinfo output_blockinfo_percoin
@@ -130,7 +131,6 @@ proc block_info {nick host hand chan arg} {
 		set lineoutput $output_blockinfo
 	}
 	
-	#set lineoutput $output_blockinfo
 	set lineoutput [replacevar $lineoutput "%blockstats_coin%" [string toupper [lindex $arg 0]]]
 	set lineoutput [replacevar $lineoutput "%blockstats_current%" $blockstats_current]
 	set lineoutput [replacevar $lineoutput "%blockstats_next%" $blockstats_next]
@@ -154,6 +154,7 @@ proc block_info {nick host hand chan arg} {
 	
 }
 
+#
 # last block found
 #
 proc last_info {nick host hand chan arg } {

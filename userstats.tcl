@@ -20,6 +20,7 @@
 ##########           use config.tcl for setting options     ##########
 ######################################################################
 
+#
 # info for specific user
 #
 proc user_info {nick host hand chan arg} {
@@ -123,7 +124,6 @@ proc user_info {nick host hand chan arg} {
 		set lineoutput $output_userstats
 	}
 	
-	#set lineoutput $output_userstats
 	set lineoutput [replacevar $lineoutput "%userstats_coin%" [string toupper [lindex $arg 0]]]
 	set lineoutput [replacevar $lineoutput "%userstats_user%" [string tolower [lindex $arg 1]]]
 	set lineoutput [replacevar $lineoutput "%userstats_hashrate%" $user_hashrate]

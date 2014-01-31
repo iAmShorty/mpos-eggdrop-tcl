@@ -33,12 +33,9 @@ bind pub - !balance balance_info
 bind pub - ?help printUsage
 
 #
-# unset arrays for userdefined ouput
-# when rehashing the bot, otherwise the
-# array variables are always present, even
-# if they are commented out. arrays are set
-# if output.tcl is loaded and variables are 
-# not commented out
+# unset arrays for userdefined ouput when rehashing the bot, otherwise the
+# array variables are always present, even if they are commented out. arrays are set
+# again if output.tcl is loaded and variables are not commented out
 #
 if {[array exists output_balance_percoin]} { unset output_balance_percoin }
 if {[array exists output_blockinfo_percoin]} { unset output_blockinfo_percoin }
@@ -48,6 +45,7 @@ if {[array exists output_poolstats_percoin]} { unset output_poolstats_percoin }
 if {[array exists output_roundstats_percoin]} { unset output_roundstats_percoin }
 if {[array exists output_userstats_percoin]} { unset output_userstats_percoin }
 
+#
 # getting the pool vars from dictionary
 # set in config for specific pool
 #
@@ -72,6 +70,7 @@ proc pool_vars {coinname} {
 	}
 }
 
+#
 # replace variables
 #
 proc replacevar {string cookie value} {
@@ -82,7 +81,7 @@ proc replacevar {string cookie value} {
 	return [string map [list $cookie $value] $string]
 }
 
-        
+#
 # wordwrap proc that accepts multiline data 
 # (empty lines will be stripped because there's no way to relay them via irc) 
 #
@@ -108,6 +107,7 @@ proc wordwrap {data len} {
    set out 
 }
 
+#
 # basic file operations
 #
 proc file_write {filename blocknumber {AUTOAPPEND 0} {NEWLINE 1}} {
@@ -231,6 +231,9 @@ proc FileDeleteLine {FILENAME LINENR {TOLINENR -1}} {
     return 1
 }
 
+#
+# character filter
+#
 proc charfilter {arg} { return [string map {"\\" "\\\\" "\{" "\\\{" "\}" "\\\}" "\[" "\\\[" "\]" "\\\]" "\'" "\\\'" "\"" "\\\""} $arg] }
 
 putlog "===>> Mining-Pool-Basics - Version $scriptversion loaded"

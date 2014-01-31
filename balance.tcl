@@ -20,7 +20,8 @@
 ##########           use config.tcl for setting options     ##########
 ######################################################################
 
-# Account balance
+#
+# Account Balance
 #
 proc balance_info {nick host hand chan arg} {
     global help_blocktime help_blocked channels debug debugoutput output onlyallowregisteredusers ownersbalanceonly output_balance output_balance_percoin
@@ -130,7 +131,6 @@ proc balance_info {nick host hand chan arg} {
 		set lineoutput $output_balance
 	}
 	
-	#set lineoutput $output_balance
 	set lineoutput [replacevar $lineoutput "%balance_coin%" [string toupper [lindex $arg 0]]]
 	set lineoutput [replacevar $lineoutput "%balance_user%" [lindex $arg 1]]
 	set lineoutput [replacevar $lineoutput "%balance_confirmed%" $balance_confirmed]
@@ -151,5 +151,3 @@ proc balance_info {nick host hand chan arg} {
 }
 
 putlog "===>> Mining-Pool-Balanceinfo - Version $scriptversion loaded"
-
-
