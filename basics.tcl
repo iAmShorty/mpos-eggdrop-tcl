@@ -32,6 +32,22 @@ bind pub - !worker worker_info
 bind pub - !balance balance_info
 bind pub - ?help printUsage
 
+#
+# unset arrays for userdefined ouput
+# when rehashing the bot, otherwise the
+# array variables are always present, even
+# if they are commented out. arrays are set
+# if output.tcl is loaded and variables are 
+# not commented out
+#
+if {[array exists output_balance_percoin]} { unset output_balance_percoin }
+if {[array exists output_blockinfo_percoin]} { unset output_blockinfo_percoin }
+if {[array exists output_lastblock_percoin]} { unset output_lastblock_percoin }
+if {[array exists output_findblocks_percoin]} { unset output_findblocks_percoin }
+if {[array exists output_poolstats_percoin]} { unset output_poolstats_percoin }
+if {[array exists output_roundstats_percoin]} { unset output_roundstats_percoin }
+if {[array exists output_userstats_percoin]} { unset output_userstats_percoin }
+
 # getting the pool vars from dictionary
 # set in config for specific pool
 #
