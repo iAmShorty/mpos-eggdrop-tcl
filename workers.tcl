@@ -24,7 +24,7 @@
 # get worker information
 #
 proc worker_info {nick host hand chan arg} {
-    global help_blocktime help_blocked channels debug debugoutput output onlyallowregisteredusers ownersworkeronly output_workers
+    global help_blocktime help_blocked channels debug debugoutput output onlyallowregisteredusers ownersworkeronly output_workerinfo output_worker_online output_worker_offline
 	package require http
 	package require json
 	package require tls
@@ -77,17 +77,6 @@ proc worker_info {nick host hand chan arg} {
   		if {$debug eq "1"} { putlog "no pool data" }
   		return
   	}
-  	
-  	if {[lindex $arg 2] eq "active"} {
-		set worker_action "active"
-		set worker_user [lindex $arg 1]
-	} elseif {[lindex $arg 2] eq "inactive"} {
-		set worker_action "inactive"
-		set worker_user [lindex $arg 1]
-	} else {
-		set worker_action "info"
-		set worker_user [lindex $arg 1]
-	}
 	
   	set newurl [lindex $pool_info 1]
   	append newurl $action
@@ -130,7 +119,6 @@ proc worker_info {nick host hand chan arg} {
       						set worker_name "$elem_val2"
       					}
       					if {$elem2 eq "hashrate"} {
-      						
       						if {$elem_val2 eq "0"} {
       							set offlineWorkers($worker_name) $elem_val2
       						} else {
@@ -146,35 +134,48 @@ proc worker_info {nick host hand chan arg} {
 	if {$debug eq "1"} { putlog "onlineWorkers has [array size onlineWorkers] records" }
 	if {$debug eq "1"} { putlog "offlineWorkers has [array size offlineWorkers] records" }
 	
-	if {$worker_action eq "active"} {
-		foreach key [array names onlineWorkers] {
-			if {$debug eq "1"} { putlog "${key}=$onlineWorkers($key)" }
-
-			if {![info exists worker_name]} {
-				set worker_info "${key} - $onlineWorkers($key) KH/s | " 
-			} else {
-				append worker_info "${key} - $onlineWorkers($key) KH/s | "
+	if {[lindex $arg 2] eq "active"} {
+		if {[array exists onlineWorkers]} {
+			foreach key [array names onlineWorkers] {
+				if {$debug eq "1"} { putlog "${key}=$onlineWorkers($key)" }
+				if {![info exists worker_name]} {
+					set lineoutput "${key} - $onlineWorkers($key) KH/s | " 
+				} else {
+					append lineoutput "${key} - $onlineWorkers($key) KH/s | "
+				}
 			}
-
 		}
-	} elseif {$worker_action eq "inactive"} {
-		foreach key [array names offlineWorkers] {
-			if {$debug eq "1"} { putlog "${key}=$offlineWorkers($key)" }
-
-			if {![info exists worker_name]} {
-				set worker_info "${key} - $offlineWorkers($key) KH/s | " 
-			} else {
-				append worker_info "${key} - $offlineWorkers($key) KH/s | "
+	} elseif {[lindex $arg 2] eq "inactive"} {
+		if {[array exists offlineWorkers]} {
+			foreach key [array names offlineWorkers] {
+				if {$debug eq "1"} { putlog "${key}=$offlineWorkers($key)" }
+				if {![info exists worker_name]} {
+					set lineoutput "${key} - $offlineWorkers($key) KH/s | " 
+				} else {
+					append lineoutput "${key} - $offlineWorkers($key) KH/s | "
+				}
 			}
 		}
 	} else {
-		set worker_info "Active: [array size onlineWorkers] Workers - Inactive:  [array size offlineWorkers] Workers"
+	
+		if {[info exists output_workerinfo_percoin([string tolower [lindex $arg 0]])]} {
+			if {$debug eq "1"} { putlog "-> [string toupper [lindex $arg 0]] - $output_workerinfo_percoin([string tolower [lindex $arg 0]])" }
+				set lineoutput $output_workerinfo_percoin([string tolower [lindex $arg 0]])
+			} else {
+				if {$debug eq "1"} { putlog "no special output!" }
+				set lineoutput $output_workerinfo
+		}
+		
+		set lineoutput [replacevar $lineoutput "%workers_username%" [lindex $arg 1]]
+		set lineoutput [replacevar $lineoutput "%workers_coinname%" [string toupper [lindex $pool_info 0]]]
+		set lineoutput [replacevar $lineoutput "%workers_online_count%" [array size onlineWorkers]]
+		set lineoutput [replacevar $lineoutput "%workers_offline_count%" [array size offlineWorkers]]
 	}
 	
     # split message if buffer is to big
 	#
 	set len [expr {512-[string len ":$::botname PRIVMSG $chan :\r\n"]}] 
-	foreach line [wordwrap $worker_info $len] { 
+	foreach line [wordwrap $lineoutput $len] { 
 		if {$output eq "CHAN"} {
  			foreach advert $channels {
  				if {$advert eq $chan} {

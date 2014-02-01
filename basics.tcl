@@ -44,7 +44,9 @@ if {[array exists output_findblocks_percoin]} { unset output_findblocks_percoin 
 if {[array exists output_poolstats_percoin]} { unset output_poolstats_percoin }
 if {[array exists output_roundstats_percoin]} { unset output_roundstats_percoin }
 if {[array exists output_userstats_percoin]} { unset output_userstats_percoin }
-
+if {[array exists output_workerinfo_percoin]} { unset output_workerinfo_percoin }
+if {[array exists output_worker_offline_percoin]} { unset output_worker_offline_percoin }
+if {[array exists output_worker_online_percoin]} { unset output_worker_online_percoin }
 #
 # getting the pool vars from dictionary
 # set in config for specific pool
