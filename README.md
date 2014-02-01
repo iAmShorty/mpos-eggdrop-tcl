@@ -21,9 +21,10 @@ Donations
 For those of you finding my project and are willing to appreciate the work
 with some hard earned coins feel free to donate:
 
-* Litecoin:    `Lhiuh9Zv4dypuHn8gTphcveQydViUdKLux`
-* Bitcoin:     `1HeUGoZGrSQPDmq24s9768J7oH6tdMeJBa`
-
+* Litecoin:            `LQXG758pmkFsMVvne3pxBB7222PNyLJUMk`
+* Bitcoin:             `14p1qAwme57Foq1vMBPxJGC51wuE9V6d9M`
+* Crypts Trade Key:    `d2e11bd8d3fcd98ba686a92be71f6c1d606a3368`
+* 
 FEATURES
 ================
 
