@@ -354,4 +354,32 @@ set output_userstats "Pool: \0032%userstats_coin%\003\
 #set output_userstats_percoin(btc) "Coin: \0032%userstats_coin%\003 - test output btc"
 #set output_userstats_percoin(ltc) "Coin: \0032%userstats_coin%\003 - test output ltc"
 
+#
+# output for general worker information
+#
+# -> %workers_username%
+# -> %workers_coinname%
+# -> %workers_online_count%
+# -> %workers_offline_count%
+# -> %workers_workername%
+# -> %workers_workerhashrate%
+#
+set output_workerinfo "User %workers_username%\
+has %workers_online_count% active\
+and %workers_offline_count% inactive workers\
+on %workers_coinname% Pool"
+
+# different announcements per coin
+# use coins set in config.tcl with config option
+# -> set poolstocheck "BTC LTC"
+# the coins listed here, can be used for different
+# announcements per coin. if not set or commented out
+# the standard announce will be used for announcing
+#
+# NOTE:
+# coinname must be in lowercase
+#
+#set output_workerinfo_percoin(btc) "Coin: \0032%workers_coinname%\003 - test output btc"
+#set output_workerinfo_percoin(ltc) "Coin: \0032%workers_coinname%\003 - test output ltc"
+
 putlog "===>> Mining-Pool-Outputconfig - Version $scriptversion loaded"

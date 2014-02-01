@@ -24,7 +24,7 @@
 # get worker information
 #
 proc worker_info {nick host hand chan arg} {
-    global help_blocktime help_blocked channels debug debugoutput output onlyallowregisteredusers ownersworkeronly output_workers
+    global help_blocktime help_blocked channels debug debugoutput output onlyallowregisteredusers ownersworkeronly output_workerinfo output_worker_online output_worker_offline
 	package require http
 	package require json
 	package require tls
@@ -76,8 +76,8 @@ proc worker_info {nick host hand chan arg} {
   	} else {
   		if {$debug eq "1"} { putlog "no pool data" }
   		return
-  	} 
-  	
+  	}
+	
   	set newurl [lindex $pool_info 1]
   	append newurl $action
   	append newurl [lindex $pool_info 2]
@@ -116,22 +116,13 @@ proc worker_info {nick host hand chan arg} {
 					foreach {elem2 elem_val2} $elem {
 						#putlog "Ele: $elem2 - Val: $elem_val2"
       					if {$elem2 eq "username"} {
-      						#if {$elem_val2 ne $arg} {
-      						#	putquick "PRIVMSG $chan :Access to user $elem_val2 denied"
-      						#	return 0
-      						#}
-      						
-      						if {![info exists worker_name]} {
-      							set worker_name "$elem_val2"
+      						set worker_name "$elem_val2"
+      					}
+      					if {$elem2 eq "hashrate"} {
+      						if {$elem_val2 eq "0"} {
+      							set offlineWorkers($worker_name) $elem_val2
       						} else {
-      							append worker_name "$elem_val2"
-      						}
-      					} 
-      					if {$elem2 eq "hashrate"} { 
-      						if {![info exists worker_name]} {
-      							set worker_name " - $elem_val2 KH/s | " 
-      						} else {
-      							append worker_name " - $elem_val2 KH/s | "
+      							set onlineWorkers($worker_name) $elem_val2
       						}
       					} 						
 					}
@@ -140,10 +131,51 @@ proc worker_info {nick host hand chan arg} {
 		}
 	}
 	
+	if {$debug eq "1"} { putlog "onlineWorkers has [array size onlineWorkers] records" }
+	if {$debug eq "1"} { putlog "offlineWorkers has [array size offlineWorkers] records" }
+	
+	if {[lindex $arg 2] eq "active"} {
+		if {[array exists onlineWorkers]} {
+			foreach key [array names onlineWorkers] {
+				if {$debug eq "1"} { putlog "${key}=$onlineWorkers($key)" }
+				if {![info exists worker_name]} {
+					set lineoutput "${key} - $onlineWorkers($key) KH/s | " 
+				} else {
+					append lineoutput "${key} - $onlineWorkers($key) KH/s | "
+				}
+			}
+		}
+	} elseif {[lindex $arg 2] eq "inactive"} {
+		if {[array exists offlineWorkers]} {
+			foreach key [array names offlineWorkers] {
+				if {$debug eq "1"} { putlog "${key}=$offlineWorkers($key)" }
+				if {![info exists worker_name]} {
+					set lineoutput "${key} - $offlineWorkers($key) KH/s | " 
+				} else {
+					append lineoutput "${key} - $offlineWorkers($key) KH/s | "
+				}
+			}
+		}
+	} else {
+	
+		if {[info exists output_workerinfo_percoin([string tolower [lindex $arg 0]])]} {
+			if {$debug eq "1"} { putlog "-> [string toupper [lindex $arg 0]] - $output_workerinfo_percoin([string tolower [lindex $arg 0]])" }
+				set lineoutput $output_workerinfo_percoin([string tolower [lindex $arg 0]])
+			} else {
+				if {$debug eq "1"} { putlog "no special output!" }
+				set lineoutput $output_workerinfo
+		}
+		
+		set lineoutput [replacevar $lineoutput "%workers_username%" [lindex $arg 1]]
+		set lineoutput [replacevar $lineoutput "%workers_coinname%" [string toupper [lindex $pool_info 0]]]
+		set lineoutput [replacevar $lineoutput "%workers_online_count%" [array size onlineWorkers]]
+		set lineoutput [replacevar $lineoutput "%workers_offline_count%" [array size offlineWorkers]]
+	}
+	
     # split message if buffer is to big
 	#
 	set len [expr {512-[string len ":$::botname PRIVMSG $chan :\r\n"]}] 
-	foreach line [wordwrap $worker_name $len] { 
+	foreach line [wordwrap $lineoutput $len] { 
 		if {$output eq "CHAN"} {
  			foreach advert $channels {
  				if {$advert eq $chan} {

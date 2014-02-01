@@ -154,7 +154,9 @@ communicate with the bot and get the output right in the channel
 !round POOLNAME                          - Actual Round Information
 !last POOLNAME                           - Information about last found Block
 !user POOLNAME username                  - Information about a specific User
-!worker POOLNAME username                - Workers for specific User
+!worker POOLNAME username                - Workerinfo for specific User
+!worker POOLNAME username active         - active Workers for specific User
+!worker POOLNAME username inactive       - inactive Workers for specific User
 !balance POOLNAME username               - Get User Wallet Balance
 !price                                   - Get actual Coinprice
 !help                                    - This help text

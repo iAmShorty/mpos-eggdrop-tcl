@@ -68,7 +68,6 @@ set scriptpath "./scripts/mininginfo/"
 #
 set channels "#channel1 #channel2"
 
-
 ##################################################################
 # MPOS Config
 ##################################################################
@@ -152,7 +151,6 @@ set pooltimer "0"
 # check for new blocks in seconds
 #
 set blockchecktime "60"
-
 
 ##################################################################
 # Marketdata Config
