@@ -13,7 +13,7 @@ Active Pools
 
 * http://elephantcoin.auxmining.de
 * http://alphacoin.auxmining.de
-* http://krugercoin.auxmining.de
+* http://machinecoin.auxmining.de
 
 Donations
 ================
