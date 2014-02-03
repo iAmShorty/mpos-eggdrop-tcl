@@ -264,4 +264,4 @@ proc market_cryptsy {chan marketdataresult} {
 	
 }
 
-putlog "===>> Market Data - Version $scriptversion loaded"
+putlog "===>> Mining-Pool-Marketdata - Version $scriptversion loaded"

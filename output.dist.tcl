@@ -197,52 +197,6 @@ set output_findblocks "Coin: \0032%blockfinder_coinname%\003\
 #set output_findblocks_percoin(ltc) "Coin: \0032%blockfinder_coinname%\003 - test output ltc"
 
 #
-# output for marketdata
-#
-# - Cryptsy
-#
-# -> %marketdata_market%
-# -> %marketdata_tradeprice%
-# -> %marketdata_tradetrime%
-# -> %marketdata_tradelabel%
-# -> %marketdata_tradevolume%
-#
-set output_marketdata_cryptsy "Market: \0032%marketdata_market%\003\
-| Latest Price: %marketdata_tradeprice% %marketdata_tradelabel%\
-| Last Trade: %marketdata_tradetrime%\
-| Volume: %marketdata_tradevolume%"
-
-#
-# - Vircurex
-#
-# -> %marketdata_market%
-# -> %trade_base%
-# -> %trade_price%
-# -> %trade_alt%
-#
-set output_marketdata_vircurex "Market: \0032%marketdata_market%\003\
-| Coin: %trade_base%\
-| Latest Price: %trade_price% %trade_alt%"
-
-#
-# - Coins-E
-#
-# -> %marketdata_market%
-# -> %marketdata_altcoin%
-# -> %marketdata_tradehigh%
-# -> %marketdata_tradelow%
-# -> %marketdata_tradeavg%
-# -> %marketdata_tradevolume%
-# -> %marketdata_basecoin%
-#
-set output_marketdata_coinse "Market: \0032%marketdata_market%\003\
-| Coin: %marketdata_altcoin%\
-| High: %marketdata_tradehigh% %marketdata_basecoin%\
-| Low: %marketdata_tradelow% %basecoin%\
-| AVG: %marketdata_tradeavg% %marketdata_basecoin%\
-| Volume: %marketdata_tradevolume%"
-
-#
 # output for poolstats
 #
 # -> %roundstats_coin%
@@ -381,5 +335,82 @@ on %workers_coinname% Pool"
 #
 #set output_workerinfo_percoin(btc) "Coin: \0032%workers_coinname%\003 - test output btc"
 #set output_workerinfo_percoin(ltc) "Coin: \0032%workers_coinname%\003 - test output ltc"
+
+
+##########################################################################################
+####################               no pool realated output            ####################
+##########################################################################################
+
+
+#
+# output for marketdata
+#
+# - Cryptsy
+#
+# -> %marketdata_market%
+# -> %marketdata_tradeprice%
+# -> %marketdata_tradetrime%
+# -> %marketdata_tradelabel%
+# -> %marketdata_tradevolume%
+#
+set output_marketdata_cryptsy "Market: \0032%marketdata_market%\003\
+| Latest Price: %marketdata_tradeprice% %marketdata_tradelabel%\
+| Last Trade: %marketdata_tradetrime%\
+| Volume: %marketdata_tradevolume%"
+
+#
+# - Vircurex
+#
+# -> %marketdata_market%
+# -> %trade_base%
+# -> %trade_price%
+# -> %trade_alt%
+#
+set output_marketdata_vircurex "Market: \0032%marketdata_market%\003\
+| Coin: %trade_base%\
+| Latest Price: %trade_price% %trade_alt%"
+
+#
+# - Coins-E
+#
+# -> %marketdata_market%
+# -> %marketdata_altcoin%
+# -> %marketdata_tradehigh%
+# -> %marketdata_tradelow%
+# -> %marketdata_tradeavg%
+# -> %marketdata_tradevolume%
+# -> %marketdata_basecoin%
+#
+set output_marketdata_coinse "Market: \0032%marketdata_market%\003\
+| Coin: %marketdata_altcoin%\
+| High: %marketdata_tradehigh% %marketdata_basecoin%\
+| Low: %marketdata_tradelow% %basecoin%\
+| AVG: %marketdata_tradeavg% %marketdata_basecoin%\
+| Volume: %marketdata_tradevolume%"
+
+#
+# Coinchoose output
+#
+# -> %coinchoose_name%
+# -> %coinchoose_algo%
+# -> %coinchoose_currentblocks%
+# -> %coinchoose_diff%
+# -> %coinchoose_exchange%
+# -> %coinchoose_price%
+# -> %coinchoose_reward%
+# -> %coinchoose_networkhashrate%
+# -> %coinchoose_avgprofit%
+# -> %coinchoose_avghash%
+#
+set output_coinchoose "Coin: \0032%coinchoose_name%\003\
+| Algo: %coinchoose_algo%\
+| Current Blocks: %coinchoose_currentblocks%\
+| Diff: %coinchoose_diff%\
+| Price: %coinchoose_price% BTC\
+| Blockreward: %coinchoose_reward%\
+| Avg. Profit: %coinchoose_avgprofit%\
+| Network Hashrate: %coinchoose_networkhashrate%\
+| Avg. Hashrate: %coinchoose_avghash%\
+| Exchange: %coinchoose_exchange%"
 
 putlog "===>> Mining-Pool-Outputconfig - Version $scriptversion loaded"
