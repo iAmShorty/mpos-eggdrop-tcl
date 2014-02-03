@@ -39,7 +39,7 @@ proc coinchoose_info {nick host hand chan arg} {
 	}
 
 	if {$arg eq "" || [llength $arg] < 1} {
-		if {$debug eq "1"} { putlog "wrong arguments, must be !coininfo coin" }
+		if {$debug eq "1"} { putlog "wrong arguments, must be !coininfo coinname" }
 		return
 	}
 	
@@ -113,9 +113,13 @@ proc coinchoose_info {nick host hand chan arg} {
 			break
 		}
 	}
-
-	set lineoutput $output_coinchoose
-
+	
+	if {$coin_found eq "true"} {
+		set lineoutput $output_coinchoose
+	} else {
+		set lineoutput "cannot find coin -> [string toupper $arg]"
+	}
+	
 	set lineoutput [replacevar $lineoutput "%coinchoose_name%" $coinchoose_name]
 	set lineoutput [replacevar $lineoutput "%coinchoose_algo%" $coinchoose_algo]
 	set lineoutput [replacevar $lineoutput "%coinchoose_currentblocks%" $coinchoose_currentblocks]
