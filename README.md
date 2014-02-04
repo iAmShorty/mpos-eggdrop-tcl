@@ -23,6 +23,7 @@ with some hard earned coins feel free to donate:
 
 * Litecoin:            `LQXG758pmkFsMVvne3pxBB7222PNyLJUMk`
 * Bitcoin:             `14p1qAwme57Foq1vMBPxJGC51wuE9V6d9M`
+* DOGE:                `DEYvtW2u1gaJsBFMwRGTXZC2BZMoBjMznD`
 * Crypts Trade Key:    `d2e11bd8d3fcd98ba686a92be71f6c1d606a3368`
 * 
 FEATURES
