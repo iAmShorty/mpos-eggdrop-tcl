@@ -37,6 +37,7 @@ proc printUsage {nick host hand chan arg} {
     putquick "NOTICE $nick :       !worker COINNAME <user> inactive  - User inactive Workers"
     putquick "NOTICE $nick :       !balance COINNAME <user>          - User Wallet Balance"
     putquick "NOTICE $nick :       !price                            - Get actual Coinprice"
+    putquick "NOTICE $nick :       !coinchoose COINNAME              - Get actual Coininfo from Coinchoose"
     putquick "NOTICE $nick :       ?help                             - This help text"
 }
 

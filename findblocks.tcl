@@ -31,7 +31,7 @@ if {$blockchecktime ne "0"} {
 	# if timer exists, kill the timer
 	# and start a new timer
 	foreach timer "[utimers]" {
-		putlog "Timer: [lindex $timer 1]"
+		if {$debug eq "1"} { putlog "Timer: [lindex $timer 1]" }
 		if {"[lindex $timer 1]" == "checknewblocks"} {
 			if {[catch {killutimer "[lindex $timer 2]"} error]} {
 				if {$debug eq "1"} { putlog "\[FINDBLOCKS\] Warning : Unable to kill findblock timer ($error)." }
@@ -97,7 +97,7 @@ proc checknewblocks {} {
 					}
   					append logfilepath $lastblockfile
   			
-  					putlog "File $logfilepath"
+  					if {$debug eq "1"} { putlog "File $logfilepath" }
   	
     				if {[string match "*https*" [string tolower $newurl]]} {
   						set usehttps 1
@@ -209,7 +209,7 @@ proc checknewblocks {} {
 						close $fh
 					} else {
 						set lastblock [FileTextReadLine $logfilepath 0 0]
-						putlog "No New [string toupper [lindex $pool_info 0]] Block found - $lastblock"
+						if {$debug eq "1"} { putlog "No New [string toupper [lindex $pool_info 0]] Block found - $lastblock" }
 					}
     			}
 			}
@@ -253,7 +253,7 @@ proc check_block {coinname blockheight blockconfirmations} {
 		set blockfile [open $logfilepath]
 		# Read until we find the start pattern
 		while {[gets $blockfile line] >= 0} {
-			#putlog "LINE: $line"
+			#if {$debug eq "1"} { putlog "LINE: $line" }
   	  		if { [string match "$blockheight" $line] } {
 				set newblock "0"
 				break
