@@ -104,7 +104,7 @@ proc coinchoose_info {nick host hand chan arg} {
 			if {$value eq "exchange"} { 
 				#set coinchoose_exchange "$sub_value" 
 				#set coinchoose_networkhashrate "$sub_value"
-				if {$sub_value eq "0"} {
+				if {$sub_value eq "0" ||$sub_value eq "null" || $sub_value eq ""} {
 					set coinchoose_exchange "n/a"
 				} else {
 					set coinchoose_exchange $sub_value
