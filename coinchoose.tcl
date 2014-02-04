@@ -75,6 +75,19 @@ proc coinchoose_info {nick host hand chan arg} {
     set results [::json::json2dict $data]
 
   	set coin_found "false"
+  	set coinchoose_name "0"
+  	set coinchoose_algo "0"
+  	set coinchoose_currentblocks "0"
+  	set coinchoose_diff "0"
+  	set coinchoose_exchange "0"
+  	set coinchoose_price "0"
+  	set coinchoose_reward "0"
+  	set coinchoose_networkhashrate "0"
+  	set coinchoose_avgprofit "0"
+  	set coinchoose_avghashrate "0"
+  	set coinchoose_nethashratevalue "0"
+  	set coinchoose_avgnethashratevalue "0"
+  	
   	if {$debug eq "1"} { putlog "Search on coinchoose for [string toupper $arg]" }
 
 	foreach key $results {
@@ -88,24 +101,108 @@ proc coinchoose_info {nick host hand chan arg} {
 			if {$value eq "algo"} { set coinchoose_algo "$sub_value" }
 			if {$value eq "currentBlocks"} { set coinchoose_currentblocks "$sub_value" }
 			if {$value eq "difficulty"} { set coinchoose_diff "$sub_value" }
-			if {$value eq "exchange"} { set coinchoose_exchange "$sub_value" }
-			if {$value eq "price"} { set coinchoose_price "$sub_value" }
-			if {$value eq "reward"} { set coinchoose_reward "$sub_value" }
-			if {$value eq "networkhashrate"} {
+			if {$value eq "exchange"} { 
+				#set coinchoose_exchange "$sub_value" 
 				#set coinchoose_networkhashrate "$sub_value"
 				if {$sub_value eq "0"} {
-					set coinchoose_networkhashrate "???"
+					set coinchoose_exchange "n/a"
 				} else {
-					set coinchoose_networkhashrate $sub_value
+					set coinchoose_exchange $sub_value
 				}
 			}
-			if {$value eq "avgProfit"} { set coinchoose_avgprofit "$sub_value" }
+			if {$value eq "price"} {
+				if {$sub_value eq "null"} {
+					set coinchoose_price "0"
+				} else {
+					set coinchoose_price [format "%0.8f" $sub_value]
+				}
+			}
+			if {$value eq "reward"} {
+				if {$sub_value eq "null"} {
+					set coinchoose_reward "0"
+				} else {
+					set coinchoose_reward [format "%0.2f" $sub_value]
+				}
+			}
+			if {$value eq "networkhashrate"} {
+				#set coinchoose_networkhashrate "$sub_value"
+				if {$sub_value eq "0" || $sub_value eq "null"} {
+					set coinchoose_nethashratedevider 0
+					set coinchoose_nethashratevalue ""
+					set coinchoose_networkhashrate "n/a"
+				} else {
+
+					if {[string match *.* $sub_value]} {
+						set sub_value [format "%0.0f" $sub_value]
+					}
+					
+					if {[string length $sub_value] <= 3 } {
+						set coinchoose_nethashratedevider 1
+						set coinchoose_nethashratevalue "H/s"
+					} elseif {[string length $sub_value] <= 6 } {
+						set coinchoose_nethashratedevider 1000
+						set coinchoose_nethashratevalue "KH/s"
+					} elseif {[string length $sub_value] <= 9 } {
+						set coinchoose_nethashratedevider 1000000
+						set coinchoose_nethashratevalue "MH/s"
+					} elseif {[string length $sub_value] <= 12 } {
+						set coinchoose_nethashratedevider 1000000000
+						set coinchoose_nethashratevalue "GH/s"
+					} elseif {[string length $sub_value] <= 15 } {
+						set coinchoose_nethashratedevider 1000000000000
+						set coinchoose_nethashratevalue "TH/s"
+					} elseif {[string length $sub_value] <= 18 } {
+						set coinchoose_nethashratedevider 1000000000000000
+						set coinchoose_nethashratevalue "PH/s"
+					} else {
+						set coinchoose_nethashratedevider 1
+						set coinchoose_nethashratevalue "H/s"
+					}
+					set coinchoose_networkhashrate [format "%.2f" [expr {double(double($sub_value)/double($coinchoose_nethashratedevider))}]]
+				}
+			}
+			if {$value eq "avgProfit"} {
+				if {$sub_value eq "null"} {
+					set coinchoose_avgprofit "0"
+				} else {
+					set coinchoose_avgprofit [format "%0.2f" $sub_value]
+				}
+			}
 			if {$value eq "avgHash"} {
 				#set coinchoose_avghash "$sub_value"
-				if {$sub_value eq "0"} {
-					set coinchoose_avghash "???"
+				if {$sub_value eq "0" || $sub_value eq "null"} {
+					set coinchoose_avghashrate "n/a"
+					set coinchoose_avgnethashratedevider 0
+					set coinchoose_avgnethashratevalue ""
 				} else {
-					set coinchoose_avghash $sub_value
+				
+					if {[string match *.* $sub_value]} {
+						set sub_value [format "%0.0f" $sub_value]
+					}
+					
+					if {[string length $sub_value] <= 3 } {
+						set coinchoose_avgnethashratedevider 1
+						set coinchoose_avgnethashratevalue "H/s"
+					} elseif {[string length $sub_value] <= 6 } {
+						set coinchoose_avgnethashratedevider 1000
+						set coinchoose_avgnethashratevalue "KH/s"
+					} elseif {[string length $sub_value] <= 9 } {
+						set coinchoose_avgnethashratedevider 1000000
+						set coinchoose_avgnethashratevalue "MH/s"
+					} elseif {[string length $sub_value] <= 12 } {
+						set coinchoose_avgnethashratedevider 1000000000
+						set coinchoose_avgnethashratevalue "GH/s"
+					} elseif {[string length $sub_value] <= 15 } {
+						set coinchoose_avgnethashratedevider 1000000000000
+						set coinchoose_avgnethashratevalue "TH/s"
+					} elseif {[string length $sub_value] <= 18 } {
+						set coinchoose_avgnethashratedevider 1000000000000000
+						set coinchoose_avgnethashratevalue "PH/s"
+					} else {
+						set coinchoose_avgnethashratedevider 1
+						set coinchoose_avgnethashratevalue "H/s"
+					}
+					set coinchoose_avghashrate [format "%.2f" [expr {double(double($sub_value)/double($coinchoose_avgnethashratedevider))}]]
 				}
 			}
 		}
@@ -116,20 +213,21 @@ proc coinchoose_info {nick host hand chan arg} {
 	
 	if {$coin_found eq "true"} {
 		set lineoutput $output_coinchoose
+		set lineoutput [replacevar $lineoutput "%coinchoose_name%" $coinchoose_name]
+		set lineoutput [replacevar $lineoutput "%coinchoose_algo%" $coinchoose_algo]
+		set lineoutput [replacevar $lineoutput "%coinchoose_currentblocks%" $coinchoose_currentblocks]
+		set lineoutput [replacevar $lineoutput "%coinchoose_diff%" $coinchoose_diff]
+		set lineoutput [replacevar $lineoutput "%coinchoose_exchange%" $coinchoose_exchange]
+		set lineoutput [replacevar $lineoutput "%coinchoose_price%" $coinchoose_price]
+		set lineoutput [replacevar $lineoutput "%coinchoose_reward%" $coinchoose_reward]
+		set lineoutput [replacevar $lineoutput "%coinchoose_networkhashrate%" $coinchoose_networkhashrate]
+		set lineoutput [replacevar $lineoutput "%coinchoose_networkhashratevalue%" $coinchoose_nethashratevalue]
+		set lineoutput [replacevar $lineoutput "%coinchoose_avgprofit%" $coinchoose_avgprofit]
+		set lineoutput [replacevar $lineoutput "%coinchoose_avghashrate%" $coinchoose_avghashrate]
+		set lineoutput [replacevar $lineoutput "%coinchoose_avghashvalue%" $coinchoose_avgnethashratevalue]
 	} else {
 		set lineoutput "cannot find coin -> [string toupper $arg]"
 	}
-	
-	set lineoutput [replacevar $lineoutput "%coinchoose_name%" $coinchoose_name]
-	set lineoutput [replacevar $lineoutput "%coinchoose_algo%" $coinchoose_algo]
-	set lineoutput [replacevar $lineoutput "%coinchoose_currentblocks%" $coinchoose_currentblocks]
-	set lineoutput [replacevar $lineoutput "%coinchoose_diff%" $coinchoose_diff]
-	set lineoutput [replacevar $lineoutput "%coinchoose_exchange%" $coinchoose_exchange]
-	set lineoutput [replacevar $lineoutput "%coinchoose_price%" $coinchoose_price]
-	set lineoutput [replacevar $lineoutput "%coinchoose_reward%" $coinchoose_reward]
-	set lineoutput [replacevar $lineoutput "%coinchoose_networkhashrate%" $coinchoose_networkhashrate]
-	set lineoutput [replacevar $lineoutput "%coinchoose_avgprofit%" $coinchoose_avgprofit]
-	set lineoutput [replacevar $lineoutput "%coinchoose_avghash%" $coinchoose_avghash]
 	
  	if {$output eq "CHAN"} {
  		foreach advert $channels {

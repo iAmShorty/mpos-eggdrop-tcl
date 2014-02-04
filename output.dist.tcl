@@ -399,8 +399,10 @@ set output_marketdata_coinse "Market: \0032%marketdata_market%\003\
 # -> %coinchoose_price%
 # -> %coinchoose_reward%
 # -> %coinchoose_networkhashrate%
+# -> %coinchoose_networkhashratevalue%
 # -> %coinchoose_avgprofit%
-# -> %coinchoose_avghash%
+# -> %coinchoose_avghashrate%
+# -> %coinchoose_avghashvalue%
 #
 set output_coinchoose "Coin: \0032%coinchoose_name%\003\
 | Algo: %coinchoose_algo%\
@@ -408,9 +410,9 @@ set output_coinchoose "Coin: \0032%coinchoose_name%\003\
 | Diff: %coinchoose_diff%\
 | Price: %coinchoose_price% BTC\
 | Blockreward: %coinchoose_reward%\
-| Avg. Profit: %coinchoose_avgprofit%\
-| Network Hashrate: %coinchoose_networkhashrate%\
-| Avg. Hashrate: %coinchoose_avghash%\
+| Avg. Profit: %coinchoose_avgprofit% %\
+| Network Hashrate: %coinchoose_networkhashrate% %coinchoose_networkhashratevalue%\
+| Avg. Hashrate: %coinchoose_avghashrate% %coinchoose_avghashvalue%\
 | Exchange: %coinchoose_exchange%"
 
 putlog "===>> Mining-Pool-Outputconfig - Version $scriptversion loaded"
