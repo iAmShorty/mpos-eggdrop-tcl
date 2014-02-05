@@ -35,6 +35,9 @@ bind pub - ?help printUsage
 bind pub - !adduser user_add
 bind pub - !deluser user_del
 bind pub - !request user_request
+bind pub - !addpool pool_add
+bind pub - !delpool pool_del
+bind pub - !pools pool_list
 
 #
 # unset arrays for userdefined ouput when rehashing the bot, otherwise the

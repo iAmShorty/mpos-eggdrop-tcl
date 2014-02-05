@@ -49,7 +49,7 @@ FEATURES
 Requirements 
 ================
 
- - <a href="http://www.tcl.tk" target="_blank">TCL</a> (with JSON and TLS Support)
+ - <a href="http://www.tcl.tk" target="_blank">TCL</a> (with JSON, SQLITE and TLS Support)
  - <a href="http://www.eggheads.org" target="_blank">eggdrop</a> IRC Bot
  - <a href="https://github.com/TheSerapher/php-mpos" target="_blank">MPOS</a>
 
