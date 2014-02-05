@@ -32,6 +32,7 @@ bind pub - !worker worker_info
 bind pub - !balance balance_info
 bind pub - !coinchoose coinchoose_info
 bind pub - ?help printUsage
+bind pub - !help printUsage
 bind pub - !adduser user_add
 bind pub - !deluser user_del
 bind pub - !request user_request

@@ -66,7 +66,10 @@ proc checknewblocks {} {
  	set last_status "null"
  	set last_confirmations "null"
    	set last_estshares "null"
- 
+   	
+   	set timestamp [unixtime]
+   	
+   	
 	dict for {id info} $pools {
 
 		foreach {poolcoin} $poolstocheck {
@@ -163,7 +166,7 @@ proc checknewblocks {} {
 										
 										if {$last_shares ne "null"} {
 											set poolcoin [string toupper [lindex $pool_info 0]]
-											set blockindatabase [llength [advertiseblocks eval {SELECT blockheight FROM blocks WHERE blockheight=$last_block}]]
+											set blockindatabase [llength [advertiseblocks eval {SELECT last_block FROM blocks WHERE last_block=$last_block}]]
 											
 											#putlog "Test: $blockadvertise"
 											
@@ -171,17 +174,17 @@ proc checknewblocks {} {
 											#if {$debug eq "1"} { putlog "values: $last_block - $last_status - $last_estshares - $last_shares - $last_finder"}
 										
 											if {$blockindatabase == 0} {
-												advertiseblocks eval {INSERT INTO blocks (blockheight,coin,confirmations,posted) VALUES ($last_block,$poolcoin,$last_confirmations,'N')}
+												advertiseblocks eval {INSERT INTO blocks (poolcoin,last_block,last_status,last_estshares,last_shares,last_finder,last_confirmations,last_diff,last_anon,last_worker,last_amount,last_confirmations,posted,timestamp) VALUES ($poolcoin,$last_block,$last_status,$last_estshares,$last_shares,$last_finder,$last_confirmations,$last_diff,$last_anon,$last_worker,$last_amount,$last_confirmations,'N',$timestamp)}
 											} else {
 												#putlog "block in database"
-												foreach {confirmation posted} [advertiseblocks eval {SELECT confirmations,posted FROM blocks WHERE blockheight=$last_block}] {
+												foreach {confirmation posted} [advertiseblocks eval {SELECT last_confirmations,posted FROM blocks WHERE last_block=$last_block}] {
 													if {$confirmation < $confirmations && $posted eq "N"} {
 														putlog "not confirmed - $confirmations"
-														advertiseblocks eval {UPDATE blocks SET confirmations=$last_confirmations WHERE blockheight=$last_block}
+														advertiseblocks eval {UPDATE blocks SET last_confirmations=$last_confirmations WHERE last_block=$last_block}
 													} elseif {$confirmation >= $confirmations && $posted eq "N"} {
 														putlog "posting"
-														advertiseblocks eval {UPDATE blocks SET posted="Y" WHERE blockheight=$last_block}
-														advertise_block $poolcoin $last_block $last_status $last_estshares $last_shares $last_finder $last_confirmations $last_diff $last_anon $last_worker $last_amount
+														advertiseblocks eval {UPDATE blocks SET posted="Y" WHERE last_block=$last_block}
+														#advertise_block $poolcoin $last_block $last_status $last_estshares $last_shares $last_finder $last_confirmations $last_diff $last_anon $last_worker $last_amount
 													}
 												}
 												
@@ -198,20 +201,31 @@ proc checknewblocks {} {
 			}
 		}
 	}
-
+	
+	# check sqlite for blocks
+	if {[llength [advertiseblocks eval {SELECT * FROM blocks WHERE posted = 'N' AND last_confirmations >= 10}]] == 0} {
+		putlog "nothing found"
+	} else {
+		foreach {block_id poolcoin last_block last_status last_estshares last_shares last_finder last_confirmations last_diff last_anon last_worker last_amount posted timestamp} [advertiseblocks eval {SELECT * FROM blocks WHERE posted = 'N' AND last_confirmations >= 10 ORDER BY last_block ASC}] {
+			putlog "$block_id - $poolcoin - $last_block - $last_status - $last_estshares - $last_shares - $last_finder - $last_confirmations - $last_diff - $last_anon - $last_worker - $last_amount"
+			advertise_block $block_id $poolcoin $last_block $last_status $last_estshares $last_shares $last_finder $last_confirmations $last_diff $last_anon $last_worker $last_amount
+			advertiseblocks eval {UPDATE blocks SET posted="Y" WHERE block_id=$block_id}
+		}
+	}
+	advertiseblocks close
 	set checknewblocks_running [utimer $blockchecktime checknewblocks]
 }                                      
 
 #
 # advertising the block
 #
-proc advertise_block {blockfinder_coinname blockfinder_newblock blockfinder_laststatus blockfinder_lastestshares blockfinder_lastshares blockfinder_lastfinder blockfinder_confirmations blockfinder_diff blockfinder_anon blockfinder_worker blockfinder_amount} {
+proc advertise_block {blockid blockfinder_coinname blockfinder_newblock blockfinder_laststatus blockfinder_lastestshares blockfinder_lastshares blockfinder_lastfinder blockfinder_confirmations blockfinder_diff blockfinder_anon blockfinder_worker blockfinder_amount} {
 	global channels debug debugoutput output_findblocks output_findblocks_percoin sqlite_blockfile
 	sqlite3 advertiseblocks $sqlite_blockfile
   	
   	#set blockfinder_lastblock [advertiseblocks eval {SELECT blockheight FROM blocks ORDER BY block_id DESC LIMIT 1}]
-  	set blockfinder_lastblock [advertiseblocks eval {SELECT blockheight FROM blocks WHERE posted = 'Y' ORDER BY block_id DESC LIMIT 1}]
-  	
+  	set blockfinder_lastblock [advertiseblocks eval {SELECT last_block FROM blocks WHERE posted = 'Y' ORDER BY last_block DESC LIMIT 1}]
+
 	if {$debug eq "1"} { putlog "New Block: $blockfinder_newblock" }
 	if {$debug eq "1"} { putlog "New / Last: $blockfinder_newblock - $blockfinder_lastblock" }
 	
@@ -248,6 +262,7 @@ proc advertise_block {blockfinder_coinname blockfinder_newblock blockfinder_last
 	foreach advert $channels {
 		putquick "PRIVMSG $advert :$lineoutput"
 	}
+	
 }
 
 putlog "===>> Mining-Pool-Findblocks - Version $scriptversion loaded"

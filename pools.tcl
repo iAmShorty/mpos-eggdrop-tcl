@@ -38,7 +38,7 @@ proc pool_add {nick uhost hand chan arg} {
 	set hostmask "$userarg!*[getchanhost $userarg $chan]"
 	
 	set pool_url [lindex $arg 0]
-	set pool_coin [lindex $arg 1]
+	set pool_coin [string toupper [lindex $arg 1]]
 	set pool_payout [lindex $arg 2]
 	set pool_fee [lindex $arg 3]
 	

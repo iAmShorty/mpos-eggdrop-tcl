@@ -31,11 +31,11 @@ proc check_mpos_user {username hostmask} {
 	set registeredhostmask [string tolower $hostmask]
 	
   	if {[llength [registeredusers eval {SELECT ircnick,hostmask FROM users WHERE hostmask=$registeredhostmask}]] == 0} {
-  		set userhasrights "true"
-  		putlog "user in database"
-  	} else {
   		set userhasrights "false"
   		putlog "user not in database"
+  	} else {
+  		set userhasrights "true"
+  		putlog "user in database"
   	}
 	
   	registeredusers close
