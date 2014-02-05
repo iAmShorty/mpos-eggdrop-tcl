@@ -153,6 +153,12 @@ set pooltimer "0"
 #
 set blockchecktime "60"
 
+# interval to delete advertised blocks in minutes
+# if set to 0, the bot will do no automatic
+# delete of advertised blocks
+#
+set blockdeletetime "10"
+
 ##################################################################
 # Marketdata Config
 ##################################################################

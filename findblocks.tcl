@@ -50,7 +50,7 @@ if {$blockchecktime ne "0"} {
 # checking for new blocks
 #
 proc checknewblocks {} {
-	global blockchecktime channels debug debugoutput confirmations sqlite_blockfile poolstocheck pools
+	global blockchecktime channels debug debugoutput confirmations sqlite_blockfile poolstocheck pools blockdeletetime
 	sqlite3 advertiseblocks $sqlite_blockfile
 	package require http
 	package require json
@@ -66,7 +66,7 @@ proc checknewblocks {} {
  	set last_status "null"
  	set last_confirmations "null"
    	set last_estshares "null"
-	set timestamp [unixtime]
+	set insertedtime [unixtime]
    	
 	dict for {id info} $pools {
 
@@ -165,10 +165,10 @@ proc checknewblocks {} {
 											set blockindatabase [llength [advertiseblocks eval {SELECT last_block FROM blocks WHERE last_block=$last_block}]]
 											if {$blockindatabase == 0} {
 												if {$debug eq "1"} { putlog "insert block" }
-												advertiseblocks eval {INSERT INTO blocks (poolcoin,last_block,last_status,last_estshares,last_shares,last_finder,last_confirmations,last_diff,last_anon,last_worker,last_amount,last_confirmations,posted,timestamp) VALUES ($poolcoin,$last_block,$last_status,$last_estshares,$last_shares,$last_finder,$last_confirmations,$last_diff,$last_anon,$last_worker,$last_amount,$last_confirmations,'N',$timestamp)}
+												advertiseblocks eval {INSERT INTO blocks (poolcoin,last_block,last_status,last_estshares,last_shares,last_finder,last_confirmations,last_diff,last_anon,last_worker,last_amount,last_confirmations,posted,timestamp) VALUES ($poolcoin,$last_block,$last_status,$last_estshares,$last_shares,$last_finder,$last_confirmations,$last_diff,$last_anon,$last_worker,$last_amount,$last_confirmations,'N',$insertedtime)}
 											} else {
 												if {$debug eq "1"} { putlog "updating block confirmations" }
-												advertiseblocks eval {UPDATE blocks SET last_confirmations=$last_confirmations WHERE last_block=$last_block}
+												advertiseblocks eval {UPDATE blocks SET last_confirmations=$last_confirmations, last_status=$last_status WHERE last_block=$last_block}
 											}
 										}
 									}
@@ -191,6 +191,19 @@ proc checknewblocks {} {
 			advertiseblocks eval {UPDATE blocks SET posted="Y" WHERE block_id=$block_id}
 		}
 	}
+	
+	# delete old blocks
+	set deletetimeframe [expr {$insertedtime-$blockdeletetime*60}]
+	if {[llength [advertiseblocks eval {SELECT block_id FROM blocks WHERE posted = 'Y' AND timestamp <= $deletetimeframe}]] == 0} {
+		if {$debug eq "1"} { putlog "no blocks to delete" }
+	} else {
+		foreach {block_id last_block timestamp} [advertiseblocks eval {SELECT block_id,last_block,timestamp FROM blocks WHERE posted = 'Y' AND timestamp <= $deletetimeframe}] {
+			if {$debug eq "1"} { putlog "delete block -> $last_block - [clock format $timestamp -format "%D %T"]" }
+			advertiseblocks eval {DELETE FROM blocks WHERE block_id = $block_id}
+		}
+		if {$debug eq "1"} { putlog "-> old blocks deleted" }
+	}
+	
 	advertiseblocks close
 	set checknewblocks_running [utimer $blockchecktime checknewblocks]
 }                                      
