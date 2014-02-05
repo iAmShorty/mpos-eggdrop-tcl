@@ -68,6 +68,11 @@ set scriptpath "./scripts/mininginfo/"
 #
 set channels "#channel1 #channel2"
 
+# admins who should receive notifications and
+# error messages from channel or scripts
+#
+set notificationadmins "YOURREGISTEREDIRCUSER"
+
 ##################################################################
 # MPOS Config
 ##################################################################
