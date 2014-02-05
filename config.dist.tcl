@@ -174,7 +174,7 @@ set blockchecktime "60"
 # suggested: 3600 
 # will delete blocks older than one day from database
 #
-set blockdeletetime "60"
+set blockdeletetime "3600"
 
 ##################################################################
 # Marketdata Config

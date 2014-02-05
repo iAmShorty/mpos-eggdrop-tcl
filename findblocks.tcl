@@ -193,9 +193,9 @@ proc checknewblocks {} {
 	}
 	
 	# delete old blocks
-	set deletetimeframe [expr {double($insertedtime-(double($blockdeletetime)*60))}]
+	set deletetimeframe [expr {$insertedtime-($blockdeletetime*60)}]
 	
-	putlog "[clock format $insertedtime -format "%D %T"] - [clock format $deletetimeframe -format "%D %T"]"
+	if {$debug eq "1"} { putlog "actual Time: [clock format $insertedtime -format "%D %T"] - delete blocks before: [clock format $deletetimeframe -format "%D %T"]" }
 	
 	if {[llength [advertiseblocks eval {SELECT block_id FROM blocks WHERE posted = 'Y' AND timestamp <= $deletetimeframe}]] == 0} {
 		if {$debug eq "1"} { putlog "no blocks to delete" }
@@ -238,7 +238,11 @@ proc advertise_block {blockid blockfinder_coinname blockfinder_newblock blockfin
 	set lineoutput [replacevar $lineoutput "%blockfinder_coinname%" $blockfinder_coinname]
 	set lineoutput [replacevar $lineoutput "%blockfinder_newblock%" $blockfinder_newblock]
 	set lineoutput [replacevar $lineoutput "%blockfinder_lastblock%" $blockfinder_lastblock]
-	set lineoutput [replacevar $lineoutput "%blockfinder_laststatus%" $blockfinder_laststatus]
+	if {$blockfinder_laststatus eq "Valid"} {
+		set lineoutput [replacevar $lineoutput "%blockfinder_laststatus%" "\0039$blockfinder_laststatus\003"]
+	} else {
+		set lineoutput [replacevar $lineoutput "%blockfinder_laststatus%" "\0034$blockfinder_laststatus\003"]
+	}
 	set lineoutput [replacevar $lineoutput "%blockfinder_lastestshares%" $blockfinder_lastestshares]
 	set lineoutput [replacevar $lineoutput "%blockfinder_lastshares%" $blockfinder_lastshares]
 	set lineoutput [replacevar $lineoutput "%blockfinder_percentage%" $blockfinder_percentage]
