@@ -106,10 +106,6 @@ set shownethashrate "KH"
 #
 set showpoolhashrate "KH"
 
-# file to save last blocks
-#
-set lastblockfile "lastblock"
-
 # only allow registered users
 # to use channel commands
 #
@@ -149,7 +145,14 @@ set pooltimer "0"
 
 # interval to check for new blocks in seconds
 # if set to 0, the bot will do no automatic
-# check for new blocks in seconds
+# checking for new blocks
+# 
+# NOTE
+# be sure you set "block statistics count" in MPOS
+# to a value where all blocks are shown. if this is
+# set to low on fast finding block pools, not
+# all found and confirmed blocks will be advertised
+# this setting depends on confirmations before posting in channel
 #
 set blockchecktime "60"
 
@@ -157,7 +160,18 @@ set blockchecktime "60"
 # if set to 0, the bot will do no automatic
 # delete of advertised blocks
 #
-set blockdeletetime "10"
+# NOTE
+# set this to value where all blocks should have
+# network confirmations, else blocks not confirmed
+# by network will be deleted. this setting depends
+# on confirmations before posting in channel. setting
+# this value to low, will delete advertised blocks and
+# insert them again depending on blockchecktime and
+# confirmations needed before advertising if bot is
+# advertising blocks more than one time, set this to
+# a higher value
+#
+set blockdeletetime "30"
 
 ##################################################################
 # Marketdata Config

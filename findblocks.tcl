@@ -215,7 +215,6 @@ proc advertise_block {blockid blockfinder_coinname blockfinder_newblock blockfin
 	global channels debug debugoutput output_findblocks output_findblocks_percoin sqlite_blockfile
 	sqlite3 advertiseblocks $sqlite_blockfile
   	
-  	#set blockfinder_lastblock [advertiseblocks eval {SELECT blockheight FROM blocks ORDER BY block_id DESC LIMIT 1}]
   	set blockfinder_lastblock [advertiseblocks eval {SELECT last_block FROM blocks WHERE posted = 'Y' ORDER BY last_block DESC LIMIT 1}]
 
 	if {$debug eq "1"} { putlog "New Block: $blockfinder_newblock" }
