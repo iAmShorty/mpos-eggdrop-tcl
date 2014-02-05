@@ -66,9 +66,7 @@ proc checknewblocks {} {
  	set last_status "null"
  	set last_confirmations "null"
    	set last_estshares "null"
-   	
-   	set timestamp [unixtime]
-   	
+	set timestamp [unixtime]
    	
 	dict for {id info} $pools {
 
@@ -162,34 +160,15 @@ proc checknewblocks {} {
 											}
 										}
 										
-										#if {$debug eq "1"} { putlog "check values: [string tolower [lindex $pool_info 0]] - $last_block - $last_confirmations" }
-										
 										if {$last_shares ne "null"} {
 											set poolcoin [string toupper [lindex $pool_info 0]]
 											set blockindatabase [llength [advertiseblocks eval {SELECT last_block FROM blocks WHERE last_block=$last_block}]]
-											
-											#putlog "Test: $blockadvertise"
-											
-											#if {$debug eq "1"} { putlog "advertise_block: $advertise_block"}
-											#if {$debug eq "1"} { putlog "values: $last_block - $last_status - $last_estshares - $last_shares - $last_finder"}
-										
 											if {$blockindatabase == 0} {
+												if {$debug eq "1"} { putlog "insert block" }
 												advertiseblocks eval {INSERT INTO blocks (poolcoin,last_block,last_status,last_estshares,last_shares,last_finder,last_confirmations,last_diff,last_anon,last_worker,last_amount,last_confirmations,posted,timestamp) VALUES ($poolcoin,$last_block,$last_status,$last_estshares,$last_shares,$last_finder,$last_confirmations,$last_diff,$last_anon,$last_worker,$last_amount,$last_confirmations,'N',$timestamp)}
 											} else {
-												#putlog "block in database"
-												foreach {confirmation posted} [advertiseblocks eval {SELECT last_confirmations,posted FROM blocks WHERE last_block=$last_block}] {
-													if {$confirmation < $confirmations && $posted eq "N"} {
-														putlog "not confirmed - $confirmations"
-														advertiseblocks eval {UPDATE blocks SET last_confirmations=$last_confirmations WHERE last_block=$last_block}
-													} elseif {$confirmation >= $confirmations && $posted eq "N"} {
-														putlog "posting"
-														advertiseblocks eval {UPDATE blocks SET posted="Y" WHERE last_block=$last_block}
-														#advertise_block $poolcoin $last_block $last_status $last_estshares $last_shares $last_finder $last_confirmations $last_diff $last_anon $last_worker $last_amount
-													}
-												}
-												
-												#set advertisedblock [llength [advertiseblocks eval {SELECT blockheight FROM blocks WHERE blockheight=$last_block}]]
-												#advertise_block $poolcoin $last_block $last_status $last_estshares $last_shares $last_finder $last_confirmations $last_diff $last_anon $last_worker $last_amount
+												if {$debug eq "1"} { putlog "updating block confirmations" }
+												advertiseblocks eval {UPDATE blocks SET last_confirmations=$last_confirmations WHERE last_block=$last_block}
 											}
 										}
 									}
@@ -204,10 +183,10 @@ proc checknewblocks {} {
 	
 	# check sqlite for blocks
 	if {[llength [advertiseblocks eval {SELECT * FROM blocks WHERE posted = 'N' AND last_confirmations >= 10}]] == 0} {
-		putlog "nothing found"
+		if {$debug eq "1"} { putlog "nothing found" }
 	} else {
 		foreach {block_id poolcoin last_block last_status last_estshares last_shares last_finder last_confirmations last_diff last_anon last_worker last_amount posted timestamp} [advertiseblocks eval {SELECT * FROM blocks WHERE posted = 'N' AND last_confirmations >= 10 ORDER BY last_block ASC}] {
-			putlog "$block_id - $poolcoin - $last_block - $last_status - $last_estshares - $last_shares - $last_finder - $last_confirmations - $last_diff - $last_anon - $last_worker - $last_amount"
+			if {$debug eq "1"} { putlog "$block_id - $poolcoin - $last_block - $last_status - $last_estshares - $last_shares - $last_finder - $last_confirmations - $last_diff - $last_anon - $last_worker - $last_amount" }
 			advertise_block $block_id $poolcoin $last_block $last_status $last_estshares $last_shares $last_finder $last_confirmations $last_diff $last_anon $last_worker $last_amount
 			advertiseblocks eval {UPDATE blocks SET posted="Y" WHERE block_id=$block_id}
 		}

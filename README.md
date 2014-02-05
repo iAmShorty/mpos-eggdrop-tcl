@@ -71,6 +71,7 @@ source scripts/mininginfo/config.tcl
 source scripts/mininginfo/basics.tcl
 source scripts/mininginfo/bothelp.tcl
 source scripts/mininginfo/output.tcl
+source scripts/mininginfo/sqlite.tcl
 
 # statistic scripts
 #
@@ -87,6 +88,8 @@ source scripts/mininginfo/workers.tcl
 source scripts/mininginfo/users.tcl
 source scripts/mininginfo/marketdata.tcl
 source scripts/mininginfo/coinchoose.tcl
+source scripts/mininginfo/pools.tcl
+source scripts/mininginfo/notify.tcl
 </pre>
 
 
