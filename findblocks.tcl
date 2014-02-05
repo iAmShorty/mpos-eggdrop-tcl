@@ -193,7 +193,10 @@ proc checknewblocks {} {
 	}
 	
 	# delete old blocks
-	set deletetimeframe [expr {$insertedtime-$blockdeletetime*60}]
+	set deletetimeframe [expr {double($insertedtime-(double($blockdeletetime)*60))}]
+	
+	putlog "[clock format $insertedtime -format "%D %T"] - [clock format $deletetimeframe -format "%D %T"]"
+	
 	if {[llength [advertiseblocks eval {SELECT block_id FROM blocks WHERE posted = 'Y' AND timestamp <= $deletetimeframe}]] == 0} {
 		if {$debug eq "1"} { putlog "no blocks to delete" }
 	} else {

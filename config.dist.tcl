@@ -171,7 +171,10 @@ set blockchecktime "60"
 # advertising blocks more than one time, set this to
 # a higher value
 #
-set blockdeletetime "30"
+# suggested: 3600 
+# will delete blocks older than one day from database
+#
+set blockdeletetime "60"
 
 ##################################################################
 # Marketdata Config
