@@ -86,6 +86,7 @@ source scripts/mininginfo/workers.tcl
 #
 source scripts/mininginfo/users.tcl
 source scripts/mininginfo/marketdata.tcl
+source scripts/mininginfo/coinchoose.tcl
 </pre>
 
 
