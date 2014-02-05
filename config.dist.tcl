@@ -134,10 +134,6 @@ set ownersbalanceonly "0"
 #
 set ownersworkeronly "0"
 
-# file to save users
-#
-set registereduserfile "mposuser"
-
 # confirmations before a block will be advertised
 #
 set confirmations "120"

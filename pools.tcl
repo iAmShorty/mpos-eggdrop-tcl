@@ -25,7 +25,7 @@
 #
 proc pool_add {nick uhost hand chan arg} {
 	global debug allowpooladding sqlite_poolfile
-	sqlite3 pools $sqlite_poolfile
+	sqlite3 registeredpools $sqlite_poolfile
 	
 	if {[matchattr $nick +n]} {
 		putlog "$nick is botowner"
@@ -42,19 +42,18 @@ proc pool_add {nick uhost hand chan arg} {
 	set pool_payout [lindex $arg 2]
 	set pool_fee [lindex $arg 3]
 	
-    if {[llength [pools eval {SELECT url FROM pools WHERE url=$pool_url}]] == 0} {
+    if {[llength [registeredpools eval {SELECT url FROM pools WHERE url=$pool_url}]] == 0} {
 		putlog "adding pool"
 		putquick "PRIVMSG $nick :pool $pool_url added"
-		pools eval {INSERT INTO pools (url,coin,payoutsys,fees,user) VALUES ($pool_url,[string toupper $pool_coin],$pool_payout,$pool_fee,$userarg)}
+		registeredpools eval {INSERT INTO pools (url,coin,payoutsys,fees,user) VALUES ($pool_url,[string toupper $pool_coin],$pool_payout,$pool_fee,$userarg)}
     } else {
     	putlog "updating pool"
     	putquick "PRIVMSG $nick :pool $pool_url updated"
-    	pools eval {UPDATE pools SET url=$pool_url, coin=$pool_coin, payoutsys=$pool_payout, fees=$pool_fee, user=$userarg WHERE url=$pool_url}
+    	registeredpools eval {UPDATE pools SET url=$pool_url, coin=$pool_coin, payoutsys=$pool_payout, fees=$pool_fee, user=$userarg WHERE url=$pool_url}
     }
 
-	pools close
+	registeredpools close
 }
-
 
 #
 # delete pools from database
@@ -70,13 +69,13 @@ proc pool_del {nick uhost hand chan arg} {
 		return
 	}
 	
-    if {[llength [pools eval {SELECT user FROM pools WHERE url=$arg}]] == 0} {
+    if {[llength [registeredpools eval {SELECT user FROM pools WHERE url=$arg}]] == 0} {
       puthelp "PRIVMSG $chan :\002$arg\002 is not in the database."
     } {
-      pools eval {DELETE FROM pools WHERE url=$arg}
+      registeredpools eval {DELETE FROM pools WHERE url=$arg}
       puthelp "PRIVMSG $chan :\002$arg\002 deleted."
     }
-    pools close
+    registeredpools close
 }
 
 #
@@ -94,22 +93,22 @@ proc pool_list {nick uhost hand chan arg} {
 	}
 	
 	if {$arg eq ""} {
-		set scount [pools eval {SELECT COUNT(1) FROM pools}]
-		foreach {url coin payout_sys fees} [pools eval {SELECT url,coin,payoutsys,fees FROM pools} ] {
+		set scount [registeredpools eval {SELECT COUNT(1) FROM pools}]
+		foreach {url coin payout_sys fees} [registeredpools eval {SELECT url,coin,payoutsys,fees FROM pools} ] {
     	  append outvar "Coin: $coin -> \002$url\002  "
     	}
 	} else {
 		set poolcoin [string toupper $arg]
-		set scount [pools eval {SELECT COUNT(1) FROM pools WHERE coin=$poolcoin}]
+		set scount [registeredpools eval {SELECT COUNT(1) FROM pools WHERE coin=$poolcoin}]
 		set outvar "Coin: $poolcoin | "
-		foreach {url coin payout_sys fees} [pools eval {SELECT url,coin,payoutsys,fees FROM pools WHERE coin=$poolcoin} ] {
+		foreach {url coin payout_sys fees} [registeredpools eval {SELECT url,coin,payoutsys,fees FROM pools WHERE coin=$poolcoin} ] {
     	  append outvar "\002$url\002 -> Payout: $payout_sys | Poolfee: $fees %"
     	}
 	}
 
 	putquick "PRIVMSG $chan :Number of Pools: $scount"
     putquick "PRIVMSG $chan :$outvar"
-    pools close
+    registeredpools close
 }
 
 putlog "===>> Mining-Pool-Pools - Version $scriptversion loaded"

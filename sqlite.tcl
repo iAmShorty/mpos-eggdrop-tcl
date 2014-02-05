@@ -32,19 +32,19 @@ if {![file exists "$scriptpath/db"]} {
 
 if {![file exists $sqlite_poolfile]} { 
   sqlite3 pools $sqlite_poolfile
-    pools eval {CREATE TABLE pools(url TEXT NOT NULL COLLATE NOCASE, coin TEXT NOT NULL COLLATE NOCASE, payoutsys TEXT NOT NULL COLLATE NOCASE, fees TEXT NOT NULL COLLATE NOCASE, user TEXT NOT NULL COLLATE NOCASE)}
+    pools eval {CREATE TABLE pools(pool_id integer primary key autoincrement, url TEXT NOT NULL COLLATE NOCASE, coin TEXT NOT NULL COLLATE NOCASE, payoutsys TEXT NOT NULL COLLATE NOCASE, fees TEXT NOT NULL COLLATE NOCASE, user TEXT NOT NULL COLLATE NOCASE)}
   pools close
 }
 
 if {![file exists $sqlite_userfile]} { 
   sqlite3 users $sqlite_userfile
-    users eval {CREATE TABLE users(ircnick TEXT NOT NULL COLLATE NOCASE, hostmask TEXT NOT NULL COLLATE NOCASE)}
+    users eval {CREATE TABLE users(user_id integer primary key autoincrement, ircnick TEXT NOT NULL COLLATE NOCASE, hostmask TEXT NOT NULL COLLATE NOCASE)}
   users close
 }
 
 if {![file exists $sqlite_blockfile]} { 
   sqlite3 blocks $sqlite_blockfile
-    blocks eval {CREATE TABLE blocks(blockheight TEXT NOT NULL COLLATE NOCASE, coin TEXT NOT NULL COLLATE NOCASE, confirmations INTEGER NOT NULL, posted TEXT NOT NULL default 'N')}
+    blocks eval {CREATE TABLE blocks(block_id integer primary key autoincrement, blockheight TEXT NOT NULL COLLATE NOCASE, coin TEXT NOT NULL COLLATE NOCASE, confirmations INTEGER NOT NULL, posted TEXT NOT NULL default 'N')}
   blocks close
 }
 

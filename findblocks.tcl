@@ -50,7 +50,8 @@ if {$blockchecktime ne "0"} {
 # checking for new blocks
 #
 proc checknewblocks {} {
-	global blockchecktime channels debug debugoutput confirmations scriptpath lastblockfile poolstocheck pools
+	global blockchecktime channels debug debugoutput confirmations sqlite_blockfile poolstocheck pools
+	sqlite3 advertiseblocks $sqlite_blockfile
 	package require http
 	package require json
 	package require tls
@@ -88,16 +89,6 @@ proc checknewblocks {} {
   					set newurl [lindex $pool_info 1]
   					append newurl $action
   					append newurl [lindex $pool_info 2]
-  			
-  					# setting logfile to right path
-  					set logfilepath $scriptpath
-  					append logfilepath "[string tolower [lindex $pool_info 0]]/"
-  					if {![file isdirectory $logfilepath]} {
-  						file mkdir $logfilepath
-					}
-  					append logfilepath $lastblockfile
-  			
-  					if {$debug eq "1"} { putlog "File $logfilepath" }
   	
     				if {[string match "*https*" [string tolower $newurl]]} {
   						set usehttps 1
@@ -136,8 +127,6 @@ proc checknewblocks {} {
 
   	  					set results [::json::json2dict $data]
   	  	
-  	  					set blocklist {}
-  	  	
 						foreach {key value} $results {
 							#putlog "Key: $key - $value"
 							foreach {sub_key sub_value} $value {
@@ -172,44 +161,38 @@ proc checknewblocks {} {
 										
 										#if {$debug eq "1"} { putlog "check values: [string tolower [lindex $pool_info 0]] - $last_block - $last_confirmations" }
 										
-										 if {$last_shares eq "null"} {
-											#if {$debug eq "1"} {
-											#	putlog "skipping block because last shares has a value of null"
-											#	putlog "last shares: $last_shares"
-											#}
-										} else {
-											set advertise_block [check_block [string tolower [lindex $pool_info 0]] $last_block $last_confirmations]
-										
+										if {$last_shares ne "null"} {
+											set poolcoin [string toupper [lindex $pool_info 0]]
+											set blockindatabase [llength [advertiseblocks eval {SELECT blockheight FROM blocks WHERE blockheight=$last_block}]]
+											
+											#putlog "Test: $blockadvertise"
+											
 											#if {$debug eq "1"} { putlog "advertise_block: $advertise_block"}
 											#if {$debug eq "1"} { putlog "values: $last_block - $last_status - $last_estshares - $last_shares - $last_finder"}
 										
-											if {$advertise_block eq "0"} {
-												#if {$debug eq "1"} { putlog "No New Block: $last_block" }
-												lappend blocklist $last_block
-											} elseif {$advertise_block eq "notconfirmed"} {
-												#if {$debug eq "1"} { putlog "Block not confirmed" }
+											if {$blockindatabase == 0} {
+												advertiseblocks eval {INSERT INTO blocks (blockheight,coin,confirmations,posted) VALUES ($last_block,$poolcoin,$last_confirmations,'N')}
 											} else {
-												set writeblockfile "yes"
-												advertise_block [string toupper [lindex $pool_info 0]] $last_block $last_status $last_estshares $last_shares $last_finder $last_confirmations $last_diff $last_anon $last_worker $last_amount
-												lappend blocklist $last_block
+												#putlog "block in database"
+												foreach {confirmation posted} [advertiseblocks eval {SELECT confirmations,posted FROM blocks WHERE blockheight=$last_block}] {
+													if {$confirmation < $confirmations && $posted eq "N"} {
+														putlog "not confirmed - $confirmations"
+														advertiseblocks eval {UPDATE blocks SET confirmations=$last_confirmations WHERE blockheight=$last_block}
+													} elseif {$confirmation >= $confirmations && $posted eq "N"} {
+														putlog "posting"
+														advertiseblocks eval {UPDATE blocks SET posted="Y" WHERE blockheight=$last_block}
+														advertise_block $poolcoin $last_block $last_status $last_estshares $last_shares $last_finder $last_confirmations $last_diff $last_anon $last_worker $last_amount
+													}
+												}
+												
+												#set advertisedblock [llength [advertiseblocks eval {SELECT blockheight FROM blocks WHERE blockheight=$last_block}]]
+												#advertise_block $poolcoin $last_block $last_status $last_estshares $last_shares $last_finder $last_confirmations $last_diff $last_anon $last_worker $last_amount
 											}
 										}
 									}
 								}
 							}
 						}
-					}
-	
-					if {$writeblockfile eq "yes"} {
-						set fh [open $logfilepath w]
-						foreach arr_elem $blocklist {
-    						#putlog "arr: $arr_elem"
-    						puts $fh [join $arr_elem "\n"]
-						}
-						close $fh
-					} else {
-						set lastblock [FileTextReadLine $logfilepath 0 0]
-						if {$debug eq "1"} { putlog "No New [string toupper [lindex $pool_info 0]] Block found - $lastblock" }
 					}
     			}
 			}
@@ -220,81 +203,14 @@ proc checknewblocks {} {
 }                                      
 
 #
-# checking the block
-#
-proc check_block {coinname blockheight blockconfirmations} {
-	global debug debugoutput confirmations scriptpath lastblockfile
-	
-	#if {$debug eq "1"} { putlog "Checking Block: $blockheight" }
-
-  	# setting logfile to right path
-	set logfilepath $scriptpath
-  	append logfilepath "[string tolower $coinname]/"
-  	if {![file isdirectory $logfilepath]} {
-  		file mkdir $logfilepath
-	}
-  	append logfilepath $lastblockfile
-  	
-  	set newblock "0"
-  	
-	if { [file_read $logfilepath] eq "0" } {
-			
-		# check if lastblocksfile exists
-		#
-		if { [file_check $logfilepath] eq "0" } {
-			if {$debug eq "1"} { putlog "file $logfilepath does not exist" }
-			if {[file_write $logfilepath new] eq "1" } { putlog "file $logfilepath created" }
-		} else {
-			if {$debug eq "1"} { putlog "can't read $logfilepath"}
-		}
-
-	} else {
-	
-		set blockfile [open $logfilepath]
-		# Read until we find the start pattern
-		while {[gets $blockfile line] >= 0} {
-			#if {$debug eq "1"} { putlog "LINE: $line" }
-  	  		if { [string match "$blockheight" $line] } {
-				set newblock "0"
-				break
-  	  		} else {
-				set newblock $line
-			}
-		}
-		close $blockfile
-		
-		if {$newblock ne "0"} {
-			if {$blockconfirmations eq "-1"} {
-				return $newblock
-			} elseif {$blockconfirmations > $confirmations} {
-				return $newblock
-			} else {
-				if {$debug eq "1"} { putlog "block not confirmed: $blockconfirmations - $confirmations" }
-				return "notconfirmed"
-			}
-		} else {
-			return "0"
-		}
-
-	}
-
-}
-
-#
 # advertising the block
 #
 proc advertise_block {blockfinder_coinname blockfinder_newblock blockfinder_laststatus blockfinder_lastestshares blockfinder_lastshares blockfinder_lastfinder blockfinder_confirmations blockfinder_diff blockfinder_anon blockfinder_worker blockfinder_amount} {
-	global channels debug debugoutput scriptpath lastblockfile output_findblocks output_findblocks_percoin
-
-  	# setting logfile to right path
-	set logfilepath $scriptpath
-  	append logfilepath "[string tolower $blockfinder_coinname]/"
-  	if {![file isdirectory $logfilepath]} {
-  		file mkdir $logfilepath
-	}
-  	append logfilepath $lastblockfile
+	global channels debug debugoutput output_findblocks output_findblocks_percoin sqlite_blockfile
+	sqlite3 advertiseblocks $sqlite_blockfile
   	
-  	set blockfinder_lastblock [FileTextReadLine $logfilepath 0 0]
+  	#set blockfinder_lastblock [advertiseblocks eval {SELECT blockheight FROM blocks ORDER BY block_id DESC LIMIT 1}]
+  	set blockfinder_lastblock [advertiseblocks eval {SELECT blockheight FROM blocks WHERE posted = 'Y' ORDER BY block_id DESC LIMIT 1}]
   	
 	if {$debug eq "1"} { putlog "New Block: $blockfinder_newblock" }
 	if {$debug eq "1"} { putlog "New / Last: $blockfinder_newblock - $blockfinder_lastblock" }
