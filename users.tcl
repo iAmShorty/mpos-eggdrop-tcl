@@ -21,13 +21,6 @@
 ######################################################################
 
 #
-# key bindings
-#
-bind pub - !adduser user_add
-bind pub - !deluser user_del
-bind pub - !request user_request
-
-#
 # check if user is already in userfile
 #
 proc check_mpos_user {username hostmask} {
@@ -175,7 +168,25 @@ proc user_del {nick uhost hand chan arg} {
 # request from users to add them to userfiles
 #
 proc user_request {nick uhost hand chan arg} {
-	putquick "NOTICE $nick :your request will be processed shortly, please be patient"
+	global debug scriptpath registereduserfile notificationadmins
+
+	if {[matchattr $nick +n]} {
+		putlog "$nick is botowner"
+	} else {
+		putlog "$nick requested adding user $arg to userfile"
+		return
+	}
+
+  	if {$arg eq ""} {
+  		putlog "no user to add"
+  		return
+  	}
+
+	foreach admins $notificationadmins {
+		putquick "NOTICE $admins :$nick requested adding user $arg to userfile"
+	}
+
+	putquick "NOTICE $nick: your request will be processed shortly, please be patient"
 }
 
 
