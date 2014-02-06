@@ -156,7 +156,7 @@ set pooltimer "0"
 #
 set blockchecktime "60"
 
-# interval to delete advertised blocks in minutes
+# interval to delete advertised blocks in seconds
 # if set to 0, the bot will do no automatic
 # delete of advertised blocks
 #
@@ -171,7 +171,8 @@ set blockchecktime "60"
 # advertising blocks more than one time, set this to
 # a higher value
 #
-# suggested: 3600 
+# 1 hour -> 3600 seconds (suggested)
+# 1 day  -> 86400 seconds
 # will delete blocks older than one day from database
 #
 set blockdeletetime "3600"

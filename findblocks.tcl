@@ -192,19 +192,22 @@ proc checknewblocks {} {
 		}
 	}
 	
-	# delete old blocks
-	set deletetimeframe [expr {$insertedtime-($blockdeletetime*60)}]
+	# delete old blocks if set in config
+	if {$blockdeletetime ne "0"} {
+		#set deletetimeframe [expr {$insertedtime-($blockdeletetime*60)}]
+		set deletetimeframe [expr {$insertedtime-$blockdeletetime*60}]
 	
-	if {$debug eq "1"} { putlog "actual Time: [clock format $insertedtime -format "%D %T"] - delete blocks before: [clock format $deletetimeframe -format "%D %T"]" }
+		if {$debug eq "1"} { putlog "actual Time: [clock format $insertedtime -format "%D %T"] - delete blocks before: [clock format $deletetimeframe -format "%D %T"]" }
 	
-	if {[llength [advertiseblocks eval {SELECT block_id FROM blocks WHERE posted = 'Y' AND timestamp <= $deletetimeframe}]] == 0} {
-		if {$debug eq "1"} { putlog "no blocks to delete" }
-	} else {
-		foreach {block_id last_block timestamp} [advertiseblocks eval {SELECT block_id,last_block,timestamp FROM blocks WHERE posted = 'Y' AND timestamp <= $deletetimeframe}] {
-			if {$debug eq "1"} { putlog "delete block -> $last_block - [clock format $timestamp -format "%D %T"]" }
-			advertiseblocks eval {DELETE FROM blocks WHERE block_id = $block_id}
+		if {[llength [advertiseblocks eval {SELECT block_id FROM blocks WHERE posted = 'Y' AND timestamp <= $deletetimeframe}]] == 0} {
+			if {$debug eq "1"} { putlog "no blocks to delete" }
+		} else {
+			foreach {block_id last_block timestamp} [advertiseblocks eval {SELECT block_id,last_block,timestamp FROM blocks WHERE posted = 'Y' AND timestamp <= $deletetimeframe}] {
+				if {$debug eq "1"} { putlog "delete block -> $last_block - [clock format $timestamp -format "%D %T"]" }
+				advertiseblocks eval {DELETE FROM blocks WHERE block_id = $block_id}
+			}
+			if {$debug eq "1"} { putlog "-> old blocks deleted" }
 		}
-		if {$debug eq "1"} { putlog "-> old blocks deleted" }
 	}
 	
 	advertiseblocks close
