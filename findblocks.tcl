@@ -195,7 +195,7 @@ proc checknewblocks {} {
 	# delete old blocks if set in config
 	if {$blockdeletetime ne "0"} {
 		#set deletetimeframe [expr {$insertedtime-($blockdeletetime*60)}]
-		set deletetimeframe [expr {$insertedtime-$blockdeletetime*60}]
+		set deletetimeframe [expr {$insertedtime-$blockdeletetime}]
 	
 		if {$debug eq "1"} { putlog "actual Time: [clock format $insertedtime -format "%D %T"] - delete blocks before: [clock format $deletetimeframe -format "%D %T"]" }
 	
