@@ -177,6 +177,10 @@ set blockchecktime "60"
 #
 set blockdeletetime "3600"
 
+# keep certain amount of blocks in database
+#
+set blockstokeep "50"
+
 ##################################################################
 # Marketdata Config
 ##################################################################

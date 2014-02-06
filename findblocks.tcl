@@ -50,7 +50,7 @@ if {$blockchecktime ne "0"} {
 # checking for new blocks
 #
 proc checknewblocks {} {
-	global blockchecktime channels debug debugoutput confirmations sqlite_blockfile poolstocheck pools blockdeletetime
+	global blockchecktime channels debug debugoutput confirmations sqlite_blockfile poolstocheck pools blockdeletetime blockstokeep
 	sqlite3 advertiseblocks $sqlite_blockfile
 	package require http
 	package require json
@@ -127,6 +127,7 @@ proc checknewblocks {} {
 						}
 
   	  					set results [::json::json2dict $data]
+  	  					set poolcoin [string toupper [lindex $pool_info 0]]
   	  	
 						foreach {key value} $results {
 							#putlog "Key: $key - $value"
@@ -142,6 +143,7 @@ proc checknewblocks {} {
       											set last_block "$elem_val2" 
       											if {$debug eq "1"} { putlog "Block: $elem_val2" }
       										}
+      										if {$elem2 eq "time"} { set last_timestamp "$elem_val2" } 
       										if {$elem2 eq "shares"} { set last_shares "$elem_val2" } 
       										if {$elem2 eq "estshares"} { set last_estshares "$elem_val2" }
 											if {$elem2 eq "finder"} { set last_finder "$elem_val2" }
@@ -161,23 +163,43 @@ proc checknewblocks {} {
 										}
 										
 										if {$last_shares ne "null"} {
-											set poolcoin [string toupper [lindex $pool_info 0]]
-											set blockindatabase [llength [advertiseblocks eval {SELECT last_block FROM blocks WHERE last_block=$last_block}]]
+											set blockindatabase [llength [advertiseblocks eval {SELECT last_block FROM blocks WHERE last_block=$last_block AND poolcoin = $poolcoin}]]
 											if {$blockindatabase == 0} {
-												if {$debug eq "1"} { putlog "insert block" }
-												advertiseblocks eval {INSERT INTO blocks (poolcoin,last_block,last_status,last_estshares,last_shares,last_finder,last_confirmations,last_diff,last_anon,last_worker,last_amount,last_confirmations,posted,timestamp) VALUES ($poolcoin,$last_block,$last_status,$last_estshares,$last_shares,$last_finder,$last_confirmations,$last_diff,$last_anon,$last_worker,$last_amount,$last_confirmations,'N',$insertedtime)}
+												if {$debug eq "1"} { putlog "$poolcoin -> insert block $last_block" }
+												advertiseblocks eval {INSERT INTO blocks (poolcoin,last_block,last_status,last_estshares,last_shares,last_finder,last_confirmations,last_diff,last_anon,last_worker,last_amount,last_confirmations,posted,timestamp) VALUES ($poolcoin,$last_block,$last_status,$last_estshares,$last_shares,$last_finder,$last_confirmations,$last_diff,$last_anon,$last_worker,$last_amount,$last_confirmations,'N',$last_timestamp)}
 											} else {
-												if {$debug eq "1"} { putlog "updating block confirmations" }
-												advertiseblocks eval {UPDATE blocks SET last_confirmations=$last_confirmations, last_status=$last_status WHERE last_block=$last_block}
+												if {$debug eq "1"} { putlog "$poolcoin -> updating block confirmations $last_block" }
+												advertiseblocks eval {UPDATE blocks SET last_confirmations=$last_confirmations, last_status=$last_status WHERE last_block=$last_block AND poolcoin = $poolcoin}
 											}
 										}
 									}
 								}
 							}
 						}
+						
+						# delete old blocks if set in config
+						if {$blockdeletetime ne "0"} {
+						#set deletetimeframe [expr {$insertedtime-($blockdeletetime*60)}]
+						set deletetimeframe [expr {$insertedtime-$blockdeletetime}]
+	
+						if {$debug eq "1"} { putlog "actual Time: [clock format $insertedtime -format "%D %T"] - delete blocks before: [clock format $deletetimeframe -format "%D %T"]" }
+	
+						if {[llength [advertiseblocks eval {SELECT block_id FROM blocks WHERE posted = 'Y' AND timestamp <= $deletetimeframe AND poolcoin = $poolcoin ORDER BY block_id DESC LIMIT $blockstokeep, 100000}]] == 0} {
+							if {$debug eq "1"} { putlog "no blocks to delete" }
+						} else {
+							# workaround to delete
+							# shares except the last $blockstokeep -> ORDER BY block_id DESC LIMIT $blockstokeep, 100000
+							foreach {block_id last_block timestamp} [advertiseblocks eval {SELECT block_id,last_block,timestamp FROM blocks WHERE posted = 'Y' AND timestamp <= $deletetimeframe AND poolcoin = $poolcoin ORDER BY block_id DESC LIMIT $blockstokeep, 100000}] {
+							if {$debug eq "1"} { putlog "delete block -> $last_block - [clock format $timestamp -format "%D %T"]" }
+								advertiseblocks eval {DELETE FROM blocks WHERE block_id = $block_id AND poolcoin = $poolcoin}
+							}
+								if {$debug eq "1"} { putlog "-> old blocks deleted" }
+							}
+						}
+						
 					}
     			}
-			}
+			}			
 		}
 	}
 	
@@ -185,28 +207,10 @@ proc checknewblocks {} {
 	if {[llength [advertiseblocks eval {SELECT * FROM blocks WHERE posted = 'N' AND last_confirmations >= 10}]] == 0} {
 		if {$debug eq "1"} { putlog "nothing found" }
 	} else {
-		foreach {block_id poolcoin last_block last_status last_estshares last_shares last_finder last_confirmations last_diff last_anon last_worker last_amount posted timestamp} [advertiseblocks eval {SELECT * FROM blocks WHERE posted = 'N' AND (last_confirmations >= 10 OR last_confirmations = '-1') ORDER BY last_block ASC}] {
+		foreach {block_id poolcoin last_block last_status last_estshares last_shares last_finder last_confirmations last_diff last_anon last_worker last_amount posted last_timestamp} [advertiseblocks eval {SELECT * FROM blocks WHERE posted = 'N' AND (last_confirmations >= 10 OR last_confirmations = '-1') ORDER BY last_block ASC}] {
 			if {$debug eq "1"} { putlog "$block_id - $poolcoin - $last_block - $last_status - $last_estshares - $last_shares - $last_finder - $last_confirmations - $last_diff - $last_anon - $last_worker - $last_amount" }
-			advertise_block $block_id $poolcoin $last_block $last_status $last_estshares $last_shares $last_finder $last_confirmations $last_diff $last_anon $last_worker $last_amount
+			advertise_block $block_id $poolcoin $last_block $last_status $last_estshares $last_shares $last_finder $last_confirmations $last_diff $last_anon $last_worker $last_amount $last_timestamp
 			advertiseblocks eval {UPDATE blocks SET posted="Y" WHERE block_id=$block_id}
-		}
-	}
-	
-	# delete old blocks if set in config
-	if {$blockdeletetime ne "0"} {
-		#set deletetimeframe [expr {$insertedtime-($blockdeletetime*60)}]
-		set deletetimeframe [expr {$insertedtime-$blockdeletetime}]
-	
-		if {$debug eq "1"} { putlog "actual Time: [clock format $insertedtime -format "%D %T"] - delete blocks before: [clock format $deletetimeframe -format "%D %T"]" }
-	
-		if {[llength [advertiseblocks eval {SELECT block_id FROM blocks WHERE posted = 'Y' AND timestamp <= $deletetimeframe}]] == 0} {
-			if {$debug eq "1"} { putlog "no blocks to delete" }
-		} else {
-			foreach {block_id last_block timestamp} [advertiseblocks eval {SELECT block_id,last_block,timestamp FROM blocks WHERE posted = 'Y' AND timestamp <= $deletetimeframe}] {
-				if {$debug eq "1"} { putlog "delete block -> $last_block - [clock format $timestamp -format "%D %T"]" }
-				advertiseblocks eval {DELETE FROM blocks WHERE block_id = $block_id}
-			}
-			if {$debug eq "1"} { putlog "-> old blocks deleted" }
 		}
 	}
 	
@@ -217,7 +221,7 @@ proc checknewblocks {} {
 #
 # advertising the block
 #
-proc advertise_block {blockid blockfinder_coinname blockfinder_newblock blockfinder_laststatus blockfinder_lastestshares blockfinder_lastshares blockfinder_lastfinder blockfinder_confirmations blockfinder_diff blockfinder_anon blockfinder_worker blockfinder_amount} {
+proc advertise_block {blockid blockfinder_coinname blockfinder_newblock blockfinder_laststatus blockfinder_lastestshares blockfinder_lastshares blockfinder_lastfinder blockfinder_confirmations blockfinder_diff blockfinder_anon blockfinder_worker blockfinder_amount blockfinder_time} {
 	global channels debug debugoutput output_findblocks output_findblocks_percoin sqlite_blockfile
 	sqlite3 advertiseblocks $sqlite_blockfile
   	
@@ -259,6 +263,7 @@ proc advertise_block {blockid blockfinder_coinname blockfinder_newblock blockfin
 	set lineoutput [replacevar $lineoutput "%blockfinder_confirmations%" $blockfinder_confirmations]
 	set lineoutput [replacevar $lineoutput "%blockfinder_diff%" $blockfinder_diff]
 	set lineoutput [replacevar $lineoutput "%blockfinder_amount%" $blockfinder_amount]
+	set lineoutput [replacevar $lineoutput "%blockfinder_time%" [clock format $blockfinder_time -format "%D %T"]]
 	
 	foreach advert $channels {
 		putquick "PRIVMSG $advert :$lineoutput"
