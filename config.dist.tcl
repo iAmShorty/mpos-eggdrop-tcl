@@ -74,7 +74,7 @@ set channels "#channel1 #channel2"
 set notificationadmins "YOURREGISTEREDIRCUSER"
 
 ##################################################################
-# Notification Settings
+# Advertising Settings
 ##################################################################
 
 # the bot can change the channeltopic to actual 
@@ -102,6 +102,17 @@ set postcoininfo "0"
 # actual coinprice to channel
 #
 set postcoininfointerval "600"
+
+# posting pool information to channel
+# posts pool information from added pools
+# in channel
+#
+set postpoolinfo "1"
+
+# set interval in second in which bot should post the
+# the pools in db
+#
+set postpoolinfointerval "600"
 
 ##################################################################
 # Pool Config

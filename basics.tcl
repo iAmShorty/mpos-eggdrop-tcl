@@ -66,9 +66,9 @@ proc pool_vars {coinname} {
 	sqlite3 registeredpools $sqlite_poolfile
 	
 	set pool_found "false"
-	set poolscount [registeredpools eval {SELECT COUNT(1) FROM pools WHERE blockfinder != 0 AND apikey != 0 AND coin == $coinname}]
+	set poolscount [registeredpools eval {SELECT COUNT(1) FROM pools WHERE apikey != 0 AND coin == $coinname}]
 	putlog "Number of Pools: $poolscount"
-	foreach {apiurl poolcoin apikey} [registeredpools eval {SELECT url,coin,apikey FROM pools WHERE blockfinder != 0 AND apikey != 0} ] {
+	foreach {apiurl poolcoin apikey} [registeredpools eval {SELECT url,coin,apikey FROM pools WHERE apikey != 0 AND coin == $coinname} ] {
 		if {[string toupper $poolcoin] eq [string toupper $coinname]} {
 			set pool_found "true"
 			set pool_data "[string toupper $poolcoin] $apiurl $apikey"

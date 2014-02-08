@@ -67,7 +67,7 @@ proc worker_info {nick host hand chan arg} {
 		return
 	}
 
-	set pool_info [regexp -all -inline {\S+} [pool_vars [lindex $arg 0]]]
+	set pool_info [regexp -all -inline {\S+} [pool_vars [string toupper [lindex $arg 0]]]]
 
 	if {$pool_info ne "0"} {
 		if {$debug eq "1"} { putlog "COIN: [lindex $pool_info 0]" }

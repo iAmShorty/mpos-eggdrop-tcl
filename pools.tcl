@@ -46,12 +46,13 @@ proc pool_add {nick uhost hand chan arg} {
 	set pool_coin [string toupper [lindex $arg 1]]
 	set pool_payout [string toupper [lindex $arg 2]]
 	set pool_fee [lindex $arg 3]
+	set actualtime [unixtime]
 	
 	if {[llength [registeredpools eval {SELECT coin FROM pools WHERE coin=$pool_coin}]] == 0} {
 		if {[llength [registeredpools eval {SELECT url FROM pools WHERE url=$pool_url}]] == 0} {
 			putlog "adding pool"
 			putquick "NOTICE $nick :pool $pool_url added"
-			registeredpools eval {INSERT INTO pools (url,coin,payoutsys,fees,user) VALUES ($pool_url,$pool_coin,$pool_payout,$pool_fee,$userarg)}
+			registeredpools eval {INSERT INTO pools (url,coin,payoutsys,fees,user,timestamp) VALUES ($pool_url,$pool_coin,$pool_payout,$pool_fee,$userarg,$actualtime)}
 		} else {
 			putlog "updating pool"
 			putquick "NOTICE $nick :pool $pool_url updated"

@@ -32,7 +32,7 @@ if {![file exists "$scriptpath/db"]} {
 
 if {![file exists $sqlite_poolfile]} { 
 	sqlite3 pools $sqlite_poolfile
-	pools eval {CREATE TABLE pools(pool_id integer primary key autoincrement, url TEXT NOT NULL, coin TEXT NOT NULL, payoutsys TEXT NOT NULL, fees INTEGER NOT NULL, apikey TEXT NOT NULL default 0, blockfinder INTEGER DEFAULT 0, user TEXT NOT NULL, timestamp DATETIME)}
+	pools eval {CREATE TABLE pools(pool_id integer primary key autoincrement, url TEXT NOT NULL, coin TEXT NOT NULL, payoutsys TEXT NOT NULL, fees INTEGER NOT NULL, apikey TEXT NOT NULL default 0, blockfinder INTEGER DEFAULT 0, advertise INTEGER DEFAULT 0, user TEXT NOT NULL, timestamp DATETIME)}
 	pools close
 }
 
