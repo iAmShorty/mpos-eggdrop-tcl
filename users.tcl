@@ -24,39 +24,30 @@
 # check if user is already in userfile
 #
 proc check_mpos_user {username hostmask} {
-	global debug scriptpath registereduserfile
-
-  	# setting logfile to right path
-	set userfilepath $scriptpath
-  	append userfilepath $registereduserfile
+	global debug sqlite_userfile
+	sqlite3 registeredusers $sqlite_userfile
 	
-  	if { [file_read $userfilepath] eq "0" } {
-  		putlog "failed reading userfile"
-  		return "false"
+	set registereduser [string tolower $username]
+	set registeredhostmask [string tolower $hostmask]
+	
+  	if {[llength [registeredusers eval {SELECT ircnick,hostmask FROM users WHERE hostmask=$registeredhostmask}]] == 0} {
+  		set userhasrights "false"
+  		putlog "user not in database"
   	} else {
-
-		set text [FileTextRead $userfilepath]
-		foreach line [split $text \n] {
-			#putlog "$line - $hostmask"
-  	  		if {[string match "[string tolower $hostmask]" $line] } {
-  				#if {$debug eq "1"} { putlog "user exists"}
-  				set userhasrights "true"
-				break
-  	  		} else {
-  				#if {$debug eq "1"} { putlog "user not found"}
-  				set userhasrights "false"
-			}
-		}
+  		set userhasrights "true"
+  		putlog "user in database"
   	}
+	
+  	registeredusers close
   	return $userhasrights
-  	
 }
 
 #
 # add user to userfile
 #
 proc user_add {nick uhost hand chan arg} {
-	global debug scriptpath registereduserfile
+	global debug sqlite_userfile
+	sqlite3 registeredusers $sqlite_userfile
 
 	if {[matchattr $nick +n]} {
 		putlog "$nick is botowner"
@@ -65,103 +56,52 @@ proc user_add {nick uhost hand chan arg} {
 		return
 	}
  
-  	# setting logfile to right path
-	set userfilepath $scriptpath
-  	append userfilepath $registereduserfile
-  	
   	if {$arg eq ""} {
   		putlog "no user to add"
   		return
   	} 
 
-	set arg [charfilter $arg]
+	set arg [string trim [charfilter $arg]]
 	set hostmask "$arg!*[getchanhost $arg $chan]"
-	set usertoadd "false"
-		
-	if { [file_read $userfilepath] eq "0" } {
-			
-		# check if userfile exists
-		#
-		if { [file_check $userfilepath] eq "0" } {
-			if {$debug eq "1"} { putlog "file $userfilepath does not exist" }
-			
-			if {[file_write $userfilepath [string tolower $hostmask]] eq "1" } { 
-				if {$debug eq "1"} { putlog "file $userfilepath created" }
-			}
-			
-		} else {
-			if {$debug eq "1"} { putlog "can't read $userfilepath"}
-		}
-
-	} else {
-	
-		set mposuserfile [open $userfilepath]
-		# Read until we find the start pattern
-		while {[gets $mposuserfile line] >= 0} {
-			putlog "$line - $hostmask"
-  	  		if { [string match "[string tolower $hostmask]" $line] } {
-				if {$debug eq "1"} { putlog "user exists"}
-				set usertoadd "false"
-				break
-  	  		} else {
-  	  			set usertoadd "true"
-			}
-		}
-		close $mposuserfile
-			
-	}
-	
-	if {$usertoadd eq "true"} {
-		if {[file_write $userfilepath [string tolower $hostmask]] eq "1" } { 
-			if {$debug eq "1"} { putlog "user added"}
-		}
-	}
-
 	if {$debug eq "1"} { putlog "Hostmask is: [string tolower $hostmask]"}
 	
+    if {[llength [registeredusers eval {SELECT ircnick,hostmask FROM users WHERE hostmask=$hostmask}]] == 0} {
+		putlog "adding user"
+		putquick "PRIVMSG $nick :user $arg added"
+		registeredusers eval {INSERT INTO users (ircnick,hostmask) VALUES ($arg,$hostmask)}
+    } else {
+    	putlog "updating user"
+    	putquick "PRIVMSG $nick :user $arg updated"
+    	registeredusers eval {UPDATE users SET hostmask=$hostmask WHERE ircnick=$arg}
+    }
+
+	registeredusers close
 }
 
 #
 # delete user from userfile
 #
 proc user_del {nick uhost hand chan arg} {
-	global debug scriptpath registereduserfile
-
+	global debug sqlite_userfile
+	sqlite3 registeredusers $sqlite_userfile
+	
 	if {[matchattr $nick +n]} {
 		putlog "$nick is botowner"
 	} else {
-		putlog "$nick tried to add $arg to userfile"
+		putlog "$nick tried to delete $arg from users"
 		return
 	}
-
-  	if {$arg eq ""} {
-  		putlog "no user to add"
-  		return
-  	}
   	
-  	# setting logfile to right path
-	set userfilepath $scriptpath
-  	append userfilepath $registereduserfile
-  	
-	set arg [charfilter $arg]
+	set arg [string trim [charfilter $arg]]
 	set hostmask "$arg!*[getchanhost $arg $chan]"
 
-	set text [FileTextRead $userfilepath]
-	set linenumber 0
-	foreach line [split $text \n] {
-		#putlog "$line"
-		if { [string match "[string tolower $hostmask]" $line] } {
-			putlog "user found in line $linenumber"
-			if {[FileDeleteLine $userfilepath $linenumber $linenumber] eq "1"} {
-				putlog "success"
-			} else {
-				putlog "error"
-			}
-			break
-		}
-		incr linenumber
-	}
-
+    if {[llength [registeredusers eval {SELECT hostmask FROM users WHERE ircnick=$arg}]] == 0} {
+      puthelp "PRIVMSG $chan :\002$arg\002 is not in the database."
+    } {
+      registeredusers eval {DELETE FROM users WHERE ircnick=$arg}
+      puthelp "PRIVMSG $chan :\002$arg\002 deleted."
+    }
+    registeredusers close
 }
 
 #

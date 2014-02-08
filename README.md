@@ -11,8 +11,6 @@ a fantastic Webinterface for people running Cryptocoin Pools
 Active Pools
 ================
 
-* http://elephantcoin.auxmining.de
-* http://alphacoin.auxmining.de
 * http://machinecoin.auxmining.de
 
 Donations
@@ -49,7 +47,7 @@ FEATURES
 Requirements 
 ================
 
- - <a href="http://www.tcl.tk" target="_blank">TCL</a> (with JSON and TLS Support)
+ - <a href="http://www.tcl.tk" target="_blank">TCL</a> (with JSON, SQLITE and TLS Support)
  - <a href="http://www.eggheads.org" target="_blank">eggdrop</a> IRC Bot
  - <a href="https://github.com/TheSerapher/php-mpos" target="_blank">MPOS</a>
 
@@ -71,6 +69,7 @@ source scripts/mininginfo/config.tcl
 source scripts/mininginfo/basics.tcl
 source scripts/mininginfo/bothelp.tcl
 source scripts/mininginfo/output.tcl
+source scripts/mininginfo/sqlite.tcl
 
 # statistic scripts
 #
@@ -87,6 +86,8 @@ source scripts/mininginfo/workers.tcl
 source scripts/mininginfo/users.tcl
 source scripts/mininginfo/marketdata.tcl
 source scripts/mininginfo/coinchoose.tcl
+source scripts/mininginfo/pools.tcl
+source scripts/mininginfo/notify.tcl
 </pre>
 
 

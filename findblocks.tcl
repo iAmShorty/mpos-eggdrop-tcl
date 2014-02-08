@@ -50,7 +50,8 @@ if {$blockchecktime ne "0"} {
 # checking for new blocks
 #
 proc checknewblocks {} {
-	global blockchecktime channels debug debugoutput confirmations scriptpath lastblockfile poolstocheck pools
+	global blockchecktime channels debug debugoutput confirmations sqlite_blockfile poolstocheck pools blockdeletetime blockstokeep
+	sqlite3 advertiseblocks $sqlite_blockfile
 	package require http
 	package require json
 	package require tls
@@ -65,7 +66,8 @@ proc checknewblocks {} {
  	set last_status "null"
  	set last_confirmations "null"
    	set last_estshares "null"
- 
+	set insertedtime [unixtime]
+   	
 	dict for {id info} $pools {
 
 		foreach {poolcoin} $poolstocheck {
@@ -88,16 +90,6 @@ proc checknewblocks {} {
   					set newurl [lindex $pool_info 1]
   					append newurl $action
   					append newurl [lindex $pool_info 2]
-  			
-  					# setting logfile to right path
-  					set logfilepath $scriptpath
-  					append logfilepath "[string tolower [lindex $pool_info 0]]/"
-  					if {![file isdirectory $logfilepath]} {
-  						file mkdir $logfilepath
-					}
-  					append logfilepath $lastblockfile
-  			
-  					if {$debug eq "1"} { putlog "File $logfilepath" }
   	
     				if {[string match "*https*" [string tolower $newurl]]} {
   						set usehttps 1
@@ -135,8 +127,7 @@ proc checknewblocks {} {
 						}
 
   	  					set results [::json::json2dict $data]
-  	  	
-  	  					set blocklist {}
+  	  					set poolcoin [string toupper [lindex $pool_info 0]]
   	  	
 						foreach {key value} $results {
 							#putlog "Key: $key - $value"
@@ -152,6 +143,7 @@ proc checknewblocks {} {
       											set last_block "$elem_val2" 
       											if {$debug eq "1"} { putlog "Block: $elem_val2" }
       										}
+      										if {$elem2 eq "time"} { set last_timestamp "$elem_val2" } 
       										if {$elem2 eq "shares"} { set last_shares "$elem_val2" } 
       										if {$elem2 eq "estshares"} { set last_estshares "$elem_val2" }
 											if {$elem2 eq "finder"} { set last_finder "$elem_val2" }
@@ -170,132 +162,70 @@ proc checknewblocks {} {
 											}
 										}
 										
-										#if {$debug eq "1"} { putlog "check values: [string tolower [lindex $pool_info 0]] - $last_block - $last_confirmations" }
-										
-										 if {$last_shares eq "null"} {
-											#if {$debug eq "1"} {
-											#	putlog "skipping block because last shares has a value of null"
-											#	putlog "last shares: $last_shares"
-											#}
-										} else {
-											set advertise_block [check_block [string tolower [lindex $pool_info 0]] $last_block $last_confirmations]
-										
-											#if {$debug eq "1"} { putlog "advertise_block: $advertise_block"}
-											#if {$debug eq "1"} { putlog "values: $last_block - $last_status - $last_estshares - $last_shares - $last_finder"}
-										
-											if {$advertise_block eq "0"} {
-												#if {$debug eq "1"} { putlog "No New Block: $last_block" }
-												lappend blocklist $last_block
-											} elseif {$advertise_block eq "notconfirmed"} {
-												#if {$debug eq "1"} { putlog "Block not confirmed" }
+										if {$last_shares ne "null"} {
+											set blockindatabase [llength [advertiseblocks eval {SELECT last_block FROM blocks WHERE last_block=$last_block AND poolcoin = $poolcoin}]]
+											if {$blockindatabase == 0} {
+												if {$debug eq "1"} { putlog "$poolcoin -> insert block $last_block" }
+												advertiseblocks eval {INSERT INTO blocks (poolcoin,last_block,last_status,last_estshares,last_shares,last_finder,last_confirmations,last_diff,last_anon,last_worker,last_amount,last_confirmations,posted,timestamp) VALUES ($poolcoin,$last_block,$last_status,$last_estshares,$last_shares,$last_finder,$last_confirmations,$last_diff,$last_anon,$last_worker,$last_amount,$last_confirmations,'N',$last_timestamp)}
 											} else {
-												set writeblockfile "yes"
-												advertise_block [string toupper [lindex $pool_info 0]] $last_block $last_status $last_estshares $last_shares $last_finder $last_confirmations $last_diff $last_anon $last_worker $last_amount
-												lappend blocklist $last_block
+												if {$debug eq "1"} { putlog "$poolcoin -> updating block confirmations $last_block" }
+												advertiseblocks eval {UPDATE blocks SET last_confirmations=$last_confirmations, last_status=$last_status WHERE last_block=$last_block AND poolcoin = $poolcoin}
 											}
 										}
 									}
 								}
 							}
 						}
-					}
+						
+						# delete old blocks if set in config
+						if {$blockdeletetime ne "0"} {
+						#set deletetimeframe [expr {$insertedtime-($blockdeletetime*60)}]
+						set deletetimeframe [expr {$insertedtime-$blockdeletetime}]
 	
-					if {$writeblockfile eq "yes"} {
-						set fh [open $logfilepath w]
-						foreach arr_elem $blocklist {
-    						#putlog "arr: $arr_elem"
-    						puts $fh [join $arr_elem "\n"]
+						if {$debug eq "1"} { putlog "actual Time: [clock format $insertedtime -format "%D %T"] - delete blocks before: [clock format $deletetimeframe -format "%D %T"]" }
+	
+						if {[llength [advertiseblocks eval {SELECT block_id FROM blocks WHERE posted = 'Y' AND timestamp <= $deletetimeframe AND poolcoin = $poolcoin ORDER BY block_id DESC LIMIT $blockstokeep, 100000}]] == 0} {
+							if {$debug eq "1"} { putlog "no blocks to delete" }
+						} else {
+							# workaround to delete
+							# shares except the last $blockstokeep -> ORDER BY block_id DESC LIMIT $blockstokeep, 100000
+							foreach {block_id last_block timestamp} [advertiseblocks eval {SELECT block_id,last_block,timestamp FROM blocks WHERE posted = 'Y' AND timestamp <= $deletetimeframe AND poolcoin = $poolcoin ORDER BY block_id DESC LIMIT $blockstokeep, 100000}] {
+								if {$debug eq "1"} { putlog "delete block -> $last_block - [clock format $timestamp -format "%D %T"]" }
+									advertiseblocks eval {DELETE FROM blocks WHERE block_id = $block_id AND poolcoin = $poolcoin}
+								}
+							}
+							if {$debug eq "1"} { putlog "-> old blocks deleted" }
 						}
-						close $fh
-					} else {
-						set lastblock [FileTextReadLine $logfilepath 0 0]
-						if {$debug eq "1"} { putlog "No New [string toupper [lindex $pool_info 0]] Block found - $lastblock" }
 					}
     			}
-			}
+			}			
 		}
 	}
-
+	
+	# check sqlite for blocks
+	if {[llength [advertiseblocks eval {SELECT * FROM blocks WHERE posted = 'N' AND last_confirmations >= 10}]] == 0} {
+		if {$debug eq "1"} { putlog "nothing found" }
+	} else {
+		foreach {block_id poolcoin last_block last_status last_estshares last_shares last_finder last_confirmations last_diff last_anon last_worker last_amount posted last_timestamp} [advertiseblocks eval {SELECT * FROM blocks WHERE posted = 'N' AND (last_confirmations >= 10 OR last_confirmations = '-1') ORDER BY last_block ASC}] {
+			if {$debug eq "1"} { putlog "$block_id - $poolcoin - $last_block - $last_status - $last_estshares - $last_shares - $last_finder - $last_confirmations - $last_diff - $last_anon - $last_worker - $last_amount" }
+			advertise_block $block_id $poolcoin $last_block $last_status $last_estshares $last_shares $last_finder $last_confirmations $last_diff $last_anon $last_worker $last_amount $last_timestamp
+			advertiseblocks eval {UPDATE blocks SET posted="Y" WHERE block_id=$block_id}
+		}
+	}
+	
+	advertiseblocks close
 	set checknewblocks_running [utimer $blockchecktime checknewblocks]
 }                                      
 
 #
-# checking the block
-#
-proc check_block {coinname blockheight blockconfirmations} {
-	global debug debugoutput confirmations scriptpath lastblockfile
-	
-	#if {$debug eq "1"} { putlog "Checking Block: $blockheight" }
-
-  	# setting logfile to right path
-	set logfilepath $scriptpath
-  	append logfilepath "[string tolower $coinname]/"
-  	if {![file isdirectory $logfilepath]} {
-  		file mkdir $logfilepath
-	}
-  	append logfilepath $lastblockfile
-  	
-  	set newblock "0"
-  	
-	if { [file_read $logfilepath] eq "0" } {
-			
-		# check if lastblocksfile exists
-		#
-		if { [file_check $logfilepath] eq "0" } {
-			if {$debug eq "1"} { putlog "file $logfilepath does not exist" }
-			if {[file_write $logfilepath new] eq "1" } { putlog "file $logfilepath created" }
-		} else {
-			if {$debug eq "1"} { putlog "can't read $logfilepath"}
-		}
-
-	} else {
-	
-		set blockfile [open $logfilepath]
-		# Read until we find the start pattern
-		while {[gets $blockfile line] >= 0} {
-			#if {$debug eq "1"} { putlog "LINE: $line" }
-  	  		if { [string match "$blockheight" $line] } {
-				set newblock "0"
-				break
-  	  		} else {
-				set newblock $line
-			}
-		}
-		close $blockfile
-		
-		if {$newblock ne "0"} {
-			if {$blockconfirmations eq "-1"} {
-				return $newblock
-			} elseif {$blockconfirmations > $confirmations} {
-				return $newblock
-			} else {
-				if {$debug eq "1"} { putlog "block not confirmed: $blockconfirmations - $confirmations" }
-				return "notconfirmed"
-			}
-		} else {
-			return "0"
-		}
-
-	}
-
-}
-
-#
 # advertising the block
 #
-proc advertise_block {blockfinder_coinname blockfinder_newblock blockfinder_laststatus blockfinder_lastestshares blockfinder_lastshares blockfinder_lastfinder blockfinder_confirmations blockfinder_diff blockfinder_anon blockfinder_worker blockfinder_amount} {
-	global channels debug debugoutput scriptpath lastblockfile output_findblocks output_findblocks_percoin
+proc advertise_block {blockid blockfinder_coinname blockfinder_newblock blockfinder_laststatus blockfinder_lastestshares blockfinder_lastshares blockfinder_lastfinder blockfinder_confirmations blockfinder_diff blockfinder_anon blockfinder_worker blockfinder_amount blockfinder_time} {
+	global channels debug debugoutput output_findblocks output_findblocks_percoin sqlite_blockfile
+	sqlite3 advertiseblocks $sqlite_blockfile
+  	
+  	set blockfinder_lastblock [advertiseblocks eval {SELECT last_block FROM blocks WHERE posted = 'Y' AND poolcoin = $blockfinder_coinname ORDER BY last_block DESC LIMIT 1}]
 
-  	# setting logfile to right path
-	set logfilepath $scriptpath
-  	append logfilepath "[string tolower $blockfinder_coinname]/"
-  	if {![file isdirectory $logfilepath]} {
-  		file mkdir $logfilepath
-	}
-  	append logfilepath $lastblockfile
-  	
-  	set blockfinder_lastblock [FileTextReadLine $logfilepath 0 0]
-  	
 	if {$debug eq "1"} { putlog "New Block: $blockfinder_newblock" }
 	if {$debug eq "1"} { putlog "New / Last: $blockfinder_newblock - $blockfinder_lastblock" }
 	
@@ -314,7 +244,11 @@ proc advertise_block {blockfinder_coinname blockfinder_newblock blockfinder_last
 	set lineoutput [replacevar $lineoutput "%blockfinder_coinname%" $blockfinder_coinname]
 	set lineoutput [replacevar $lineoutput "%blockfinder_newblock%" $blockfinder_newblock]
 	set lineoutput [replacevar $lineoutput "%blockfinder_lastblock%" $blockfinder_lastblock]
-	set lineoutput [replacevar $lineoutput "%blockfinder_laststatus%" $blockfinder_laststatus]
+	if {$blockfinder_laststatus eq "Valid"} {
+		set lineoutput [replacevar $lineoutput "%blockfinder_laststatus%" "\0039$blockfinder_laststatus\003"]
+	} else {
+		set lineoutput [replacevar $lineoutput "%blockfinder_laststatus%" "\0034$blockfinder_laststatus\003"]
+	}
 	set lineoutput [replacevar $lineoutput "%blockfinder_lastestshares%" $blockfinder_lastestshares]
 	set lineoutput [replacevar $lineoutput "%blockfinder_lastshares%" $blockfinder_lastshares]
 	set lineoutput [replacevar $lineoutput "%blockfinder_percentage%" $blockfinder_percentage]
@@ -328,10 +262,12 @@ proc advertise_block {blockfinder_coinname blockfinder_newblock blockfinder_last
 	set lineoutput [replacevar $lineoutput "%blockfinder_confirmations%" $blockfinder_confirmations]
 	set lineoutput [replacevar $lineoutput "%blockfinder_diff%" $blockfinder_diff]
 	set lineoutput [replacevar $lineoutput "%blockfinder_amount%" $blockfinder_amount]
+	set lineoutput [replacevar $lineoutput "%blockfinder_time%" [clock format $blockfinder_time -format "%D %T"]]
 	
 	foreach advert $channels {
 		putquick "PRIVMSG $advert :$lineoutput"
 	}
+	
 }
 
 putlog "===>> Mining-Pool-Findblocks - Version $scriptversion loaded"
