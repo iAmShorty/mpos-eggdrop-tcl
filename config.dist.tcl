@@ -178,8 +178,13 @@ set blockchecktime "60"
 set blockdeletetime "3600"
 
 # keep certain amount of blocks in database
+# useful for slow finding blockrate
+# keeps blocks in database to prevent double
+# post in channel. best practice, set this to
+# your shown blocks in block statistics page
+# -> standard setting in mmpos = 20
 #
-set blockstokeep "50"
+set blockstokeep "20"
 
 ##################################################################
 # Marketdata Config

@@ -11,8 +11,6 @@ a fantastic Webinterface for people running Cryptocoin Pools
 Active Pools
 ================
 
-* http://elephantcoin.auxmining.de
-* http://alphacoin.auxmining.de
 * http://machinecoin.auxmining.de
 
 Donations

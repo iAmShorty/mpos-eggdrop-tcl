@@ -190,13 +190,12 @@ proc checknewblocks {} {
 							# workaround to delete
 							# shares except the last $blockstokeep -> ORDER BY block_id DESC LIMIT $blockstokeep, 100000
 							foreach {block_id last_block timestamp} [advertiseblocks eval {SELECT block_id,last_block,timestamp FROM blocks WHERE posted = 'Y' AND timestamp <= $deletetimeframe AND poolcoin = $poolcoin ORDER BY block_id DESC LIMIT $blockstokeep, 100000}] {
-							if {$debug eq "1"} { putlog "delete block -> $last_block - [clock format $timestamp -format "%D %T"]" }
-								advertiseblocks eval {DELETE FROM blocks WHERE block_id = $block_id AND poolcoin = $poolcoin}
+								if {$debug eq "1"} { putlog "delete block -> $last_block - [clock format $timestamp -format "%D %T"]" }
+									advertiseblocks eval {DELETE FROM blocks WHERE block_id = $block_id AND poolcoin = $poolcoin}
+								}
 							}
-								if {$debug eq "1"} { putlog "-> old blocks deleted" }
-							}
+							if {$debug eq "1"} { putlog "-> old blocks deleted" }
 						}
-						
 					}
     			}
 			}			
