@@ -24,7 +24,7 @@
 # info for specific coin form coinchoose
 #
 proc coinchoose_info {nick host hand chan arg} {
- 	global help_blocktime help_blocked channels debug debugoutput output onlyallowregisteredusers output_coinchoose
+	global help_blocktime help_blocked channels debug debugoutput output onlyallowregisteredusers output_coinchoose
 	package require http
 	package require json
 	package require tls
@@ -43,52 +43,52 @@ proc coinchoose_info {nick host hand chan arg} {
 		return
 	}
 	
- 	set mask [string trimleft $host ~]
- 	regsub -all {@([^\.]*)\.} $mask {@*.} mask	 	
- 	set mask *!$mask
- 
-  	if {[info exists help_blocked($mask)]} {
-    	  putquick "NOTICE $nick :You have been blocked for $help_blocktime Seconds, please be patient..."
-    	  return
-  	}
-  	
-  	set coinchoose_api "http://www.coinchoose.com/api.php?base=BTC"
-  	
-    if {[string match "*https*" [string tolower $coinchoose_api]]} {
-  		set usehttps 1
-    } else {
-    	set usehttps 0
-    }
-    
-  	if {$usehttps eq "1"} {
-  		::http::register https 443 tls::socket
-  	}
-    set token [::http::geturl "$coinchoose_api"]
-    set data [::http::data $token]
-    ::http::cleanup $token
-    if {$usehttps eq "1"} {
-    	::http::unregister https
-    }
-    
-    if {$debugoutput eq "1"} { putlog "xml: $data" }
-    
-    set results [::json::json2dict $data]
+	set mask [string trimleft $host ~]
+	regsub -all {@([^\.]*)\.} $mask {@*.} mask	 	
+	set mask *!$mask
 
-  	set coin_found "false"
-  	set coinchoose_name "0"
-  	set coinchoose_algo "0"
-  	set coinchoose_currentblocks "0"
-  	set coinchoose_diff "0"
-  	set coinchoose_exchange "0"
-  	set coinchoose_price "0"
-  	set coinchoose_reward "0"
-  	set coinchoose_networkhashrate "0"
-  	set coinchoose_avgprofit "0"
-  	set coinchoose_avghashrate "0"
-  	set coinchoose_nethashratevalue "0"
-  	set coinchoose_avgnethashratevalue "0"
-  	
-  	if {$debug eq "1"} { putlog "Search on coinchoose for [string toupper $arg]" }
+	if {[info exists help_blocked($mask)]} {
+		putquick "NOTICE $nick :You have been blocked for $help_blocktime Seconds, please be patient..."
+		return
+	}
+	
+	set coinchoose_api "http://www.coinchoose.com/api.php?base=BTC"
+	
+	if {[string match "*https*" [string tolower $coinchoose_api]]} {
+		set usehttps 1
+	} else {
+		set usehttps 0
+	}
+
+	if {$usehttps eq "1"} {
+		::http::register https 443 tls::socket
+	}
+	set token [::http::geturl "$coinchoose_api"]
+	set data [::http::data $token]
+	::http::cleanup $token
+	if {$usehttps eq "1"} {
+		::http::unregister https
+	}
+
+	if {$debugoutput eq "1"} { putlog "xml: $data" }
+
+	set results [::json::json2dict $data]
+
+	set coin_found "false"
+	set coinchoose_name "0"
+	set coinchoose_algo "0"
+	set coinchoose_currentblocks "0"
+	set coinchoose_diff "0"
+	set coinchoose_exchange "0"
+	set coinchoose_price "0"
+	set coinchoose_reward "0"
+	set coinchoose_networkhashrate "0"
+	set coinchoose_avgprofit "0"
+	set coinchoose_avghashrate "0"
+	set coinchoose_nethashratevalue "0"
+	set coinchoose_avgnethashratevalue "0"
+	
+	if {$debug eq "1"} { putlog "Search on coinchoose for [string toupper $arg]" }
 
 	foreach key $results {
 		foreach {value sub_value} $key {
@@ -229,11 +229,11 @@ proc coinchoose_info {nick host hand chan arg} {
 		set lineoutput "cannot find coin -> [string toupper $arg]"
 	}
 	
- 	if {$output eq "CHAN"} {
- 		foreach advert $channels {
- 			if {$advert eq $chan} {
- 				putquick "PRIVMSG $chan :$lineoutput"
- 			}
+	if {$output eq "CHAN"} {
+		foreach advert $channels {
+			if {$advert eq $chan} {
+				putquick "PRIVMSG $chan :$lineoutput"
+		}
 		}
 	} elseif {$output eq "NOTICE"} {
 		putquick "NOTICE $nick :$lineoutput"	

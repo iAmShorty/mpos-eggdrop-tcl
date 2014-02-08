@@ -26,26 +26,26 @@ set sqlite_poolfile "$scriptpath/db/pooldata.db"
 set sqlite_userfile "$scriptpath/db/userdata.db"
 set sqlite_blockfile "$scriptpath/db/blockdata.db"
 
-if {![file exists "$scriptpath/db"]} { 
-         file mkdir "$scriptpath/db" 
+if {![file exists "$scriptpath/db"]} {
+	file mkdir "$scriptpath/db" 
 }
 
 if {![file exists $sqlite_poolfile]} { 
-  sqlite3 pools $sqlite_poolfile
-    pools eval {CREATE TABLE pools(pool_id integer primary key autoincrement, url TEXT NOT NULL, coin TEXT NOT NULL, payoutsys TEXT NOT NULL, fees TEXT NOT NULL, user TEXT NOT NULL, timestamp DATETIME)}
-  pools close
+	sqlite3 pools $sqlite_poolfile
+	pools eval {CREATE TABLE pools(pool_id integer primary key autoincrement, url TEXT NOT NULL, coin TEXT NOT NULL, payoutsys TEXT NOT NULL, fees INTEGER NOT NULL, apikey TEXT NOT NULL default 0, blockfinder INTEGER DEFAULT 0, user TEXT NOT NULL, timestamp DATETIME)}
+	pools close
 }
 
 if {![file exists $sqlite_userfile]} { 
-  sqlite3 users $sqlite_userfile
-    users eval {CREATE TABLE users(user_id integer primary key autoincrement, ircnick TEXT NOT NULL, hostmask TEXT NOT NULL, timestamp DATETIME)}
-  users close
+	sqlite3 users $sqlite_userfile
+	users eval {CREATE TABLE users(user_id integer primary key autoincrement, ircnick TEXT NOT NULL, hostmask TEXT NOT NULL, timestamp DATETIME)}
+	users close
 }
 
 if {![file exists $sqlite_blockfile]} { 
-  sqlite3 blocks $sqlite_blockfile
-    blocks eval {CREATE TABLE blocks(block_id integer primary key autoincrement, poolcoin TEXT NOT NULL default 'null', last_block INTEGER NOT NULL, last_status TEXT NOT NULL default 'null', last_estshares INTEGER NOT NULL, last_shares INTEGER NOT NULL, last_finder TEXT NOT NULL default 'null', last_confirmations INTEGER NOT NULL, last_diff FLOAT NOT NULL default '0', last_anon TEXT NOT NULL default 'null', last_worker TEXT NOT NULL default 'null', last_amount FLOAT NOT NULL, posted TEXT NOT NULL default 'N', timestamp DATETIME)}
-  blocks close
+	sqlite3 blocks $sqlite_blockfile
+	blocks eval {CREATE TABLE blocks(block_id integer primary key autoincrement, poolcoin TEXT NOT NULL default 'null', last_block INTEGER NOT NULL, last_status TEXT NOT NULL default 'null', last_estshares INTEGER NOT NULL, last_shares INTEGER NOT NULL, last_finder TEXT NOT NULL default 'null', last_confirmations INTEGER NOT NULL, last_diff FLOAT NOT NULL default '0', last_anon TEXT NOT NULL default 'null', last_worker TEXT NOT NULL default 'null', last_amount FLOAT NOT NULL, posted TEXT NOT NULL default 'N', timestamp DATETIME)}
+	blocks close
 }
 
 putlog "===>> Mining-Pool-DB-Initialization - Version $scriptversion loaded"

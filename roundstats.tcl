@@ -24,7 +24,7 @@
 # round information
 #
 proc round_info {nick host hand chan arg } {
- 	global help_blocktime help_blocked channels debug debugoutput output onlyallowregisteredusers output_roundstats output_roundstats_percoin
+	global help_blocktime help_blocked channels debug debugoutput output onlyallowregisteredusers output_roundstats output_roundstats_percoin
 	package require http
 	package require json
 	package require tls
@@ -43,56 +43,56 @@ proc round_info {nick host hand chan arg } {
 		return
 	}
 	
- 	set action "index.php?page=api&action=getdashboarddata&api_key="
- 	
- 	set mask [string trimleft $host ~]
- 	regsub -all {@([^\.]*)\.} $mask {@*.} mask	 	
- 	set mask *!$mask
- 
-  	if {[info exists help_blocked($mask)]} {
-    	  putquick "NOTICE $nick : You have been blocked for $help_blocktime Seconds, please be patient..."
-    	  return
-  	}
+	set action "index.php?page=api&action=getdashboarddata&api_key="
 
-  	set pool_info [regexp -all -inline {\S+} [pool_vars $arg]]
-  	
-  	if {$pool_info ne "0"} {
-  		if {$debug eq "1"} { putlog "COIN: [lindex $pool_info 0]" }
-  		if {$debug eq "1"} { putlog "URL: [lindex $pool_info 1]" }
-  		if {$debug eq "1"} { putlog "KEY: [lindex $pool_info 2]" }
-  	} else {
-  		if {$debug eq "1"} { putlog "no pool data" }
-  		return
-  	} 
-  	
-  	set newurl [lindex $pool_info 1]
-  	append newurl $action
-  	append newurl [lindex $pool_info 2]
+	set mask [string trimleft $host ~]
+	regsub -all {@([^\.]*)\.} $mask {@*.} mask	 	
+	set mask *!$mask
 
-    if {[string match "*https*" [string tolower $newurl]]} {
-  		set usehttps 1
-    } else {
-    	set usehttps 0
-    }
-    
-  	if {$usehttps eq "1"} {
-  		::http::register https 443 tls::socket
-  	}
-    set token [::http::geturl "$newurl"]
-    set data [::http::data $token]
-    ::http::cleanup $token
-    if {$usehttps eq "1"} {
-    	::http::unregister https
-    }
-    
-    if {$debugoutput eq "1"} { putlog "xml: $data" }
-    
-    if {$data eq "Access denied"} { 
-    	putquick "PRIVMSG $chan :Access to Roundinfo denied"
-    	return 0 
-    }
-    
-    set results [::json::json2dict $data]
+	if {[info exists help_blocked($mask)]} {
+		putquick "NOTICE $nick : You have been blocked for $help_blocktime Seconds, please be patient..."
+		return
+	}
+
+	set pool_info [regexp -all -inline {\S+} [pool_vars $arg]]
+
+	if {$pool_info ne "0"} {
+		if {$debug eq "1"} { putlog "COIN: [lindex $pool_info 0]" }
+		if {$debug eq "1"} { putlog "URL: [lindex $pool_info 1]" }
+		if {$debug eq "1"} { putlog "KEY: [lindex $pool_info 2]" }
+	} else {
+		if {$debug eq "1"} { putlog "no pool data" }
+		return
+	} 
+
+	set newurl [lindex $pool_info 1]
+	append newurl $action
+	append newurl [lindex $pool_info 2]
+
+	if {[string match "*https*" [string tolower $newurl]]} {
+		set usehttps 1
+	} else {
+		set usehttps 0
+	}
+
+	if {$usehttps eq "1"} {
+		::http::register https 443 tls::socket
+	}
+	set token [::http::geturl "$newurl"]
+	set data [::http::data $token]
+	::http::cleanup $token
+	if {$usehttps eq "1"} {
+		::http::unregister https
+	}
+
+	if {$debugoutput eq "1"} { putlog "xml: $data" }
+
+	if {$data eq "Access denied"} { 
+	putquick "PRIVMSG $chan :Access to Roundinfo denied"
+	return 0 
+	}
+
+	set results [::json::json2dict $data]
 	
 	foreach {key value} $results {
 		#putlog "Key: $key - $value"
@@ -121,19 +121,15 @@ proc round_info {nick host hand chan arg } {
 								
 							}
 						}
-					}				
+					}
 				}
-				
 				if {$elem eq "network"} {
 					#putlog "Ele: $elem - Val: $elem_val"
 					foreach {elem2 elem_val2} $elem_val {
-
 						if {$elem2 eq "block"} { set net_block "$elem_val2" }
 						if {$elem2 eq "difficulty"} { set net_diff "$elem_val2" }
-
-					}				
-				}				
-				
+					}
+				}
 			}
 		}
 	}
@@ -156,10 +152,10 @@ proc round_info {nick host hand chan arg } {
 	set lineoutput [replacevar $lineoutput "%roundstats_progress%" $shares_progress]	
 	
 	if {$output eq "CHAN"} {
- 		foreach advert $channels {
- 			if {$advert eq $chan} {
- 				putquick "PRIVMSG $chan :$lineoutput"
- 			}
+		foreach advert $channels {
+			if {$advert eq $chan} {
+				putquick "PRIVMSG $chan :$lineoutput"
+			}
 		}
 	} elseif {$output eq "NOTICE"} {
 		putquick "NOTICE $nick :$lineoutput"	

@@ -30,16 +30,16 @@ proc check_mpos_user {username hostmask} {
 	set registereduser [string tolower $username]
 	set registeredhostmask [string tolower $hostmask]
 	
-  	if {[llength [registeredusers eval {SELECT ircnick,hostmask FROM users WHERE hostmask=$registeredhostmask}]] == 0} {
-  		set userhasrights "false"
-  		putlog "user not in database"
-  	} else {
-  		set userhasrights "true"
-  		putlog "user in database"
-  	}
+	if {[llength [registeredusers eval {SELECT ircnick,hostmask FROM users WHERE hostmask=$registeredhostmask}]] == 0} {
+		set userhasrights "false"
+		putlog "user not in database"
+	} else {
+		set userhasrights "true"
+		putlog "user in database"
+	}
 	
-  	registeredusers close
-  	return $userhasrights
+	registeredusers close
+	return $userhasrights
 }
 
 #
@@ -56,24 +56,24 @@ proc user_add {nick uhost hand chan arg} {
 		return
 	}
  
-  	if {$arg eq ""} {
-  		putlog "no user to add"
-  		return
-  	} 
+	if {$arg eq ""} {
+		putlog "no user to add"
+		return
+	} 
 
 	set arg [string trim [charfilter $arg]]
 	set hostmask "$arg!*[getchanhost $arg $chan]"
 	if {$debug eq "1"} { putlog "Hostmask is: [string tolower $hostmask]"}
 	
-    if {[llength [registeredusers eval {SELECT ircnick,hostmask FROM users WHERE hostmask=$hostmask}]] == 0} {
+	if {[llength [registeredusers eval {SELECT ircnick,hostmask FROM users WHERE hostmask=$hostmask}]] == 0} {
 		putlog "adding user"
 		putquick "PRIVMSG $nick :user $arg added"
 		registeredusers eval {INSERT INTO users (ircnick,hostmask) VALUES ($arg,$hostmask)}
-    } else {
-    	putlog "updating user"
-    	putquick "PRIVMSG $nick :user $arg updated"
-    	registeredusers eval {UPDATE users SET hostmask=$hostmask WHERE ircnick=$arg}
-    }
+	} else {
+		putlog "updating user"
+		putquick "PRIVMSG $nick :user $arg updated"
+		registeredusers eval {UPDATE users SET hostmask=$hostmask WHERE ircnick=$arg}
+	}
 
 	registeredusers close
 }
@@ -91,17 +91,17 @@ proc user_del {nick uhost hand chan arg} {
 		putlog "$nick tried to delete $arg from users"
 		return
 	}
-  	
+
 	set arg [string trim [charfilter $arg]]
 	set hostmask "$arg!*[getchanhost $arg $chan]"
 
-    if {[llength [registeredusers eval {SELECT hostmask FROM users WHERE ircnick=$arg}]] == 0} {
-      puthelp "PRIVMSG $chan :\002$arg\002 is not in the database."
-    } {
-      registeredusers eval {DELETE FROM users WHERE ircnick=$arg}
-      puthelp "PRIVMSG $chan :\002$arg\002 deleted."
-    }
-    registeredusers close
+	if {[llength [registeredusers eval {SELECT hostmask FROM users WHERE ircnick=$arg}]] == 0} {
+		puthelp "PRIVMSG $chan :\002$arg\002 is not in the database."
+	} {
+		registeredusers eval {DELETE FROM users WHERE ircnick=$arg}
+		puthelp "PRIVMSG $chan :\002$arg\002 deleted."
+	}
+	registeredusers close
 }
 
 #
@@ -117,10 +117,10 @@ proc user_request {nick uhost hand chan arg} {
 		return
 	}
 
-  	if {$arg eq ""} {
-  		putlog "no user to add"
-  		return
-  	}
+	if {$arg eq ""} {
+		putlog "no user to add"
+		return
+	}
 
 	foreach admins $notificationadmins {
 		putquick "NOTICE $admins :$nick requested adding user $arg to userfile"

@@ -24,7 +24,7 @@
 # block information
 #
 proc block_info {nick host hand chan arg} {
-    global help_blocktime help_blocked channels debug debugoutput output onlyallowregisteredusers output_blockinfo output_blockinfo_percoin
+	global help_blocktime help_blocked channels debug debugoutput output onlyallowregisteredusers output_blockinfo output_blockinfo_percoin
 	package require http
 	package require json
 	package require tls
@@ -45,55 +45,55 @@ proc block_info {nick host hand chan arg} {
 	
 	set action "index.php?page=api&action=getpoolstatus&api_key="
 	
- 	set mask [string trimleft $host ~]
- 	regsub -all {@([^\.]*)\.} $mask {@*.} mask	 	
- 	set mask *!$mask
+	set mask [string trimleft $host ~]
+	regsub -all {@([^\.]*)\.} $mask {@*.} mask	 	
+	set mask *!$mask
  
-  	if {[info exists help_blocked($mask)]} {
-    	  putquick "NOTICE $nick : You have been blocked for $help_blocktime Seconds, please be patient..."
-    	  return
-  	}
-  	
-  	set pool_info [regexp -all -inline {\S+} [pool_vars $arg]]
-  	
-  	if {$pool_info ne "0"} {
-  		if {$debug eq "1"} { putlog "COIN: [lindex $pool_info 0]" }
-  		if {$debug eq "1"} { putlog "URL: [lindex $pool_info 1]" }
-  		if {$debug eq "1"} { putlog "KEY: [lindex $pool_info 2]" }
-  	} else {
-  		if {$debug eq "1"} { putlog "no pool data" }
-  		return
-  	} 
-  	
-  	set newurl [lindex $pool_info 1]
-  	append newurl $action
-  	append newurl [lindex $pool_info 2]
+	if {[info exists help_blocked($mask)]} {
+		putquick "NOTICE $nick : You have been blocked for $help_blocktime Seconds, please be patient..."
+		return
+	}
 
-    if {[string match "*https*" [string tolower $newurl]]} {
-  		set usehttps 1
-    } else {
-    	set usehttps 0
-    }
-    
-  	if {$usehttps eq "1"} {
-  		::http::register https 443 tls::socket
-  	}
-    set token [::http::geturl "$newurl"]
-    set data [::http::data $token]
-    ::http::cleanup $token
-    if {$usehttps eq "1"} {
-    	::http::unregister https
-    }
-    
-    if {$debugoutput eq "1"} { putlog "xml: $data" }
-    
-    if {$data eq "Access denied"} { 
-    	putquick "PRIVMSG $chan :Access to Blockinfo denied"
-    	return 0
-    }
-    
-    set results [::json::json2dict $data]
-    
+	set pool_info [regexp -all -inline {\S+} [pool_vars $arg]]
+
+	if {$pool_info ne "0"} {
+		if {$debug eq "1"} { putlog "COIN: [lindex $pool_info 0]" }
+		if {$debug eq "1"} { putlog "URL: [lindex $pool_info 1]" }
+		if {$debug eq "1"} { putlog "KEY: [lindex $pool_info 2]" }
+	} else {
+		if {$debug eq "1"} { putlog "no pool data" }
+		return
+	} 
+
+	set newurl [lindex $pool_info 1]
+	append newurl $action
+	append newurl [lindex $pool_info 2]
+
+	if {[string match "*https*" [string tolower $newurl]]} {
+		set usehttps 1
+	} else {
+		set usehttps 0
+	}
+
+	if {$usehttps eq "1"} {
+		::http::register https 443 tls::socket
+	}
+	set token [::http::geturl "$newurl"]
+	set data [::http::data $token]
+	::http::cleanup $token
+	if {$usehttps eq "1"} {
+		::http::unregister https
+	}
+
+	if {$debugoutput eq "1"} { putlog "xml: $data" }
+
+	if {$data eq "Access denied"} { 
+		putquick "PRIVMSG $chan :Access to Blockinfo denied"
+		return 0
+	}
+
+	set results [::json::json2dict $data]
+
 	foreach {key value} $results {
 		foreach {sub_key sub_value} $value {
 			if {$sub_key eq "data"} {
@@ -101,22 +101,22 @@ proc block_info {nick host hand chan arg} {
 				foreach {elem elem_val} $sub_value {
 					#putlog "Ele: $elem - Val: $elem_val"
 
-      				if {$elem eq "currentnetworkblock"} { set blockstats_current "$elem_val" } 
-      				if {$elem eq "nextnetworkblock"} { set blockstats_next "$elem_val" } 
-      				if {$elem eq "lastblock"} { set blockstats_last "$elem_val" }
-      				if {$elem eq "networkdiff"} { set blockstats_diff "$elem_val" } 
-      				if {$elem eq "esttime"} {
-      					#set timediff [expr {$elem_val / 60}]
-      					set timediff [expr {double(round(100*[expr {$elem_val / 60}]))/100}]
-      					set blockstats_time "$timediff" 
-      				} 
-      				if {$elem eq "estshares"} { set blockstats_shares "$elem_val" } 
-      				if {$elem eq "timesincelast"} { 
-      					#set timediff [expr {$elem_val / 60}]
-      					set timediff [expr {double(round(100*[expr {$elem_val / 60}]))/100}]
-      					#set timediff $elem_val
-      					set blockstats_timelast "$timediff"
-      				}
+					if {$elem eq "currentnetworkblock"} { set blockstats_current "$elem_val" } 
+					if {$elem eq "nextnetworkblock"} { set blockstats_next "$elem_val" } 
+					if {$elem eq "lastblock"} { set blockstats_last "$elem_val" }
+					if {$elem eq "networkdiff"} { set blockstats_diff "$elem_val" } 
+					if {$elem eq "esttime"} {
+						#set timediff [expr {$elem_val / 60}]
+						set timediff [expr {double(round(100*[expr {$elem_val / 60}]))/100}]
+						set blockstats_time "$timediff" 
+					} 
+					if {$elem eq "estshares"} { set blockstats_shares "$elem_val" } 
+					if {$elem eq "timesincelast"} { 
+						#set timediff [expr {$elem_val / 60}]
+						set timediff [expr {double(round(100*[expr {$elem_val / 60}]))/100}]
+						#set timediff $elem_val
+						set blockstats_timelast "$timediff"
+					}
 				
 				}
 			}
@@ -140,14 +140,14 @@ proc block_info {nick host hand chan arg} {
 	set lineoutput [replacevar $lineoutput "%blockstats_shares%" $blockstats_shares]
 	set lineoutput [replacevar $lineoutput "%blockstats_timelast%" $blockstats_timelast]
 	
- 	if {$output eq "CHAN"} {
- 		foreach advert $channels {
- 			if {$advert eq $chan} {
- 				putquick "PRIVMSG $chan :$lineoutput"
- 			}
+	if {$output eq "CHAN"} {
+		foreach advert $channels {
+			if {$advert eq $chan} {
+				putquick "PRIVMSG $chan :$lineoutput"
+			}
 		}	
 	} elseif {$output eq "NOTICE"} {
-  		putquick "NOTICE $nick :$lineoutput"	
+		putquick "NOTICE $nick :$lineoutput"	
 	} else {
 		putquick "PRIVMSG $chan :please set output in config file"
 	}
@@ -158,7 +158,7 @@ proc block_info {nick host hand chan arg} {
 # last block found
 #
 proc last_info {nick host hand chan arg } {
- 	global help_blocktime help_blocked channels debug debugoutput output onlyallowregisteredusers output_lastblock output_lastblock_percoin
+	global help_blocktime help_blocked channels debug debugoutput output onlyallowregisteredusers output_lastblock output_lastblock_percoin
 	package require http
 	package require json
 	package require tls
@@ -177,65 +177,65 @@ proc last_info {nick host hand chan arg } {
 		return
 	}
 	
- 	set action "index.php?page=api&action=getblocksfound&limit=1&api_key="
- 	
- 	set mask [string trimleft $host ~]
- 	regsub -all {@([^\.]*)\.} $mask {@*.} mask	 	
- 	set mask *!$mask
+	set action "index.php?page=api&action=getblocksfound&limit=1&api_key="
+
+	set mask [string trimleft $host ~]
+	regsub -all {@([^\.]*)\.} $mask {@*.} mask	 	
+	set mask *!$mask
  
-  	if {[info exists help_blocked($mask)]} {
-    	  putquick "NOTICE $nick : You have been blocked for $help_blocktime Seconds, please be patient..."
-    	  return
-  	}
+	if {[info exists help_blocked($mask)]} {
+		putquick "NOTICE $nick : You have been blocked for $help_blocktime Seconds, please be patient..."
+		return
+	}
 
- 	set blockstats_lastblock "null"
- 	set blockstats_lastconfirmed "null"
- 	set blockstats_lastconfirmations "null"
- 	set blockstats_lastdifficulty "null"
- 	set blockstats_lasttimefound "null"
- 	set blockstats_lastshares "null"
- 	set blockstats_lastfinder "null"
- 	set blockstats_lastestshares "null"
- 	
-  	set pool_info [regexp -all -inline {\S+} [pool_vars $arg]]
-  	
-  	if {$pool_info ne "0"} {
-  		if {$debug eq "1"} { putlog "COIN: [lindex $pool_info 0]" }
-  		if {$debug eq "1"} { putlog "URL: [lindex $pool_info 1]" }
-  		if {$debug eq "1"} { putlog "KEY: [lindex $pool_info 2]" }
-  	} else {
-  		if {$debug eq "1"} { putlog "no pool data" }
-  		return
-  	} 
-  	
-  	set newurl [lindex $pool_info 1]
-  	append newurl $action
-  	append newurl [lindex $pool_info 2]
+	set blockstats_lastblock "null"
+	set blockstats_lastconfirmed "null"
+	set blockstats_lastconfirmations "null"
+	set blockstats_lastdifficulty "null"
+	set blockstats_lasttimefound "null"
+	set blockstats_lastshares "null"
+	set blockstats_lastfinder "null"
+	set blockstats_lastestshares "null"
+≈
+	set pool_info [regexp -all -inline {\S+} [pool_vars $arg]]
 
-    if {[string match "*https*" [string tolower $newurl]]} {
-  		set usehttps 1
-    } else {
-    	set usehttps 0
-    }
-    
-  	if {$usehttps eq "1"} {
-  		::http::register https 443 tls::socket
-  	}
-    set token [::http::geturl "$newurl"]
-    set data [::http::data $token]
-    ::http::cleanup $token
-    if {$usehttps eq "1"} {
-    	::http::unregister https
-    }
-    
-    if {$debugoutput eq "1"} { putlog "xml: $data" }
-    
-    if {$data eq "Access denied"} { 
-    	putquick "PRIVMSG $chan :Access to Lastblocks denied"
-    	return 0 
-    }
-    
-    set results [::json::json2dict $data]
+	if {$pool_info ne "0"} {
+		if {$debug eq "1"} { putlog "COIN: [lindex $pool_info 0]" }
+		if {$debug eq "1"} { putlog "URL: [lindex $pool_info 1]" }
+		if {$debug eq "1"} { putlog "KEY: [lindex $pool_info 2]" }
+	} else {
+		if {$debug eq "1"} { putlog "no pool data" }
+		return
+	} 
+
+	set newurl [lindex $pool_info 1]
+	append newurl $action
+	append newurl [lindex $pool_info 2]
+
+	if {[string match "*https*" [string tolower $newurl]]} {
+		set usehttps 1
+	} else {
+		set usehttps 0
+	}
+
+	if {$usehttps eq "1"} {
+		::http::register https 443 tls::socket
+	}
+	set token [::http::geturl "$newurl"]
+	set data [::http::data $token]
+	::http::cleanup $token
+	if {$usehttps eq "1"} {
+		::http::unregister https
+	}
+
+	if {$debugoutput eq "1"} { putlog "xml: $data" }
+
+	if {$data eq "Access denied"} { 
+		putquick "PRIVMSG $chan :Access to Lastblocks denied"
+		return 0 
+	}
+
+	set results [::json::json2dict $data]
 	
 	foreach {key value} $results {
 		#putlog "Key: $key - $value"
@@ -248,22 +248,22 @@ proc last_info {nick host hand chan arg } {
 					foreach {elem2 elem_val2} $elem {
 						#putlog "Ele: $elem2 - Val: $elem_val2"
 
-      					if {$elem2 eq "height"} { set blockstats_lastblock "$elem_val2" }
-      					if {$elem2 eq "confirmations"} {
-      						if {"$elem_val2" eq "-1"} {
-      							set blockstats_lastconfirmed "Orphan"
-      							set blockstats_lastconfirmations "$elem_val2"
-      						} else {
-      							set blockstats_lastconfirmed "Valid"
-      							set blockstats_lastconfirmations "$elem_val2"
-      						}
-      					} 
-      					if {$elem2 eq "difficulty"} { set blockstats_lastdifficulty "$elem_val2" }
-      					if {$elem2 eq "time"} {
-      						set converttimestamp [strftime "%d.%m.%Y - %T" $elem_val2]
-      						set blockstats_lasttimefound "$converttimestamp" 
-      					}
-      					if {$elem2 eq "shares"} { set blockstats_lastshares "$elem_val2" } 
+						if {$elem2 eq "height"} { set blockstats_lastblock "$elem_val2" }
+						if {$elem2 eq "confirmations"} {
+							if {"$elem_val2" eq "-1"} {
+								set blockstats_lastconfirmed "Orphan"
+								set blockstats_lastconfirmations "$elem_val2"
+							} else {
+								set blockstats_lastconfirmed "Valid"
+								set blockstats_lastconfirmations "$elem_val2"
+							}
+						} 
+						if {$elem2 eq "difficulty"} { set blockstats_lastdifficulty "$elem_val2" }
+						if {$elem2 eq "time"} {
+							set converttimestamp [strftime "%d.%m.%Y - %T" $elem_val2]
+							set blockstats_lasttimefound "$converttimestamp" 
+						}
+						if {$elem2 eq "shares"} { set blockstats_lastshares "$elem_val2" } 
 						if {$elem2 eq "finder"} { set blockstats_lastfinder "$elem_val2" } 
 						if {$elem2 eq "estshares"} { set blockstats_lastestshares "$elem_val2" } 
 						
@@ -293,11 +293,11 @@ proc last_info {nick host hand chan arg } {
 	set lineoutput [replacevar $lineoutput "%blockstats_lastestshares%" $blockstats_lastestshares]
 	set lineoutput [replacevar $lineoutput "%blockstats_lastfinder%" $blockstats_lastfinder]
 	
- 	if {$output eq "CHAN"} {
- 		foreach advert $channels {
- 			if {$advert eq $chan} {
- 				putquick "PRIVMSG $chan :$lineoutput"
- 			}
+	if {$output eq "CHAN"} {
+		foreach advert $channels {
+			if {$advert eq $chan} {
+				putquick "PRIVMSG $chan :$lineoutput"
+			}
 		}
 	} elseif {$output eq "NOTICE"} {
 		putquick "NOTICE $nick :$lineoutput"

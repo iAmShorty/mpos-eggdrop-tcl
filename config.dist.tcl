@@ -84,11 +84,11 @@ set notificationadmins "YOURREGISTEREDIRCUSER"
 # dict set pools COINNAME apiurl "YOURMPOSAPIURL"
 # dict set pools COINNAME apikey "YOURMPOSAPIKEY"
 
-dict set pools btc apiurl 		"https://pool1.tld/"
-dict set pools btc apikey   	"YOURMPOSAPIKEY"
+dict set pools btc apiurl		"https://pool1.tld/"
+dict set pools btc apikey		"YOURMPOSAPIKEY"
 
-dict set pools ltc apiurl 		"https://pool2.tld/"
-dict set pools ltc apikey   	"YOURMPOSAPIKEY"
+dict set pools ltc apiurl		"https://pool2.tld/"
+dict set pools ltc apikey		"YOURMPOSAPIKEY"
 
 # set to the coin you want to check for new
 # blocks found. separate multiple pools with
