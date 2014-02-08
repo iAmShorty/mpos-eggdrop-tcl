@@ -43,7 +43,7 @@ proc block_info {nick host hand chan arg} {
 		return
 	}
 	
-	set action "index.php?page=api&action=getpoolstatus&api_key="
+	set action "/index.php?page=api&action=getpoolstatus&api_key="
 	
 	set mask [string trimleft $host ~]
 	regsub -all {@([^\.]*)\.} $mask {@*.} mask	 	
@@ -177,7 +177,7 @@ proc last_info {nick host hand chan arg } {
 		return
 	}
 	
-	set action "index.php?page=api&action=getblocksfound&limit=1&api_key="
+	set action "/index.php?page=api&action=getblocksfound&limit=1&api_key="
 
 	set mask [string trimleft $host ~]
 	regsub -all {@([^\.]*)\.} $mask {@*.} mask	 	
@@ -196,8 +196,8 @@ proc last_info {nick host hand chan arg } {
 	set blockstats_lastshares "null"
 	set blockstats_lastfinder "null"
 	set blockstats_lastestshares "null"
-≈
-	set pool_info [regexp -all -inline {\S+} [pool_vars $arg]]
+
+	set pool_info [regexp -all -inline {\S+} [pool_vars [string toupper $arg]]]
 
 	if {$pool_info ne "0"} {
 		if {$debug eq "1"} { putlog "COIN: [lindex $pool_info 0]" }

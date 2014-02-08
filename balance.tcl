@@ -56,7 +56,7 @@ proc balance_info {nick host hand chan arg} {
 		return
 	}
 	
-	set action "index.php?page=api&action=getuserbalance&id=[lindex $arg 1]&api_key="
+	set action "/index.php?page=api&action=getuserbalance&id=[lindex $arg 1]&api_key="
 	
 	set mask [string trimleft $host ~]
 	regsub -all {@([^\.]*)\.} $mask {@*.} mask	 	

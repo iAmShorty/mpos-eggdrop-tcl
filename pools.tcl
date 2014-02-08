@@ -24,7 +24,7 @@
 # add pools from database
 #
 proc pool_add {nick uhost hand chan arg} {
-	global debug allowpooladding sqlite_poolfile
+	global debug sqlite_poolfile
 	sqlite3 registeredpools $sqlite_poolfile
 	
 	if {[matchattr $nick +n]} {
@@ -47,14 +47,19 @@ proc pool_add {nick uhost hand chan arg} {
 	set pool_payout [string toupper [lindex $arg 2]]
 	set pool_fee [lindex $arg 3]
 	
-	if {[llength [registeredpools eval {SELECT url FROM pools WHERE url=$pool_url}]] == 0} {
-		putlog "adding pool"
-		putquick "NOTICE $nick :pool $pool_url added"
-		registeredpools eval {INSERT INTO pools (url,coin,payoutsys,fees,user) VALUES ($pool_url,$pool_coin,$pool_payout,$pool_fee,$userarg)}
+	if {[llength [registeredpools eval {SELECT coin FROM pools WHERE coin=$pool_coin}]] == 0} {
+		if {[llength [registeredpools eval {SELECT url FROM pools WHERE url=$pool_url}]] == 0} {
+			putlog "adding pool"
+			putquick "NOTICE $nick :pool $pool_url added"
+			registeredpools eval {INSERT INTO pools (url,coin,payoutsys,fees,user) VALUES ($pool_url,$pool_coin,$pool_payout,$pool_fee,$userarg)}
+		} else {
+			putlog "updating pool"
+			putquick "NOTICE $nick :pool $pool_url updated"
+			registeredpools eval {UPDATE pools SET url=$pool_url, coin=$pool_coin, payoutsys=$pool_payout, fees=$pool_fee, user=$userarg WHERE url=$pool_url}
+		}
 	} else {
-		putlog "updating pool"
-		putquick "NOTICE $nick :pool $pool_url updated"
-		registeredpools eval {UPDATE pools SET url=$pool_url, coin=$pool_coin, payoutsys=$pool_payout, fees=$pool_fee, user=$userarg WHERE url=$pool_url}
+		putlog "Pool for Coin $pool_coin already exists"
+		putquick "NOTICE $nick :Pool for Coin $pool_coin already exists"
 	}
 
 	registeredpools close
@@ -64,7 +69,7 @@ proc pool_add {nick uhost hand chan arg} {
 # delete pools from database
 #
 proc pool_del {nick uhost hand chan arg} {
-	global debug allowpooladding sqlite_poolfile
+	global debug sqlite_poolfile
 	sqlite3 registeredpools $sqlite_poolfile
 	
 	if {[matchattr $nick +n]} {
@@ -92,7 +97,7 @@ proc pool_del {nick uhost hand chan arg} {
 # activate/deactivate pool for block advertising
 #
 proc pool_blockfinder {nick uhost hand chan arg} {
-	global debug allowpooladding sqlite_poolfile
+	global debug sqlite_poolfile
 	sqlite3 registeredpools $sqlite_poolfile
 	
 	if {[matchattr $nick +n]} {
@@ -141,7 +146,7 @@ proc pool_blockfinder {nick uhost hand chan arg} {
 # add apikey to pool
 #
 proc pool_apikey {nick uhost hand arg} {
-	global debug allowpooladding sqlite_poolfile
+	global debug sqlite_poolfile
 	sqlite3 registeredpools $sqlite_poolfile
 	
 	if {[matchattr $nick +n]} {
@@ -171,7 +176,7 @@ proc pool_apikey {nick uhost hand arg} {
 # list pools from database
 #
 proc pool_list {nick uhost hand chan arg} {
-	global debug allowpooladding sqlite_poolfile
+	global debug sqlite_poolfile
 	sqlite3 registeredpools $sqlite_poolfile
 	
 	if {[matchattr $nick +n]} {

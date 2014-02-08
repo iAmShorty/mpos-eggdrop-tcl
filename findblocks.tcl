@@ -50,13 +50,15 @@ if {$blockchecktime ne "0"} {
 # checking for new blocks
 #
 proc checknewblocks {} {
-	global blockchecktime channels debug debugoutput confirmations sqlite_blockfile poolstocheck pools blockdeletetime blockstokeep
+	global blockchecktime channels debug debugoutput confirmations sqlite_blockfile sqlite_poolfile blockdeletetime blockstokeep
 	sqlite3 advertiseblocks $sqlite_blockfile
+	sqlite3 registeredpools $sqlite_poolfile
+	
 	package require http
 	package require json
 	package require tls
 	
-	set action "index.php?page=api&action=getblocksfound&api_key="
+	set action "/index.php?page=api&action=getblocksfound&api_key="
 	set advertise_block 0
 	set writeblockfile "no"
 
@@ -68,65 +70,56 @@ proc checknewblocks {} {
 	set last_estshares "null"
 	set insertedtime [unixtime]
 
-	dict for {id info} $pools {
+	set poolscount [registeredpools eval {SELECT COUNT(1) FROM pools WHERE blockfinder != 0 AND apikey != 0}]
+	if {$poolscount == 0} {
+		putlog "\[BLOCKFINDER\] -> no active pools found"
+	} else {
+		putlog "\[BLOCKFINDER\] -> active Pools: $poolscount"
+		foreach {apiurl poolcoin apikey} [registeredpools eval {SELECT url,coin,apikey FROM pools WHERE blockfinder != 0 AND apikey != 0} ] {
+			if {$debug eq "1"} { putlog "checking for new blocks on [string toupper $poolcoin] Pool" }
+				if {$debug eq "1"} { putlog "COIN: $poolcoin" }
+				if {$debug eq "1"} { putlog "URL: $apiurl" }
+				if {$debug eq "1"} { putlog "KEY: $apikey" }
 
-		foreach {poolcoin} $poolstocheck {
-			if {[string toupper $id] eq [string toupper $poolcoin]} {
-				if {$debug eq "1"} { putlog "checking for new blocks on [string toupper $id] Pool" }
-				
-				#putlog "Pool: [string toupper $id]"
-				dict with info {
-					set pool_info "[string toupper $id] $apiurl $apikey"
+				set newurl $apiurl
+				append newurl $action
+				append newurl $apikey
 
-					if {$pool_info ne "0"} {
-						if {$debug eq "1"} { putlog "COIN: [lindex $pool_info 0]" }
-						if {$debug eq "1"} { putlog "URL: [lindex $pool_info 1]" }
-						if {$debug eq "1"} { putlog "KEY: [lindex $pool_info 2]" }
-					} else {
-						if {$debug eq "1"} { putlog "no pool data" }
-						return
-					} 
+				if {[string match "*https*" [string tolower $newurl]]} {
+					set usehttps 1
+				} else {
+					set usehttps 0
+				}  
 
-					set newurl [lindex $pool_info 1]
-					append newurl $action
-					append newurl [lindex $pool_info 2]
+				if {$usehttps eq "1"} {
+					::http::register https 443 tls::socket
+				}
 
-					if {[string match "*https*" [string tolower $newurl]]} {
-						set usehttps 1
-					} else {
-						set usehttps 0
-					}  
+				set token [::http::geturl "$newurl"]
+				set data [::http::data $token]
+				::http::cleanup $token
+				if {$usehttps eq "1"} {
+					::http::unregister https
+				}
 
-					if {$usehttps eq "1"} {
-						::http::register https 443 tls::socket
+				if {$debugoutput eq "1"} { putlog "xml: $data" }
+
+				if {$data eq "Access denied"} {
+					foreach advert $channels {
+						putquick "PRIVMSG $advert :Access to Newblockdata denied"
 					}
-
-					set token [::http::geturl "$newurl"]
-					set data [::http::data $token]
-					::http::cleanup $token
-					if {$usehttps eq "1"} {
-						::http::unregister https
-					}
-
-					if {$debugoutput eq "1"} { putlog "xml: $data" }
-
-					if {$data eq "Access denied"} {
-						foreach advert $channels {
-							putquick "PRIVMSG $advert :Access to Newblockdata denied"
-						}
-					} elseif {$data eq ""} {
+				} elseif {$data eq ""} {
+					if {$debug eq "1"} { putlog "no data: $data" }
+				} else {
+					if {[catch { set results [ [::json::json2dict $data] ]
 						if {$debug eq "1"} { putlog "no data: $data" }
-					} else {
-						if {[catch { set results [ [::json::json2dict $data] ]
-							if {$debug eq "1"} { putlog "no data: $data" }
-							utimer $blockchecktime checknewblocks
-							return 0
-						}]} {
-							if {$debug eq "1"} { putlog "data found" }
-						}
+						utimer $blockchecktime checknewblocks
+						return 0
+					}]} {
+						if {$debug eq "1"} { putlog "data found" }
+					}
 
-						set results [::json::json2dict $data]
-						set poolcoin [string toupper [lindex $pool_info 0]]
+					set results [::json::json2dict $data]
 
 						foreach {key value} $results {
 							#putlog "Key: $key - $value"
@@ -196,8 +189,6 @@ proc checknewblocks {} {
 							}
 						}
 					}
-				}
-			}			
 		}
 	}
 	
@@ -213,6 +204,7 @@ proc checknewblocks {} {
 	}
 	
 	advertiseblocks close
+	registeredpools close
 	set checknewblocks_running [utimer $blockchecktime checknewblocks]
 }
 

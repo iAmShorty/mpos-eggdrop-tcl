@@ -43,7 +43,7 @@ proc pool_info {nick host hand chan arg} {
 		return
 	}
 	
-	set action "index.php?page=api&action=getdashboarddata&api_key="
+	set action "/index.php?page=api&action=getdashboarddata&api_key="
 	
 	set mask [string trimleft $host ~]
 	regsub -all {@([^\.]*)\.} $mask {@*.} mask	 	

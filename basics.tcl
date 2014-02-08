@@ -62,18 +62,20 @@ if {[array exists output_worker_online_percoin]} { unset output_worker_online_pe
 # set in config for specific pool
 #
 proc pool_vars {coinname} {
-	global pools
+	global sqlite_poolfile
+	sqlite3 registeredpools $sqlite_poolfile
+	
 	set pool_found "false"
-	#putlog "Number of Pools: [dict size $pools]"
-	dict for {id info} $pools {
-		if {[string toupper $id] eq [string toupper $coinname]} {
+	set poolscount [registeredpools eval {SELECT COUNT(1) FROM pools WHERE blockfinder != 0 AND apikey != 0 AND coin == $coinname}]
+	putlog "Number of Pools: $poolscount"
+	foreach {apiurl poolcoin apikey} [registeredpools eval {SELECT url,coin,apikey FROM pools WHERE blockfinder != 0 AND apikey != 0} ] {
+		if {[string toupper $poolcoin] eq [string toupper $coinname]} {
 			set pool_found "true"
-			#putlog "Pool: [string toupper $id]"
-			dict with info {
-				set pool_data "[string toupper $id] $apiurl $apikey"
-			}
+			set pool_data "[string toupper $poolcoin] $apiurl $apikey"
 		}
 	}
+	
+	registeredpools close
 	
 	if {$pool_found eq "true"} {
 		return $pool_data
