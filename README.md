@@ -31,7 +31,7 @@ FEATURES
 * Support for multiple Pools
 * Easy add Pools on the fly
 * Show registered Pools on channel
-* Advertise Pools in Channel at a give timeframe
+* Advertise Pools in Channel at a given timeframe
 * Get Userbalance
 * Get User Workers
 * Show Pool Stats
@@ -101,35 +101,35 @@ Setting up multiple Pools is very easy
 
 Add a Pool
 <pre>
-!addpool URL COIN PAYOUTSYS FEE
+!addpool APIURL COIN PAYOUTSYS FEE
 
 e.g. !addpool http://yourpoolurl.tld BTC PPLNS 1
 </pre>
 
 Add Apikey to Pool
 <pre>
-/msg Botnick !apikey URL APIKEY
+/msg Botnick !apikey APIURL APIKEY
 
 e.g. /msg Poolbot !apikey http://yourpoolurl.tld 23984710298674309812734098712309471092743
 </pre>
 
 Delete a Pool
 <pre>
-!delpool URL
+!delpool APIURL
 
 e.g. !delpool http://yourpoolurl.tld
 </pre>
 
 Activating a Pool for Block advertising
 <pre>
-!blockfinder URL enable
+!blockfinder APIURL enable
 
 e.g. !blockfinder http://youpoolurl.tld enable
 </pre>
 
 Deactivating a Pool for Block advertising
 <pre>
-!blockfinder URL enable
+!blockfinder APIURL enable
 
 e.g. !blockfinder http://youpoolurl.tld enable
 </pre>
@@ -179,20 +179,26 @@ If you are on IRC and the Bot sits in your channel, type one of the following co
 communicate with the bot and get the output right in the channel
 
 <pre>
-!adduser ircnick                         - Adding User to userfile"
-!deluser ircnick                         - Deleting User from userfile"
-!block POOLNAME                          - Blockstats
-!pool POOLNAME                           - Pool Information
-!round POOLNAME                          - Actual Round Information
-!last POOLNAME                           - Information about last found Block
-!user POOLNAME username                  - Information about a specific User
-!worker POOLNAME username                - Workerinfo for specific User
-!worker POOLNAME username active         - active Workers for specific User
-!worker POOLNAME username inactive       - inactive Workers for specific User
-!balance POOLNAME username               - Get User Wallet Balance
-!price                                   - Get actual Coinprice
-!coinchoose COINNAME                     - Get actual Coininfo from Coinchoose
-!help                                    - This help text
+!adduser <ircnick>                - Adding User to userfile"
+!deluser <ircnick>                - Deleting User from userfile"
+!block COINNAME                   - Blockstats"
+!pool COINNAME                    - Pool Information"
+!round COINNAME                   - Round Information"
+!last COINNAME                    - Last found Block"
+!user COINNAME <user>             - User Information"
+!worker COINNAME <user>           - Workerinfo for user"
+!worker COINNAME <user> active    - Users active Workers"
+!worker COINNAME <user> inactive  - User inactive Workers"
+!balance COINNAME <user>          - User Wallet Balance"
+!price                            - Get actual Coinprice"
+!coinchoose COINNAME              - Get actual Coininfo from Coinchoose"
+!pools                            - Shows all registered Miningpools"
+!pools COINNAME                   - Shows registered Miningpools for specified coin"
+!addpool URL COIN PAYOUTSYS FEE   - Add Pool to Database"
+!delpool URL                      - Delete Pool from Database"
+!blockfinder URL enable/disable   - Activate/Deactivate Blockfinder announce in channel for specified pool"
+/msg Botnick !apikey URL APIKEY   - Adds Apikey for specified host"
+?help                             - This help text"
 </pre>
 
 Contributing
