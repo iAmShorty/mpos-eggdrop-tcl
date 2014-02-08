@@ -1,3 +1,11 @@
+v. 1.0
+
+* changed from file to sqlite
+* rewritten functions to sqlite
+* new blockfinder.tcl for specific coins
+* added settings to keep certain amount of blocks in database
+* delete blocks after given amount of time
+
 v. 0.9
 
 * output variables
