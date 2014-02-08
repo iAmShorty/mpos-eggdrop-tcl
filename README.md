@@ -164,6 +164,7 @@ communicate with the bot and get the output right in the channel
 !worker POOLNAME username inactive       - inactive Workers for specific User
 !balance POOLNAME username               - Get User Wallet Balance
 !price                                   - Get actual Coinprice
+!coinchoose COINNAME                     - Get actual Coininfo from Coinchoose
 !help                                    - This help text
 </pre>
 
