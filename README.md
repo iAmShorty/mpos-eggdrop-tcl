@@ -91,24 +91,48 @@ source scripts/mininginfo/pools.tcl
 source scripts/mininginfo/notify.tcl
 </pre>
 
-
-
-
-Adding multiple Pools
+Managing Pools
 ================
 
-Setting up multiple Pools in Config is very easy
+Setting up multiple Pools is very easy
 
+Add a Pool
 <pre>
-dict set pools btc apiurl 		"https://pool1.tld/"
-dict set pools btc apikey   	"YOURMPOSAPIKEY"
+!addpool URL COIN PAYOUTSYS FEE
 
-dict set pools ltc apiurl 		"https://pool2.tld/"
-dict set pools ltc apikey   	"YOURMPOSAPIKEY"
+e.g. !addpool http://yourpoolurl.tld LTC PPLNS 1
 </pre>
 
-You can add as many as you want. For example, the Value "btc" is the Pool Name, used to query the Pool.
-Apiurl and Apikey are the Values from your MPOS installation. So, if your Pool Name is set to "btc"
+Add Apikey to Pool
+<pre>
+/msg Botnick !apikey URL APIKEY
+
+e.g. /msg Poolbot !apikey http://yourpoolurl.tld 23984710298674309812734098712309471092743
+</pre>
+
+Delete a Pool
+<pre>
+!delpool URL
+
+e.g. !delpool http://yourpoolurl.tld
+</pre>
+
+Activating a Pool for Block advertising
+<pre>
+!blockfinder URL enable
+
+e.g. !blockfinder http://youpoolurl.tld enable
+</pre>
+
+Deactivating a Pool for Block advertising
+<pre>
+!blockfinder URL enable
+
+e.g. !blockfinder http://youpoolurl.tld enable
+</pre>
+
+You can add as many as you want. For example, the Value "BTC" is the Coin Name, used to query the Pool.
+Apiurl and Apikey are the Values from your MPOS installation. So, if your Pool Coin is set to "BTC"
 you can query the bot with following command
 
 <pre>
