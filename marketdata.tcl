@@ -29,7 +29,7 @@ bind pub - !price price_info
 # info for specific market set in config
 #
 proc price_info {nick host hand chan arg} {
- 	global help_blocktime help_blocked channels debug debugoutput usehttps output marketapi activemarket vircurex_querycoin cryptsy_marketid onlyallowregisteredusers output_marketdata
+	global help_blocktime help_blocked channels debug debugoutput usehttps output marketapi activemarket vircurex_querycoin cryptsy_marketid onlyallowregisteredusers output_marketdata
 	package require http
 	package require json
 	package require tls
@@ -43,31 +43,31 @@ proc price_info {nick host hand chan arg} {
 		}
 	}
 
- 	set mask [string trimleft $host ~]
- 	regsub -all {@([^\.]*)\.} $mask {@*.} mask	 	
- 	set mask *!$mask
- 
-  	if {[info exists help_blocked($mask)]} {
-    	  putquick "NOTICE $nick :You have been blocked for $help_blocktime Seconds, please be patient..."
-    	  return
-  	}
-  	
-  	set newurl $marketapi
-  	
-    set trade_price "0"
-    set trade_trime "0"
-    set trade_label "0"
-    set trade_volume "0"
-    
-    if {$activemarket eq "1"} {
-    	set market_name "Coins-E"
-    } elseif {$activemarket eq "2"} {
-    	set market_name "Vircurex"
-    	append newurl "?base=$vircurex_querycoin&alt=BTC" 
-    } elseif {$activemarket eq "3"} {
-    	set market_name "Cryptsy"
-    	append newurl $cryptsy_marketid
-    } else {
+	set mask [string trimleft $host ~]
+	regsub -all {@([^\.]*)\.} $mask {@*.} mask	 	
+	set mask *!$mask
+
+	if {[info exists help_blocked($mask)]} {
+		putquick "NOTICE $nick :You have been blocked for $help_blocktime Seconds, please be patient..."
+		return
+	}
+
+	set newurl $marketapi
+
+	set trade_price "0"
+	set trade_trime "0"
+	set trade_label "0"
+	set trade_volume "0"
+
+	if {$activemarket eq "1"} {
+		set market_name "Coins-E"
+	} elseif {$activemarket eq "2"} {
+		set market_name "Vircurex"
+		append newurl "?base=$vircurex_querycoin&alt=BTC" 
+	} elseif {$activemarket eq "3"} {
+		set market_name "Cryptsy"
+		append newurl $cryptsy_marketid
+	} else {
 		if {$output eq "CHAN"} {
 			putquick "PRIVMSG $chan :No active Market"
 		} elseif {$output eq "NOTICE"} {
@@ -75,32 +75,32 @@ proc price_info {nick host hand chan arg} {
 		} else {
 			putquick "PRIVMSG $chan :No active Market"
 		}
-    	return
-    }  
+		return
+	}
 
-    if {[string match "*https*" [string tolower $marketapi]]} {
-  		set usehttps 1
-    } else {
-    	set usehttps 0
-    }
-    
-  	if {$usehttps eq "1"} {
-  		::http::register https 443 tls::socket
-  	}
-  	
-    set token [::http::geturl "$newurl"]
-    set data [::http::data $token]
-    ::http::cleanup $token
-    if {$usehttps eq "1"} {
-    	::http::unregister https
-    }
-    
-    if {$debugoutput eq "1"} { putlog "xml: $data" }
-    
-    set results [::json::json2dict $data]
-    
-    #putlog "DATA: $results"
-    
+	if {[string match "*https*" [string tolower $marketapi]]} {
+		set usehttps 1
+	} else {
+		set usehttps 0
+	}
+
+	if {$usehttps eq "1"} {
+		::http::register https 443 tls::socket
+	}
+
+	set token [::http::geturl "$newurl"]
+	set data [::http::data $token]
+	::http::cleanup $token
+	if {$usehttps eq "1"} {
+		::http::unregister https
+	}
+
+	if {$debugoutput eq "1"} { putlog "xml: $data" }
+
+	set results [::json::json2dict $data]
+
+	#putlog "DATA: $results"
+
 	if {$activemarket eq "1"} {
 		market_coinse $chan $results
 	} elseif {$activemarket eq "2"} { 
@@ -167,10 +167,10 @@ proc market_coinse {chan marketdataresult} {
 	set lineoutput [replacevar $lineoutput "%marketdata_basecoin%" $basecoin]
 
 	if {$output eq "CHAN"} {
- 		foreach advert $channels {
- 			if {$advert eq $chan} {
- 				putquick "PRIVMSG $chan :$lineoutput"
- 			}
+		foreach advert $channels {
+			if {$advert eq $chan} {
+				putquick "PRIVMSG $chan :$lineoutput"
+			}
 		}
 	} elseif {$output eq "NOTICE"} {
 		putquick "NOTICE $nick :$lineoutput"
@@ -249,10 +249,10 @@ proc market_cryptsy {chan marketdataresult} {
 	set lineoutput [replacevar $lineoutput "%marketdata_tradevolume%" $marketdata_tradevolume]
 	
 	if {$output eq "CHAN"} {
- 		foreach advert $channels {
- 			if {$advert eq $chan} {
- 				putquick "PRIVMSG $chan :$lineoutput"
- 			}
+		foreach advert $channels {
+			if {$advert eq $chan} {
+				putquick "PRIVMSG $chan :$lineoutput"
+			}
 		}
 	} elseif {$output eq "NOTICE"} {
 		putquick "NOTICE $nick :$lineoutput"

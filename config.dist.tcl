@@ -74,37 +74,59 @@ set channels "#channel1 #channel2"
 set notificationadmins "YOURREGISTEREDIRCUSER"
 
 ##################################################################
-# MPOS Config
+# Advertising Settings
 ##################################################################
 
-# Setting URLs and API Keys for multiple Pools
-# you can add as much as you want
+# the bot can change the channeltopic to actual 
+# coinprice, if set to 1. deactivate with 0
+# NOTE
+# bot must have channel privileges to change the
+# channel topic. if not, no change will happen
 #
-# Syntax is
-# dict set pools COINNAME apiurl "YOURMPOSAPIURL"
-# dict set pools COINNAME apikey "YOURMPOSAPIKEY"
+set changechanneltopic "0"
 
-dict set pools btc apiurl 		"https://pool1.tld/"
-dict set pools btc apikey   	"YOURMPOSAPIKEY"
-
-dict set pools ltc apiurl 		"https://pool2.tld/"
-dict set pools ltc apikey   	"YOURMPOSAPIKEY"
-
-# set to the coin you want to check for new
-# blocks found. separate multiple pools with
-# whitespace
+# posting coininfo to channel
+# there are 2 modes to set
+# 1 -> activates posting actual coinprice in given interval
+# 2 -> activates posting coinprice at a give value
+#      if price of coin has reached this value, it will
+#      be announced in channel 5 times with 1 minute interval
 #
-set poolstocheck "BTC LTC"
+# 0 - deactivated
+# 1 - activated
+# 2 - only when price reached
+#
+set postcoininfo "0"
+
+# set interval in second in which bot should post the
+# actual coinprice to channel
+#
+set postcoininfointerval "600"
+
+# posting pool information to channel
+# posts pool information from added pools
+# in channel
+#
+set postpoolinfo "0"
+
+# set interval in second in which bot should post the
+# the pools in db
+#
+set postpoolinfointerval "300"
+
+##################################################################
+# Pool Config
+##################################################################
 
 # show net hashrate as 
 # KH, MH, GH or TH
 #
-set shownethashrate "KH"
+set shownethashrate "MH"
 
 # show pool hashrate as 
 # KH, MH, GH or TH
 #
-set showpoolhashrate "KH"
+set showpoolhashrate "MH"
 
 # only allow registered users
 # to use channel commands
@@ -122,26 +144,21 @@ set onlyallowregisteredusers "0"
 # if set to "0" every user can query balances
 # from all users available in mpos
 #
-set ownersbalanceonly "0"
+set ownersbalanceonly "1"
 
 # only allow botowners query users workers
 # if set to "0" every user can query workers
 # from all users available in mpos
 #
-set ownersworkeronly "0"
+set ownersworkeronly "1"
+
+##################################################################
+# Blockfinder Config
+##################################################################
 
 # confirmations before a block will be advertised
 #
-set confirmations "120"
-
-# NOT USED AT THE MOMENT
-# use one timer for all pools
-# or use a timer for each pool
-# 
-# set to 0 if you want to use a timer for all pools
-# set to 1 if you want to use a timer for each pool
-#
-set pooltimer "0"
+set confirmations "10"
 
 # interval to check for new blocks in seconds
 # if set to 0, the bot will do no automatic

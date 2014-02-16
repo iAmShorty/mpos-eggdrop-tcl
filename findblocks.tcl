@@ -50,161 +50,151 @@ if {$blockchecktime ne "0"} {
 # checking for new blocks
 #
 proc checknewblocks {} {
-	global blockchecktime channels debug debugoutput confirmations sqlite_blockfile poolstocheck pools blockdeletetime blockstokeep
+	global blockchecktime channels debug debugoutput confirmations sqlite_blockfile sqlite_poolfile blockdeletetime blockstokeep
 	sqlite3 advertiseblocks $sqlite_blockfile
+	sqlite3 registeredpools $sqlite_poolfile
+	
 	package require http
 	package require json
 	package require tls
 	
- 	set action "index.php?page=api&action=getblocksfound&api_key="
- 	set advertise_block 0
- 	set writeblockfile "no"
- 	
- 	set last_block "null"
- 	set last_shares "null"
- 	set last_finder "null"
- 	set last_status "null"
- 	set last_confirmations "null"
-   	set last_estshares "null"
+	set action "/index.php?page=api&action=getblocksfound&api_key="
+	set advertise_block 0
+	set writeblockfile "no"
+
+	set last_block "null"
+	set last_shares "null"
+	set last_finder "null"
+	set last_status "null"
+	set last_confirmations "null"
+	set last_estshares "null"
 	set insertedtime [unixtime]
-   	
-	dict for {id info} $pools {
 
-		foreach {poolcoin} $poolstocheck {
-			if {[string toupper $id] eq [string toupper $poolcoin]} {
-				if {$debug eq "1"} { putlog "checking for new blocks on [string toupper $id] Pool" }
-				
-   	 			#putlog "Pool: [string toupper $id]"
-    			dict with info {
-       				set pool_info "[string toupper $id] $apiurl $apikey"
-       		
-  					if {$pool_info ne "0"} {
-  						if {$debug eq "1"} { putlog "COIN: [lindex $pool_info 0]" }
-  						if {$debug eq "1"} { putlog "URL: [lindex $pool_info 1]" }
-  						if {$debug eq "1"} { putlog "KEY: [lindex $pool_info 2]" }
-  					} else {
-  						if {$debug eq "1"} { putlog "no pool data" }
-  						return
-  					} 
-  	
-  					set newurl [lindex $pool_info 1]
-  					append newurl $action
-  					append newurl [lindex $pool_info 2]
-  	
-    				if {[string match "*https*" [string tolower $newurl]]} {
-  						set usehttps 1
-    				} else {
-    					set usehttps 0
-    				}  
+	set poolscount [registeredpools eval {SELECT COUNT(1) FROM pools WHERE blockfinder != 0 AND apikey != 0}]
+	if {$poolscount == 0} {
+		putlog "\[BLOCKFINDER\] -> no active pools found"
+	} else {
+		putlog "\[BLOCKFINDER\] -> active Pools: $poolscount"
+		foreach {apiurl poolcoin apikey} [registeredpools eval {SELECT url,coin,apikey FROM pools WHERE blockfinder != 0 AND apikey != 0} ] {
+			if {$debug eq "1"} { putlog "checking for new blocks on [string toupper $poolcoin] Pool" }
+			if {$debug eq "1"} { putlog "COIN: $poolcoin" }
+			if {$debug eq "1"} { putlog "URL: $apiurl" }
+			if {$debug eq "1"} { putlog "KEY: $apikey" }
 
-  					if {$usehttps eq "1"} {
-  						::http::register https 443 tls::socket
-  					}
-  	
-    				set token [::http::geturl "$newurl"]
-    				set data [::http::data $token]
-    				::http::cleanup $token
-    				if {$usehttps eq "1"} {
-    					::http::unregister https
-    				}
-    
-    				if {$debugoutput eq "1"} { putlog "xml: $data" }
-    
-    				if {$data eq "Access denied"} {
-    					foreach advert $channels {
-    						putquick "PRIVMSG $advert :Access to Newblockdata denied"
-    					}
-   					} elseif {$data eq ""} {
-    					if {$debug eq "1"} { putlog "no data: $data" }
-   					} else {
+			set newurl $apiurl
+			append newurl $action
+			append newurl $apikey
 
-						if {[catch { set results [ [::json::json2dict $data] ]
- 	  		 				if {$debug eq "1"} { putlog "no data: $data" }
-  	  						utimer $blockchecktime checknewblocks
-   	 						return 0
-						}]} {
-   			 				if {$debug eq "1"} { putlog "data found" }
-						}
+			if {[string match "*https*" [string tolower $newurl]]} {
+				set usehttps 1
+			} else {
+				set usehttps 0
+			}  
 
-  	  					set results [::json::json2dict $data]
-  	  					set poolcoin [string toupper [lindex $pool_info 0]]
-  	  	
-						foreach {key value} $results {
-							#putlog "Key: $key - $value"
-							foreach {sub_key sub_value} $value {
-								#putlog "Sub1: $sub_key - $sub_value"
-								if {$sub_key eq "data"} {
-									#putlog "Sub2: $sub_value"
-									foreach {elem} $sub_value {
-										#putlog "Ele1: $elem"
-										foreach {elem2 elem_val2} $elem {
-											#putlog "Ele2: $elem2 - Val: $elem_val2"
-      										if {$elem2 eq "height"} { 
-      											set last_block "$elem_val2" 
-      											if {$debug eq "1"} { putlog "Block: $elem_val2" }
-      										}
-      										if {$elem2 eq "time"} { set last_timestamp "$elem_val2" } 
-      										if {$elem2 eq "shares"} { set last_shares "$elem_val2" } 
-      										if {$elem2 eq "estshares"} { set last_estshares "$elem_val2" }
-											if {$elem2 eq "finder"} { set last_finder "$elem_val2" }
-											if {$elem2 eq "difficulty"} { set last_diff "$elem_val2" }
-											if {$elem2 eq "is_anonymous"} { set last_anon "$elem_val2" }
-											if {$elem2 eq "worker_name"} { set last_worker "$elem_val2" }
-											if {$elem2 eq "amount"} { set last_amount "$elem_val2" }
-											if {$elem2 eq "confirmations"} {
-												#if {$debug eq "1"} { putlog "Confirmation: $elem_val2" }
-												set last_confirmations "$elem_val2"
-												if {$elem_val2 eq "-1"} {
-													set last_status "Orphan"
-												} else {
-													set last_status "Valid"
-												}
-											}
+			if {$usehttps eq "1"} {
+				::http::register https 443 tls::socket
+			}
+
+			set token [::http::geturl "$newurl"]
+			set data [::http::data $token]
+			::http::cleanup $token
+			if {$usehttps eq "1"} {
+				::http::unregister https
+			}
+
+			if {$debugoutput eq "1"} { putlog "xml: $data" }
+
+			if {$data eq "Access denied"} {
+				foreach advert $channels {
+					putquick "PRIVMSG $advert :Access to Newblockdata denied"
+				}
+			} elseif {$data eq ""} {
+				if {$debug eq "1"} { putlog "no data: $data" }
+			} else {
+				if {[catch { set results [ [::json::json2dict $data] ]
+					if {$debug eq "1"} { putlog "no data: $data" }
+					set checknewblocks_running [utimer $blockchecktime checknewblocks]
+					return 0
+				}]} {
+					if {$debug eq "1"} { putlog "data found" }
+				}
+
+				set results [::json::json2dict $data]
+
+				foreach {key value} $results {
+					#putlog "Key: $key - $value"
+					foreach {sub_key sub_value} $value {
+						#putlog "Sub1: $sub_key - $sub_value"
+						if {$sub_key eq "data"} {
+							#putlog "Sub2: $sub_value"
+							foreach {elem} $sub_value {
+								#putlog "Ele1: $elem"
+								foreach {elem2 elem_val2} $elem {
+								#putlog "Ele2: $elem2 - Val: $elem_val2"
+									if {$elem2 eq "height"} { 
+										set last_block "$elem_val2" 
+										#if {$debug eq "1"} { putlog "Block: $elem_val2" }
+									}
+									if {$elem2 eq "time"} { set last_timestamp "$elem_val2" } 
+									if {$elem2 eq "shares"} { set last_shares "$elem_val2" } 
+									if {$elem2 eq "estshares"} { set last_estshares "$elem_val2" }
+									if {$elem2 eq "finder"} { set last_finder "$elem_val2" }
+									if {$elem2 eq "difficulty"} { set last_diff "$elem_val2" }
+									if {$elem2 eq "is_anonymous"} { set last_anon "$elem_val2" }
+									if {$elem2 eq "worker_name"} { set last_worker "$elem_val2" }
+									if {$elem2 eq "amount"} { set last_amount "$elem_val2" }
+									if {$elem2 eq "confirmations"} {
+										#if {$debug eq "1"} { putlog "Confirmation: $elem_val2" }
+										set last_confirmations "$elem_val2"
+										if {$elem_val2 eq "-1"} {
+											set last_status "Orphan"
+										} else {
+											set last_status "Valid"
 										}
+									}
+								}
 										
-										if {$last_shares ne "null"} {
-											set blockindatabase [llength [advertiseblocks eval {SELECT last_block FROM blocks WHERE last_block=$last_block AND poolcoin = $poolcoin}]]
-											if {$blockindatabase == 0} {
-												if {$debug eq "1"} { putlog "$poolcoin -> insert block $last_block" }
-												advertiseblocks eval {INSERT INTO blocks (poolcoin,last_block,last_status,last_estshares,last_shares,last_finder,last_confirmations,last_diff,last_anon,last_worker,last_amount,last_confirmations,posted,timestamp) VALUES ($poolcoin,$last_block,$last_status,$last_estshares,$last_shares,$last_finder,$last_confirmations,$last_diff,$last_anon,$last_worker,$last_amount,$last_confirmations,'N',$last_timestamp)}
-											} else {
-												if {$debug eq "1"} { putlog "$poolcoin -> updating block confirmations $last_block" }
-												advertiseblocks eval {UPDATE blocks SET last_confirmations=$last_confirmations, last_status=$last_status WHERE last_block=$last_block AND poolcoin = $poolcoin}
-											}
-										}
+								if {$last_shares ne "null"} {
+									set blockindatabase [llength [advertiseblocks eval {SELECT last_block FROM blocks WHERE last_block=$last_block AND poolcoin = $poolcoin}]]
+									if {$blockindatabase == 0} {
+										if {$debug eq "1"} { putlog "$poolcoin -> insert block #$last_block" }
+										advertiseblocks eval {INSERT INTO blocks (poolcoin,last_block,last_status,last_estshares,last_shares,last_finder,last_confirmations,last_diff,last_anon,last_worker,last_amount,last_confirmations,posted,timestamp) VALUES ($poolcoin,$last_block,$last_status,$last_estshares,$last_shares,$last_finder,$last_confirmations,$last_diff,$last_anon,$last_worker,$last_amount,$last_confirmations,'N',$last_timestamp)}
+									} else {
+										if {$debug eq "1"} { putlog "$poolcoin -> updating block confirmations for block #$last_block" }
+										advertiseblocks eval {UPDATE blocks SET last_confirmations=$last_confirmations, last_status=$last_status WHERE last_block=$last_block AND poolcoin = $poolcoin}
 									}
 								}
 							}
 						}
-						
-						# delete old blocks if set in config
-						if {$blockdeletetime ne "0"} {
-						#set deletetimeframe [expr {$insertedtime-($blockdeletetime*60)}]
-						set deletetimeframe [expr {$insertedtime-$blockdeletetime}]
-	
-						if {$debug eq "1"} { putlog "actual Time: [clock format $insertedtime -format "%D %T"] - delete blocks before: [clock format $deletetimeframe -format "%D %T"]" }
-	
-						if {[llength [advertiseblocks eval {SELECT block_id FROM blocks WHERE posted = 'Y' AND timestamp <= $deletetimeframe AND poolcoin = $poolcoin ORDER BY block_id DESC LIMIT $blockstokeep, 100000}]] == 0} {
-							if {$debug eq "1"} { putlog "no blocks to delete" }
-						} else {
-							# workaround to delete
-							# shares except the last $blockstokeep -> ORDER BY block_id DESC LIMIT $blockstokeep, 100000
-							foreach {block_id last_block timestamp} [advertiseblocks eval {SELECT block_id,last_block,timestamp FROM blocks WHERE posted = 'Y' AND timestamp <= $deletetimeframe AND poolcoin = $poolcoin ORDER BY block_id DESC LIMIT $blockstokeep, 100000}] {
-								if {$debug eq "1"} { putlog "delete block -> $last_block - [clock format $timestamp -format "%D %T"]" }
-									advertiseblocks eval {DELETE FROM blocks WHERE block_id = $block_id AND poolcoin = $poolcoin}
-								}
-							}
-							if {$debug eq "1"} { putlog "-> old blocks deleted" }
-						}
 					}
-    			}
-			}			
+				}
+						
+				# delete old blocks if set in config
+				if {$blockdeletetime ne "0"} {
+					#set deletetimeframe [expr {$insertedtime-($blockdeletetime*60)}]
+					set deletetimeframe [expr {$insertedtime-$blockdeletetime}]
+	
+					if {$debug eq "1"} { putlog "actual Time: [clock format $insertedtime -format "%D %T"] - delete blocks before: [clock format $deletetimeframe -format "%D %T"] - keeping last $blockstokeep blocks" }
+	
+					if {[llength [advertiseblocks eval {SELECT block_id FROM blocks WHERE posted = 'Y' AND timestamp <= $deletetimeframe AND poolcoin = $poolcoin ORDER BY block_id DESC LIMIT $blockstokeep, 1000}]] == 0} {
+						if {$debug eq "1"} { putlog "-> no blocks to delete" }
+					} else {
+						# workaround to delete
+						# shares except the last $blockstokeep -> ORDER BY block_id DESC LIMIT $blockstokeep, 100000
+						foreach {block_id last_block timestamp} [advertiseblocks eval {SELECT block_id,last_block,timestamp FROM blocks WHERE posted = 'Y' AND timestamp <= $deletetimeframe AND poolcoin = $poolcoin ORDER BY block_id DESC LIMIT $blockstokeep, 100000}] {
+							if {$debug eq "1"} { putlog "delete block -> $last_block - [clock format $timestamp -format "%D %T"]" }
+							advertiseblocks eval {DELETE FROM blocks WHERE block_id = $block_id AND poolcoin = $poolcoin}
+						}
+						if {$debug eq "1"} { putlog "-> old blocks deleted" }
+					}
+				}
+			}
 		}
 	}
 	
 	# check sqlite for blocks
 	if {[llength [advertiseblocks eval {SELECT * FROM blocks WHERE posted = 'N' AND last_confirmations >= 10}]] == 0} {
-		if {$debug eq "1"} { putlog "nothing found" }
+		if {$debug eq "1"} { putlog "-> no blocks to advertise" }
 	} else {
 		foreach {block_id poolcoin last_block last_status last_estshares last_shares last_finder last_confirmations last_diff last_anon last_worker last_amount posted last_timestamp} [advertiseblocks eval {SELECT * FROM blocks WHERE posted = 'N' AND (last_confirmations >= 10 OR last_confirmations = '-1') ORDER BY last_block ASC}] {
 			if {$debug eq "1"} { putlog "$block_id - $poolcoin - $last_block - $last_status - $last_estshares - $last_shares - $last_finder - $last_confirmations - $last_diff - $last_anon - $last_worker - $last_amount" }
@@ -214,8 +204,9 @@ proc checknewblocks {} {
 	}
 	
 	advertiseblocks close
+	registeredpools close
 	set checknewblocks_running [utimer $blockchecktime checknewblocks]
-}                                      
+}
 
 #
 # advertising the block
@@ -223,8 +214,8 @@ proc checknewblocks {} {
 proc advertise_block {blockid blockfinder_coinname blockfinder_newblock blockfinder_laststatus blockfinder_lastestshares blockfinder_lastshares blockfinder_lastfinder blockfinder_confirmations blockfinder_diff blockfinder_anon blockfinder_worker blockfinder_amount blockfinder_time} {
 	global channels debug debugoutput output_findblocks output_findblocks_percoin sqlite_blockfile
 	sqlite3 advertiseblocks $sqlite_blockfile
-  	
-  	set blockfinder_lastblock [advertiseblocks eval {SELECT last_block FROM blocks WHERE posted = 'Y' AND poolcoin = $blockfinder_coinname ORDER BY last_block DESC LIMIT 1}]
+
+	set blockfinder_lastblock [advertiseblocks eval {SELECT last_block FROM blocks WHERE posted = 'Y' AND poolcoin = $blockfinder_coinname ORDER BY last_block DESC LIMIT 1}]
 
 	if {$debug eq "1"} { putlog "New Block: $blockfinder_newblock" }
 	if {$debug eq "1"} { putlog "New / Last: $blockfinder_newblock - $blockfinder_lastblock" }

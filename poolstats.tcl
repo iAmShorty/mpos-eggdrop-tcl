@@ -24,7 +24,7 @@
 # pool information
 #
 proc pool_info {nick host hand chan arg} {
-    global help_blocktime help_blocked channels debug debugoutput output onlyallowregisteredusers shownethashrate showpoolhashrate output_poolstats output_poolstats_percoin
+	global help_blocktime help_blocked channels debug debugoutput output onlyallowregisteredusers shownethashrate showpoolhashrate output_poolstats output_poolstats_percoin
 	package require http
 	package require json
 	package require tls
@@ -43,56 +43,56 @@ proc pool_info {nick host hand chan arg} {
 		return
 	}
 	
-	set action "index.php?page=api&action=getdashboarddata&api_key="
+	set action "/index.php?page=api&action=getdashboarddata&api_key="
 	
- 	set mask [string trimleft $host ~]
- 	regsub -all {@([^\.]*)\.} $mask {@*.} mask	 	
- 	set mask *!$mask
- 
-  	if {[info exists help_blocked($mask)]} {
-    	  putquick "NOTICE $nick : You have been blocked for $help_blocktime Seconds, please be patient..."
-    	  return
-  	}
-  	
-  	set pool_info [regexp -all -inline {\S+} [pool_vars $arg]]
-  	
-  	if {$pool_info ne "0"} {
-  		if {$debug eq "1"} { putlog "COIN: [lindex $pool_info 0]" }
-  		if {$debug eq "1"} { putlog "URL: [lindex $pool_info 1]" }
-  		if {$debug eq "1"} { putlog "KEY: [lindex $pool_info 2]" }
-  	} else {
-  		if {$debug eq "1"} { putlog "no pool data" }
-  		return
-  	} 
-  	
-  	set newurl [lindex $pool_info 1]
-  	append newurl $action
-  	append newurl [lindex $pool_info 2]
+	set mask [string trimleft $host ~]
+	regsub -all {@([^\.]*)\.} $mask {@*.} mask	 	
+	set mask *!$mask
 
-    if {[string match "*https*" [string tolower $newurl]]} {
-  		set usehttps 1
-    } else {
-    	set usehttps 0
-    }
-    
-  	if {$usehttps eq "1"} {
-  		::http::register https 443 tls::socket
-  	}
-    set token [::http::geturl "$newurl"]
-    set data [::http::data $token]
-    ::http::cleanup $token
-    if {$usehttps eq "1"} {
-    	::http::unregister https
-    }
-    
-    if {$debugoutput eq "1"} { putlog "xml: $data" }
-    
-    if {$data eq "Access denied"} { 
-    	putquick "PRIVMSG $chan :Access to Poolinfo denied"
-    	return 0
-    }
-    
-    set results [::json::json2dict $data]
+	if {[info exists help_blocked($mask)]} {
+		putquick "NOTICE $nick : You have been blocked for $help_blocktime Seconds, please be patient..."
+		return
+	}
+
+	set pool_info [regexp -all -inline {\S+} [pool_vars [string toupper $arg]]]
+
+	if {$pool_info ne "0"} {
+		if {$debug eq "1"} { putlog "COIN: [lindex $pool_info 0]" }
+		if {$debug eq "1"} { putlog "URL: [lindex $pool_info 1]" }
+		if {$debug eq "1"} { putlog "KEY: [lindex $pool_info 2]" }
+	} else {
+		if {$debug eq "1"} { putlog "no pool data" }
+		return
+	} 
+
+	set newurl [lindex $pool_info 1]
+	append newurl $action
+	append newurl [lindex $pool_info 2]
+
+	if {[string match "*https*" [string tolower $newurl]]} {
+		set usehttps 1
+	} else {
+		set usehttps 0
+	}
+
+	if {$usehttps eq "1"} {
+		::http::register https 443 tls::socket
+	}
+	set token [::http::geturl "$newurl"]
+	set data [::http::data $token]
+	::http::cleanup $token
+	if {$usehttps eq "1"} {
+		::http::unregister https
+	}
+
+	if {$debugoutput eq "1"} { putlog "xml: $data" }
+
+	if {$data eq "Access denied"} { 
+		putquick "PRIVMSG $chan :Access to Poolinfo denied"
+		return 0
+	}
+
+	set results [::json::json2dict $data]
 
 
 	foreach {key value} $results {
@@ -115,11 +115,11 @@ proc pool_info {nick host hand chan arg} {
 						if {$elem2 eq "blocksuntildiffchange"} { set poolstats_blocksuntildiffchange "$elem_val2" }
 						if {$elem2 eq "difficulty"} { set poolstats_diff "$elem_val2" }
 						if {$elem2 eq "nextdifficulty"} { set poolstats_nextdiff "$elem_val2" }
-      					if {$elem2 eq "esttimeperblock"} {
-      						#set timediff [expr {$elem_val / 60}]
-      						set timediff [expr {double(round(100*[expr {$elem_val2 / 60}]))/100}]
-      						set poolstats_esttime "$timediff" 
-      					} 
+						if {$elem2 eq "esttimeperblock"} {
+							#set timediff [expr {$elem_val / 60}]
+							set timediff [expr {double(round(100*[expr {$elem_val2 / 60}]))/100}]
+							set poolstats_esttime "$timediff" 
+						} 
 					}
 				}
 
@@ -148,23 +148,23 @@ proc pool_info {nick host hand chan arg} {
 							foreach {elem3 elem_val3} $elem_val2 {
 								if {$elem3 eq "hashrate"} {
 									#putlog "Nethashrate - $elem_val3"
-      								if {[string toupper $shownethashrate] eq "KH"} {
-      									set netdivider 1
-      									set nethashratevalue "KH/s"
-      								} elseif {[string toupper $shownethashrate] eq "MH"} {
-      									set netdivider 1000
-      									set nethashratevalue "MH/s"
-      								} elseif {[string toupper $shownethashrate]eq "GH"} {
-      									set netdivider 1000000
-      									set nethashratevalue "GH/s"
-      								} elseif {[string toupper $shownethashrate]eq "TH"} {
-      									set netdivider 1000000000
-      									set nethashratevalue "TH/s"
-      								} else {
-      									set netdivider 1
-      									set nethashratevalue "KH/s"
-      								}
-      								set poolstats_nethashrate [format "%.2f" [expr {double(double($elem_val3)/double($netdivider))}]]
+									if {[string toupper $shownethashrate] eq "KH"} {
+										set netdivider 1
+										set nethashratevalue "KH/s"
+									} elseif {[string toupper $shownethashrate] eq "MH"} {
+										set netdivider 1000
+										set nethashratevalue "MH/s"
+									} elseif {[string toupper $shownethashrate]eq "GH"} {
+										set netdivider 1000000
+										set nethashratevalue "GH/s"
+									} elseif {[string toupper $shownethashrate]eq "TH"} {
+										set netdivider 1000000000
+										set nethashratevalue "TH/s"
+									} else {
+										set netdivider 1
+										set nethashratevalue "KH/s"
+									}
+									set poolstats_nethashrate [format "%.2f" [expr {double(double($elem_val3)/double($netdivider))}]]
 								}
 							}
 						}
@@ -173,23 +173,23 @@ proc pool_info {nick host hand chan arg} {
 							foreach {elem3 elem_val3} $elem_val2 {
 								if {$elem3 eq "hashrate"} {
 									#putlog "Poolhashrate - $elem_val3"
-      								if {[string toupper $showpoolhashrate] eq "KH"} {
-      									set pooldivider 1
-      									set poolhashratevalue "KH/s"
-      								} elseif {[string toupper $showpoolhashrate] eq "MH"} {
-      									set pooldivider 1000
-      									set poolhashratevalue "MH/s"
-      								} elseif {[string toupper $showpoolhashrate] eq "GH"} {
-      									set pooldivider 1000000
-      									set poolhashratevalue "GH/s"
-      								} elseif {[string toupper $showpoolhashrate] eq "TH"} {
-      									set pooldivider 1000000000
-      									set poolhashratevalue "TH/s"
-      								} else {
-      									set pooldivider 1
-      									set poolhashratevalue "KH/s"
-      								}
-      								set poolstats_poolhashrate [format "%.2f" [expr {double(double($elem_val3)/double($pooldivider))}]]
+									if {[string toupper $showpoolhashrate] eq "KH"} {
+										set pooldivider 1
+										set poolhashratevalue "KH/s"
+									} elseif {[string toupper $showpoolhashrate] eq "MH"} {
+										set pooldivider 1000
+										set poolhashratevalue "MH/s"
+									} elseif {[string toupper $showpoolhashrate] eq "GH"} {
+										set pooldivider 1000000
+										set poolhashratevalue "GH/s"
+									} elseif {[string toupper $showpoolhashrate] eq "TH"} {
+										set pooldivider 1000000000
+										set poolhashratevalue "TH/s"
+									} else {
+										set pooldivider 1
+										set poolhashratevalue "KH/s"
+									}
+									set poolstats_poolhashrate [format "%.2f" [expr {double(double($elem_val3)/double($pooldivider))}]]
 								}
 							}
 						}
@@ -224,11 +224,11 @@ proc pool_info {nick host hand chan arg} {
 	set lineoutput [replacevar $lineoutput "%poolstats_poolworkers%" $poolstats_poolworkers]
 	set lineoutput [replacevar $lineoutput "%poolstats_efficiency%" [format "%.2f" [expr {100 - double(double($poolstats_sharesinvalid)/double($poolstats_sharesvalid)*100)}]]]
 	
- 	if {$output eq "CHAN"} {
- 		foreach advert $channels {
- 			if {$advert eq $chan} {
- 				putquick "PRIVMSG $chan :$lineoutput"
- 			}
+	if {$output eq "CHAN"} {
+		foreach advert $channels {
+			if {$advert eq $chan} {
+				putquick "PRIVMSG $chan :$lineoutput"
+			}
 		}
 	} elseif {$output eq "NOTICE"} {
 		putquick "NOTICE $nick :$lineoutput"	

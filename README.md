@@ -29,6 +29,11 @@ FEATURES
 
 * Easy Setup
 * Support for multiple Pools
+* Easy add Pools on the fly
+* Enable/Disable Pools on the fly
+* All Pool related Settings can be set on the fly and without rehashing the Bot
+* Show registered Pools on channel
+* Advertise Pools in Channel at a given timeframe
 * Get Userbalance
 * Get User Workers
 * Show Pool Stats
@@ -71,6 +76,8 @@ source scripts/mininginfo/basics.tcl
 source scripts/mininginfo/bothelp.tcl
 source scripts/mininginfo/output.tcl
 source scripts/mininginfo/sqlite.tcl
+source scripts/mininginfo/pools.tcl
+source scripts/mininginfo/users.tcl
 
 # statistic scripts
 #
@@ -84,31 +91,57 @@ source scripts/mininginfo/workers.tcl
 
 # additional scripts - non mpos related
 #
-source scripts/mininginfo/users.tcl
 source scripts/mininginfo/marketdata.tcl
 source scripts/mininginfo/coinchoose.tcl
-source scripts/mininginfo/pools.tcl
 source scripts/mininginfo/notify.tcl
 </pre>
 
-
-
-
-Adding multiple Pools
+Managing Pools
 ================
 
-Setting up multiple Pools in Config is very easy
+Setting up multiple Pools is very easy
 
+NOTE:
+Only Botowners can manage Pools. You have to be recognized by the bot, else
+you can't fire any of the commands.
+
+Add a Pool
 <pre>
-dict set pools btc apiurl 		"https://pool1.tld/"
-dict set pools btc apikey   	"YOURMPOSAPIKEY"
+!addpool APIURL COIN PAYOUTSYS FEE
 
-dict set pools ltc apiurl 		"https://pool2.tld/"
-dict set pools ltc apikey   	"YOURMPOSAPIKEY"
+e.g. !addpool http://yourpoolurl.tld BTC PPLNS 1
 </pre>
 
-You can add as many as you want. For example, the Value "btc" is the Pool Name, used to query the Pool.
-Apiurl and Apikey are the Values from your MPOS installation. So, if your Pool Name is set to "btc"
+Add Apikey to Pool
+<pre>
+/msg Botnick !apikey APIURL APIKEY
+
+e.g. /msg Poolbot !apikey http://yourpoolurl.tld 23984710298674309812734098712309471092743
+</pre>
+
+Delete a Pool
+<pre>
+!delpool APIURL
+
+e.g. !delpool http://yourpoolurl.tld
+</pre>
+
+Activating a Pool for Block advertising
+<pre>
+!blockfinder APIURL enable
+
+e.g. !blockfinder http://youpoolurl.tld enable
+</pre>
+
+Deactivating a Pool for Block advertising
+<pre>
+!blockfinder APIURL disable
+
+e.g. !blockfinder http://youpoolurl.tld disable
+</pre>
+
+You can add as many as you want. For example, the Value "BTC" is the Coin Name, used to query the Pool.
+Apiurl and Apikey are the Values from your MPOS installation. So, if your Pool Coin is set to "BTC"
 you can query the bot with following command
 
 <pre>
@@ -152,20 +185,26 @@ If you are on IRC and the Bot sits in your channel, type one of the following co
 communicate with the bot and get the output right in the channel
 
 <pre>
-!adduser ircnick                         - Adding User to userfile"
-!deluser ircnick                         - Deleting User from userfile"
-!block POOLNAME                          - Blockstats
-!pool POOLNAME                           - Pool Information
-!round POOLNAME                          - Actual Round Information
-!last POOLNAME                           - Information about last found Block
-!user POOLNAME username                  - Information about a specific User
-!worker POOLNAME username                - Workerinfo for specific User
-!worker POOLNAME username active         - active Workers for specific User
-!worker POOLNAME username inactive       - inactive Workers for specific User
-!balance POOLNAME username               - Get User Wallet Balance
-!price                                   - Get actual Coinprice
-!coinchoose COINNAME                     - Get actual Coininfo from Coinchoose
-!help                                    - This help text
+!adduser IRCNICK                  - Adding User to userfile"
+!deluser IRCNICK                  - Deleting User from userfile"
+!block COINNAME                   - Blockstats"
+!pool COINNAME                    - Pool Information"
+!round COINNAME                   - Round Information"
+!last COINNAME                    - Last found Block"
+!user COINNAME USER               - User Information"
+!worker COINNAME USER             - Workerinfo for user"
+!worker COINNAME USER active      - Users active Workers"
+!worker COINNAME USER inactive    - User inactive Workers"
+!balance COINNAME USER            - User Wallet Balance"
+!price                            - Get actual Coinprice"
+!coinchoose COINNAME              - Get actual Coininfo from Coinchoose"
+!pools                            - Shows all registered Miningpools"
+!pools COINNAME                   - Shows registered Miningpools for specified coin"
+!addpool URL COIN PAYOUTSYS FEE   - Add Pool to Database"
+!delpool URL                      - Delete Pool from Database"
+!blockfinder URL enable/disable   - Activate/Deactivate Blockfinder announce in channel for specified pool"
+/msg Botnick !apikey URL APIKEY   - Adds Apikey for specified host"
+?help                             - This help text"
 </pre>
 
 Contributing

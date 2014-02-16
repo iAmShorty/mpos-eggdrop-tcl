@@ -169,6 +169,7 @@ set output_lastblock "Coin: \0032%blockstats_coin%\003\
 # -> %blockfinder_diff%
 # -> %blockfinder_worker%
 # -> %blockfinder_amount%
+# -> %blockfinder_time%
 #
 set output_findblocks "Coin: \0032%blockfinder_coinname%\003\
 | New Block: #%blockfinder_newblock%\
@@ -181,7 +182,8 @@ set output_findblocks "Coin: \0032%blockfinder_coinname%\003\
 | Difficulty: %blockfinder_diff%\
 | Amount: %blockfinder_amount%\
 | Finder: %blockfinder_lastfinder%\
-| Worker: %blockfinder_worker%"
+| Worker: %blockfinder_worker%\
+| Time: %blockfinder_time%"
 
 # different announcements per coin
 # use coins set in config.tcl with config option
