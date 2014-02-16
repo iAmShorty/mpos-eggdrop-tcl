@@ -33,14 +33,14 @@ bind pub - !balance balance_info
 bind pub - !coinchoose coinchoose_info
 bind pub - ?help printUsage
 bind pub - !help printUsage
-bind pub - !adduser user_add
-bind pub - !deluser user_del
+bind pub no|- !adduser user_add
+bind pub no|- !deluser user_del
 bind pub - !request user_request
-bind pub - !addpool pool_add
-bind pub - !delpool pool_del
-bind pub - !pools pool_list
-bind pub - !blockfinder pool_blockfinder
-bind msg - !apikey pool_apikey
+bind pub no|- !addpool pool_add
+bind pub no|- !delpool pool_del
+bind pub no|- !pools pool_list
+bind pub no|- !blockfinder pool_blockfinder
+bind msg no|- !apikey pool_apikey
 
 #
 # unset arrays for userdefined ouput when rehashing the bot, otherwise the

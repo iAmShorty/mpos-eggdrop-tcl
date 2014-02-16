@@ -30,6 +30,8 @@ FEATURES
 * Easy Setup
 * Support for multiple Pools
 * Easy add Pools on the fly
+* Enable/Disable Pools on the fly
+* All Pool related Settings can be set on the fly and without rehashing the Bot
 * Show registered Pools on channel
 * Advertise Pools in Channel at a given timeframe
 * Get Userbalance
@@ -99,6 +101,10 @@ Managing Pools
 
 Setting up multiple Pools is very easy
 
+NOTE:
+Only Botowners can manage Pools. You have to be recognized by the bot, else
+you can't fire any of the commands.
+
 Add a Pool
 <pre>
 !addpool APIURL COIN PAYOUTSYS FEE
@@ -129,9 +135,9 @@ e.g. !blockfinder http://youpoolurl.tld enable
 
 Deactivating a Pool for Block advertising
 <pre>
-!blockfinder APIURL enable
+!blockfinder APIURL disable
 
-e.g. !blockfinder http://youpoolurl.tld enable
+e.g. !blockfinder http://youpoolurl.tld disable
 </pre>
 
 You can add as many as you want. For example, the Value "BTC" is the Coin Name, used to query the Pool.

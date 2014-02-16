@@ -135,7 +135,7 @@ proc pool_blockfinder {nick uhost hand chan arg} {
 			putquick "NOTICE $nick :pool $pool_url activated"
 			registeredpools eval {UPDATE pools SET blockfinder=0 WHERE url=$pool_url}
 		} else {
-			putlog "-> Pool URL or API Key not found"
+			putlog "-> Pool URL not found"
 		}
 	} else {
 		putlog "no value submitted"
@@ -190,6 +190,16 @@ proc pool_list {nick uhost hand chan arg} {
 	if {$arg eq ""} {
 		set scount [registeredpools eval {SELECT COUNT(1) FROM pools}]
 		foreach {url coin payout_sys fees} [registeredpools eval {SELECT url,coin,payoutsys,fees FROM pools} ] {
+			append outvar "\002Coin:\002 $coin -> \002URL:\002 $url -> \002Payout:\002 $payout_sys | \002Poolfee:\002 $fees %\n"
+		}
+	} elseif {$arg eq "enabled"} {
+		set scount [registeredpools eval {SELECT COUNT(1) FROM pools WHERE blockfinder = 1}]
+		foreach {url coin payout_sys fees} [registeredpools eval {SELECT url,coin,payoutsys,fees FROM pools WHERE blockfinder = 1} ] {
+			append outvar "\002Coin:\002 $coin -> \002URL:\002 $url -> \002Payout:\002 $payout_sys | \002Poolfee:\002 $fees %\n"
+		}
+	} elseif {$arg eq "disabled"} {
+		set scount [registeredpools eval {SELECT COUNT(1) FROM pools WHERE blockfinder = 0}]
+		foreach {url coin payout_sys fees} [registeredpools eval {SELECT url,coin,payoutsys,fees FROM pools WHERE blockfinder = 0} ] {
 			append outvar "\002Coin:\002 $coin -> \002URL:\002 $url -> \002Payout:\002 $payout_sys | \002Poolfee:\002 $fees %\n"
 		}
 	} else {

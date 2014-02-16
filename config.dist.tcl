@@ -107,12 +107,12 @@ set postcoininfointerval "600"
 # posts pool information from added pools
 # in channel
 #
-set postpoolinfo "1"
+set postpoolinfo "0"
 
 # set interval in second in which bot should post the
 # the pools in db
 #
-set postpoolinfointerval "600"
+set postpoolinfointerval "300"
 
 ##################################################################
 # Pool Config
@@ -121,12 +121,12 @@ set postpoolinfointerval "600"
 # show net hashrate as 
 # KH, MH, GH or TH
 #
-set shownethashrate "KH"
+set shownethashrate "MH"
 
 # show pool hashrate as 
 # KH, MH, GH or TH
 #
-set showpoolhashrate "KH"
+set showpoolhashrate "MH"
 
 # only allow registered users
 # to use channel commands
@@ -144,13 +144,13 @@ set onlyallowregisteredusers "0"
 # if set to "0" every user can query balances
 # from all users available in mpos
 #
-set ownersbalanceonly "0"
+set ownersbalanceonly "1"
 
 # only allow botowners query users workers
 # if set to "0" every user can query workers
 # from all users available in mpos
 #
-set ownersworkeronly "0"
+set ownersworkeronly "1"
 
 ##################################################################
 # Blockfinder Config
