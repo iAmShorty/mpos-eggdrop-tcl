@@ -38,11 +38,11 @@ proc pool_add {nick uhost hand chan arg} {
 	set hostmask "$userarg!*[getchanhost $userarg $chan]"
 	
 	if {[llength $arg] != "4"} {
-		putquick "NOTICE $nick :wrong arguments, should be !addpool POOLURL COINNAME PAYOUTSYSTEM FEE"
+		putquick "PRIVMSG $chan :wrong arguments, should be !addpool POOLURL COINNAME PAYOUTSYSTEM FEE"
 		return
 	}
 	
-	set pool_url [lindex $arg 0]
+	set pool_url [string tolower [lindex $arg 0]]
 	set pool_coin [string toupper [lindex $arg 1]]
 	set pool_payout [string toupper [lindex $arg 2]]
 	set pool_fee [lindex $arg 3]
@@ -51,16 +51,16 @@ proc pool_add {nick uhost hand chan arg} {
 	if {[llength [registeredpools eval {SELECT coin FROM pools WHERE coin=$pool_coin}]] == 0} {
 		if {[llength [registeredpools eval {SELECT url FROM pools WHERE url=$pool_url}]] == 0} {
 			putlog "adding pool"
-			putquick "NOTICE $nick :pool $pool_url added"
+			putquick "PRIVMSG $chan :pool $pool_url added"
 			registeredpools eval {INSERT INTO pools (url,coin,payoutsys,fees,user,timestamp) VALUES ($pool_url,$pool_coin,$pool_payout,$pool_fee,$userarg,$actualtime)}
 		} else {
 			putlog "updating pool"
-			putquick "NOTICE $nick :pool $pool_url updated"
+			putquick "PRIVMSG $chan :pool $pool_url updated"
 			registeredpools eval {UPDATE pools SET url=$pool_url, coin=$pool_coin, payoutsys=$pool_payout, fees=$pool_fee, user=$userarg WHERE url=$pool_url}
 		}
 	} else {
 		putlog "Pool for Coin $pool_coin already exists"
-		putquick "NOTICE $nick :Pool for Coin $pool_coin already exists"
+		putquick "PRIVMSG $chan :Pool for Coin $pool_coin already exists"
 	}
 
 	registeredpools close
@@ -81,15 +81,17 @@ proc pool_del {nick uhost hand chan arg} {
 	}
 
 	if {[llength $arg] != "1"} {
-		putquick "NOTICE $nick :wrong arguments, should be !delpool POOLURL"
+		putquick "PRIVMSG $chan :wrong arguments, should be !delpool POOLURL"
 		return
 	}
 	
-	if {[llength [registeredpools eval {SELECT user FROM pools WHERE url=$arg}]] == 0} {
-		puthelp "PRIVMSG $chan :\002$arg\002 is not in the database."
+	set pool_url [string tolower $arg]
+	
+	if {[llength [registeredpools eval {SELECT user FROM pools WHERE url=$pool_url}]] == 0} {
+		puthelp "PRIVMSG $chan :\002$pool_url\002 is not in the database."
 	} {
-		registeredpools eval {DELETE FROM pools WHERE url=$arg}
-		puthelp "PRIVMSG $chan :\002$arg\002 deleted."
+		registeredpools eval {DELETE FROM pools WHERE url=$pool_url}
+		puthelp "PRIVMSG $chan :\002$pool_url\002 deleted."
 	}
 	registeredpools close
 }
@@ -112,19 +114,35 @@ proc pool_blockfinder {nick uhost hand chan arg} {
 	set hostmask "$userarg!*[getchanhost $userarg $chan]"
 	
 	if {[llength $arg] != "2"} {
-		putquick "NOTICE $nick :wrong arguments, should be !blockfinder POOLURL enable/disable"
+		putquick "PRIVMSG $chan :wrong arguments, should be !blockfinder POOLURL enable/disable"
 		return
 	}
 	
-	set pool_url [lindex $arg 0]
-	set pool_action [lindex $arg 1]
+	set pool_url [string tolower [lindex $arg 0]]
+	set pool_action [string tolower [lindex $arg 1]]
 	
 	putlog "$pool_url - $pool_action"
 	
 	if {$pool_action eq "enable"} {
 		if {[llength [registeredpools eval {SELECT url FROM pools WHERE url=$pool_url AND apikey != 0}]] != 0} {
 			putlog "-> activating pool"
-			putquick "NOTICE $nick :pool $pool_url activated"
+			putquick "PRIVMSG $chan :pool $pool_url activated"
+			registeredpools eval {UPDATE pools SET blockfinder=1 WHERE url=$pool_url}
+		} else {
+			putlog "-> Pool URL or API Key not found"
+		}
+	} elseif {$pool_actioneq "true"} {
+		if {[llength [registeredpools eval {SELECT url FROM pools WHERE url=$pool_url AND apikey != 0}]] != 0} {
+			putlog "-> activating pool"
+			putquick "PRIVMSG $chan :pool $pool_url activated"
+			registeredpools eval {UPDATE pools SET blockfinder=1 WHERE url=$pool_url}
+		} else {
+			putlog "-> Pool URL or API Key not found"
+		}
+	} elseif {$pool_action eq "1"} {
+		if {[llength [registeredpools eval {SELECT url FROM pools WHERE url=$pool_url AND apikey != 0}]] != 0} {
+			putlog "-> activating pool"
+			putquick "PRIVMSG $chan :pool $pool_url activated"
 			registeredpools eval {UPDATE pools SET blockfinder=1 WHERE url=$pool_url}
 		} else {
 			putlog "-> Pool URL or API Key not found"
@@ -132,7 +150,23 @@ proc pool_blockfinder {nick uhost hand chan arg} {
 	} elseif {$pool_action eq "disable"} {
 		if {[llength [registeredpools eval {SELECT url FROM pools WHERE url=$pool_url AND apikey != 0}]] != 0} {
 			putlog "-> deactivating pool"
-			putquick "NOTICE $nick :pool $pool_url activated"
+			putquick "PRIVMSG $chan :pool $pool_url activated"
+			registeredpools eval {UPDATE pools SET blockfinder=0 WHERE url=$pool_url}
+		} else {
+			putlog "-> Pool URL not found"
+		}
+	} elseif {$pool_action eq "false"} {
+		if {[llength [registeredpools eval {SELECT url FROM pools WHERE url=$pool_url AND apikey != 0}]] != 0} {
+			putlog "-> deactivating pool"
+			putquick "PRIVMSG $chan :pool $pool_url activated"
+			registeredpools eval {UPDATE pools SET blockfinder=0 WHERE url=$pool_url}
+		} else {
+			putlog "-> Pool URL not found"
+		}
+	} elseif {$pool_action eq "0"} {
+		if {[llength [registeredpools eval {SELECT url FROM pools WHERE url=$pool_url AND apikey != 0}]] != 0} {
+			putlog "-> deactivating pool"
+			putquick "PRIVMSG $chan :pool $pool_url activated"
 			registeredpools eval {UPDATE pools SET blockfinder=0 WHERE url=$pool_url}
 		} else {
 			putlog "-> Pool URL not found"
@@ -158,15 +192,15 @@ proc pool_apikey {nick uhost hand arg} {
 	}
 
 	if {[llength $arg] != "2"} {
-		putquick "NOTICE $nick :wrong arguments, should be /msg BOTNICK !apikey POOLURL APIKEY"
+		putquick "PRIVMSG $chan :wrong arguments, should be /msg BOTNICK !apikey POOLURL APIKEY"
 		return
 	}
 	
-	set pool_url [lindex $arg 0]
+	set pool_url [string tolower [lindex $arg 0]]
 	set api_key [lindex $arg 1]
 	if {[llength [registeredpools eval {SELECT url FROM pools WHERE url=$pool_url}]] != 0} {
 		putlog "-> adding api key"
-		putquick "NOTICE $nick :added api key for $pool_url"
+		putquick "PRIVMSG $chan :added api key for $pool_url"
 		registeredpools eval {UPDATE pools SET apikey=$api_key WHERE url=$pool_url}
 	}
 	registeredpools close
@@ -192,12 +226,32 @@ proc pool_list {nick uhost hand chan arg} {
 		foreach {url coin payout_sys fees} [registeredpools eval {SELECT url,coin,payoutsys,fees FROM pools} ] {
 			append outvar "\002Coin:\002 $coin -> \002URL:\002 $url -> \002Payout:\002 $payout_sys | \002Poolfee:\002 $fees %\n"
 		}
-	} elseif {$arg eq "enabled"} {
+	} elseif {[string tolower $arg] eq "enabled"} {
 		set scount [registeredpools eval {SELECT COUNT(1) FROM pools WHERE blockfinder = 1}]
 		foreach {url coin payout_sys fees} [registeredpools eval {SELECT url,coin,payoutsys,fees FROM pools WHERE blockfinder = 1} ] {
 			append outvar "\002Coin:\002 $coin -> \002URL:\002 $url -> \002Payout:\002 $payout_sys | \002Poolfee:\002 $fees %\n"
 		}
-	} elseif {$arg eq "disabled"} {
+	} elseif {[string tolower $arg] eq "true"} {
+		set scount [registeredpools eval {SELECT COUNT(1) FROM pools WHERE blockfinder = 1}]
+		foreach {url coin payout_sys fees} [registeredpools eval {SELECT url,coin,payoutsys,fees FROM pools WHERE blockfinder = 1} ] {
+			append outvar "\002Coin:\002 $coin -> \002URL:\002 $url -> \002Payout:\002 $payout_sys | \002Poolfee:\002 $fees %\n"
+		}
+	} elseif {[string tolower $arg] eq "1"} {
+		set scount [registeredpools eval {SELECT COUNT(1) FROM pools WHERE blockfinder = 1}]
+		foreach {url coin payout_sys fees} [registeredpools eval {SELECT url,coin,payoutsys,fees FROM pools WHERE blockfinder = 1} ] {
+			append outvar "\002Coin:\002 $coin -> \002URL:\002 $url -> \002Payout:\002 $payout_sys | \002Poolfee:\002 $fees %\n"
+		}
+	} elseif {[string tolower $arg] eq "disabled"} {
+		set scount [registeredpools eval {SELECT COUNT(1) FROM pools WHERE blockfinder = 0}]
+		foreach {url coin payout_sys fees} [registeredpools eval {SELECT url,coin,payoutsys,fees FROM pools WHERE blockfinder = 0} ] {
+			append outvar "\002Coin:\002 $coin -> \002URL:\002 $url -> \002Payout:\002 $payout_sys | \002Poolfee:\002 $fees %\n"
+		}
+	} elseif {[string tolower $arg] eq "false"} {
+		set scount [registeredpools eval {SELECT COUNT(1) FROM pools WHERE blockfinder = 0}]
+		foreach {url coin payout_sys fees} [registeredpools eval {SELECT url,coin,payoutsys,fees FROM pools WHERE blockfinder = 0} ] {
+			append outvar "\002Coin:\002 $coin -> \002URL:\002 $url -> \002Payout:\002 $payout_sys | \002Poolfee:\002 $fees %\n"
+		}
+	} elseif {[string tolower $arg] eq "0"} {
 		set scount [registeredpools eval {SELECT COUNT(1) FROM pools WHERE blockfinder = 0}]
 		foreach {url coin payout_sys fees} [registeredpools eval {SELECT url,coin,payoutsys,fees FROM pools WHERE blockfinder = 0} ] {
 			append outvar "\002Coin:\002 $coin -> \002URL:\002 $url -> \002Payout:\002 $payout_sys | \002Poolfee:\002 $fees %\n"
