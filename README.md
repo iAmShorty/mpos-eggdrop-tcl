@@ -131,6 +131,8 @@ Activating a Pool for Block advertising
 !blockfinder APIURL enable
 
 e.g. !blockfinder http://youpoolurl.tld enable
+or   !blockfinder http://youpoolurl.tld true
+or   !blockfinder http://youpoolurl.tld 1
 </pre>
 
 Deactivating a Pool for Block advertising
@@ -138,6 +140,8 @@ Deactivating a Pool for Block advertising
 !blockfinder APIURL disable
 
 e.g. !blockfinder http://youpoolurl.tld disable
+or   !blockfinder http://youpoolurl.tld false
+or   !blockfinder http://youpoolurl.tld 0
 </pre>
 
 You can add as many as you want. For example, the Value "BTC" is the Coin Name, used to query the Pool.
