@@ -192,7 +192,7 @@ proc pool_apikey {nick uhost hand arg} {
 	}
 
 	if {[llength $arg] != "2"} {
-		putquick "PRIVMSG $chan :wrong arguments, should be /msg BOTNICK !apikey POOLURL APIKEY"
+		putquick "PRIVMSG $nick :wrong arguments, should be /msg BOTNICK !apikey POOLURL APIKEY"
 		return
 	}
 	
@@ -200,7 +200,7 @@ proc pool_apikey {nick uhost hand arg} {
 	set api_key [lindex $arg 1]
 	if {[llength [registeredpools eval {SELECT url FROM pools WHERE url=$pool_url}]] != 0} {
 		putlog "-> adding api key"
-		putquick "PRIVMSG $chan :added api key for $pool_url"
+		putquick "PRIVMSG $nick :added api key for $pool_url"
 		registeredpools eval {UPDATE pools SET apikey=$api_key WHERE url=$pool_url}
 	}
 	registeredpools close
