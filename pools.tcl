@@ -131,7 +131,7 @@ proc pool_blockfinder {nick uhost hand chan arg} {
 		} else {
 			putlog "-> Pool URL or API Key not found"
 		}
-	} elseif {$pool_actioneq "true"} {
+	} elseif {$pool_action eq "true"} {
 		if {[llength [registeredpools eval {SELECT url FROM pools WHERE url=$pool_url AND apikey != 0}]] != 0} {
 			putlog "-> activating pool"
 			putquick "PRIVMSG $chan :pool $pool_url activated"
