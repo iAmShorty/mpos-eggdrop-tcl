@@ -66,31 +66,31 @@ proc announce_channel {nick uhost hand chan arg} {
 		}
 	} elseif {$announce_action eq "enable" || $announce_action eq "true" || $announce_action eq "1"} {
 		if {[llength [registeredpools eval {SELECT pool_id FROM pools WHERE coin=$announce_coin AND apikey != 0}]] != 0} {
-			if {[llength [announcecoins eval {SELECT announce_id FROM announce WHERE coin=$announce_coin}]] == 0} {
+			if {[llength [announcecoins eval {SELECT announce_id FROM announce WHERE coin=$announce_coin AND channel=$announce_channel}]] == 0} {
 				if {$debug eq "1"} { putlog "-> activating announce for coin $announce_coin" }
 				putquick "PRIVMSG $chan :activating announce for coin $announce_coin"
 				announcecoins eval {INSERT INTO announce (coin,channel,advertise) VALUES ($announce_coin,$announce_channel,1)}
 			} else {
 				if {$debug eq "1"} { putlog "-> activating announce for coin $announce_coin" }
 				putquick "PRIVMSG $chan :activating announce for coin $announce_coin"
-				announcecoins eval {UPDATE announce SET channel=$announce_channel, advertise=1 WHERE coin=$announce_coin}
+				announcecoins eval {UPDATE announce SET advertise=1 WHERE coin=$announce_coin AND channel=$announce_channel}
 			}
 		} else {
 			if {$debug eq "1"} { putlog "-> Pool URL or API Key for coin $announce_coin not found" }
 		}
 	} elseif {$announce_action eq "disable" || $announce_action eq "false" || $announce_action eq "0"} {
-		if {[llength [announcecoins eval {SELECT announce_id FROM announce WHERE coin=$announce_coin}]] != 0} {
+		if {[llength [announcecoins eval {SELECT announce_id FROM announce WHERE coin=$announce_coin AND channel=$announce_channel}]] != 0} {
 			if {$debug eq "1"} { putlog "-> deactivating announce for coin $announce_coin" }
 			putquick "PRIVMSG $chan :deactivating announce for coin $announce_coin"
-			announcecoins eval {UPDATE announce SET channel=$announce_channel, advertise=0 WHERE coin=$announce_coin}
+			announcecoins eval {UPDATE announce SET advertise=0 WHERE coin=$announce_coin AND channel=$announce_channel}
 		} else {
 			if {$debug eq "1"} { putlog "-> No Anncounce for Coin $announce_coin in Database" }
 		}
 	} elseif {$announce_action eq "delete"} {
-		if {[llength [announcecoins eval {SELECT announce_id FROM announce WHERE coin=$announce_coin}]] != 0} {
+		if {[llength [announcecoins eval {SELECT announce_id FROM announce WHERE coin=$announce_coin AND channel=$announce_channel}]] != 0} {
 			if {$debug eq "1"} { putlog "-> deleting announce for coin $announce_coin" }
 			putquick "PRIVMSG $chan :deleting announce for coin $announce_coin"
-			announcecoins eval {DELETE FROM announce WHERE coin=$announce_coin}
+			announcecoins eval {DELETE FROM announce WHERE coin=$announce_coin AND channel=$announce_channel}
 		} else {
 			if {$debug eq "1"} { putlog "-> No Anncounce for Coin $announce_coin in Database" }
 		}
