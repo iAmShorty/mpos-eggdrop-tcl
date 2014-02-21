@@ -239,8 +239,9 @@ proc checknewblocks {} {
 # advertising the block
 #
 proc advertise_block {blockid blockfinder_coinname blockfinder_newblock blockfinder_laststatus blockfinder_lastestshares blockfinder_lastshares blockfinder_lastfinder blockfinder_confirmations blockfinder_diff blockfinder_anon blockfinder_worker blockfinder_amount blockfinder_time} {
-	global channels debug debugoutput output_findblocks output_findblocks_percoin sqlite_blockfile
+	global channels debug debugoutput output_findblocks output_findblocks_percoin sqlite_blockfile sqlite_announce
 	sqlite3 advertiseblocks $sqlite_blockfile
+	sqlite3 announcecoins $sqlite_announce
 
 	set blockfinder_lastblock [advertiseblocks eval {SELECT last_block FROM blocks WHERE posted = 'Y' AND poolcoin = $blockfinder_coinname ORDER BY last_block DESC LIMIT 1}]
 
@@ -282,10 +283,15 @@ proc advertise_block {blockid blockfinder_coinname blockfinder_newblock blockfin
 	set lineoutput [replacevar $lineoutput "%blockfinder_amount%" $blockfinder_amount]
 	set lineoutput [replacevar $lineoutput "%blockfinder_time%" [clock format $blockfinder_time -format "%D %T"]]
 	
-	foreach advert $channels {
-		putquick "PRIVMSG $advert :$lineoutput"
-	}
 	
+	if {[llength [announcecoins eval {SELECT announce_id FROM announce WHERE coin=$blockfinder_coinname AND advertise=1}]] != 0} {
+		set advertchan [announcecoins eval {SELECT channel FROM announce WHERE coin=$blockfinder_coinname}]
+		putquick "PRIVMSG $advertchan :$lineoutput"
+	} else {
+		foreach advert $channels {
+			putquick "PRIVMSG $advert :$lineoutput"
+		}
+	}
 }
 
 putlog "===>> Mining-Pool-Findblocks - Version $scriptversion loaded"

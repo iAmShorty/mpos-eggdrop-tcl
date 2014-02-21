@@ -39,8 +39,9 @@ bind pub - !request user_request
 bind pub no|- !addpool pool_add
 bind pub no|- !delpool pool_del
 bind pub no|- !pools pool_list
-bind pub no|- !blockfinder pool_blockfinder
 bind msg no|- !apikey pool_apikey
+bind pub no|- !blockfinder announce_blockfinder
+bind pub no|- !announce announce_channel
 
 if {[catch {package require http 2.5}]} { 
 	putlog "Eggdrop: package http 2.5 or above required"
@@ -71,15 +72,19 @@ proc pool_vars {coinname} {
 	sqlite3 registeredpools $sqlite_poolfile
 	
 	set pool_found "false"
-	set poolscount [registeredpools eval {SELECT COUNT(1) FROM pools WHERE apikey != 0 AND coin == $coinname}]
-	putlog "Number of Pools: $poolscount"
-	foreach {apiurl poolcoin apikey} [registeredpools eval {SELECT url,coin,apikey FROM pools WHERE apikey != 0 AND coin == $coinname} ] {
-		if {[string toupper $poolcoin] eq [string toupper $coinname]} {
-			set pool_found "true"
-			set pool_data "[string toupper $poolcoin] $apiurl $apikey"
+	if {[llength [registeredpools eval {SELECT apikey FROM pools WHERE coin=$coinname}]] == 0} {
+		set poolscount [registeredpools eval {SELECT COUNT(1) FROM pools WHERE apikey != 0 AND coin == $coinname}]
+		putlog "Number of Pools: $poolscount"
+		foreach {apiurl poolcoin apikey} [registeredpools eval {SELECT url,coin,apikey FROM pools WHERE apikey != 0 AND coin == $coinname} ] {
+			if {[string toupper $poolcoin] eq [string toupper $coinname]} {
+				set pool_found "true"
+				set pool_data "[string toupper $poolcoin] $apiurl $apikey"
+			}
 		}
+	} else {
+		putlog "API Key for Pool not found"
 	}
-	
+
 	registeredpools close
 	
 	if {$pool_found eq "true"} {
