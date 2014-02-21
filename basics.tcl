@@ -42,6 +42,11 @@ bind pub no|- !pools pool_list
 bind pub no|- !blockfinder pool_blockfinder
 bind msg no|- !apikey pool_apikey
 
+if {[catch {package require http 2.5}]} { 
+	putlog "Eggdrop: package http 2.5 or above required"
+	die "Eggdrop: package http 2.5 or above required"
+}
+      
 #
 # unset arrays for userdefined ouput when rehashing the bot, otherwise the
 # array variables are always present, even if they are commented out. arrays are set

@@ -95,9 +95,35 @@ proc checknewblocks {} {
 				::http::register https 443 tls::socket
 			}
 
-			set token [::http::geturl "$newurl"]
-			set data [::http::data $token]
-			::http::cleanup $token
+			if {[catch { set token [http::geturl $newurl -timeout 3000]} error] == 1} {
+				putlog "$error"
+				putquick "PRIVMSG $chan :ERROR: $error"
+				catch {::http::cleanup $token}
+				set checknewblocks_running [utimer $blockchecktime checknewblocks]
+				return
+			} elseif {[http::ncode $token] == "404"} {
+				putlog "Error: [http::code $token]"
+				putquick "PRIVMSG $chan :ERROR: [http::code $token]"
+				catch {::http::cleanup $token}
+				set checknewblocks_running [utimer $blockchecktime checknewblocks]
+				return
+			} elseif {[http::status $token] == "ok"} {
+				set data [::http::data $token]
+				catch {::http::cleanup $token}
+			} elseif {[http::status $token] == "timeout"} {
+				putlog "Timeout occurred"
+				putquick "PRIVMSG $chan :ERROR: Timeout occurred"
+				catch {::http::cleanup $token}
+				set checknewblocks_running [utimer $blockchecktime checknewblocks]
+				return
+			} elseif {[http::status $token] == "error"} {
+				putlog "Error: [http::error $token]"
+				putquick "PRIVMSG $chan :ERROR: [http::error $token]"
+				catch {::http::cleanup $token}
+				set checknewblocks_running [utimer $blockchecktime checknewblocks]
+				return
+			}
+	
 			if {$usehttps eq "1"} {
 				::http::unregister https
 			}
@@ -110,6 +136,7 @@ proc checknewblocks {} {
 				}
 			} elseif {$data eq ""} {
 				if {$debug eq "1"} { putlog "no data: $data" }
+				return 0
 			} else {
 				if {[catch { set results [ [::json::json2dict $data] ]
 					if {$debug eq "1"} { putlog "no data: $data" }
