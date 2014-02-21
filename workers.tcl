@@ -24,7 +24,8 @@
 # get worker information
 #
 proc worker_info {nick host hand chan arg} {
-	global help_blocktime help_blocked channels debug debugoutput output onlyallowregisteredusers ownersworkeronly output_workerinfo output_worker_online output_worker_offline
+	global help_blocktime help_blocked channels debug debugoutput output onlyallowregisteredusers ownersworkeronly output_workerinfo output_worker_online output_worker_offline protected_commands sqlite_commands
+	sqlite3 poolcommands $sqlite_commands
 	package require http
 	package require json
 	package require tls
@@ -77,7 +78,22 @@ proc worker_info {nick host hand chan arg} {
 		if {$debug eq "1"} { putlog "no pool data" }
 		return
 	}
-	
+
+	if {[lsearch $protected_commands "worker"] > 0 } {
+		regsub "#" $chan "" command_channel
+		if {[llength [poolcommands eval {SELECT command_id FROM commands WHERE channel=$command_channel AND command="worker" AND activated=1}]] != 0} {
+			putlog "-> command worker found"
+		} elseif {[llength [poolcommands eval {SELECT command_id FROM commands WHERE channel=$command_channel AND command="all" AND activated=1}]] != 0} {
+			putlog "-> command ALL found"
+		} else {
+			putlog "-> protected"
+			putquick "PRIVMSG $chan :command !worker not allowed in $chan"
+			return
+		}
+    } else {
+    	putlog "-> not protected"
+    }
+    
 	set newurl [lindex $pool_info 1]
 	append newurl $action
 	append newurl [lindex $pool_info 2]
@@ -196,11 +212,7 @@ proc worker_info {nick host hand chan arg} {
 	set len [expr {512-[string len ":$::botname PRIVMSG $chan :\r\n"]}] 
 	foreach line [wordwrap $lineoutput $len] { 
 		if {$output eq "CHAN"} {
-			foreach advert $channels {
-				if {$advert eq $chan} {
-					putquick "PRIVMSG $chan :$line"
-				}
-			}
+			putquick "PRIVMSG $chan :$line"
 		} elseif {$output eq "NOTICE"} {
 			putquick "NOTICE $nick :$line"
 		} else {

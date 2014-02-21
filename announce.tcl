@@ -35,45 +35,58 @@ proc channel_commands {nick uhost hand chan arg} {
 		return
 	}
 
-	if {[llength $arg] == 3} {
-		set command_name [string toupper [lindex $arg 0]]
-		set command_channel [string tolower [lindex $arg 1]]
+	if {[llength $arg] == 4} {
+		set command_name [string tolower [lindex $arg 0]]
+		set command_coin [string toupper [lindex $arg 1]]
+		set command_channel [string tolower [lindex $arg 2]]
 		regsub "#" $command_channel "" command_channel
-		set command_action [string tolower [lindex $arg 2]]
+		set command_action [string tolower [lindex $arg 3]]
 		if {$debug eq "1"} { putlog "$command_name - $command_channel - $command_action" }
+	} else {
+		putquick "PRIVMSG $chan :wrong arguments, should be !command COMMAND COIN CHANNEL enable/disable/delete"
+		return
 	}
 	
 	if {$command_action eq "enable" || $command_action eq "true" || $command_action eq "1"} {
 		if {[llength [announcecoins eval {SELECT announce_id FROM announce WHERE channel=$command_channel}]] == 0} {
 			if {$debug eq "1"} { putlog "-> #$announce_channel not found in Database " }
 		} else {
-			if {[llength [poolcommands eval {SELECT command_id FROM commands WHERE channel=$command_channel}]] == 0} {
-				if {$debug eq "1"} { putlog "-> activating command $command_name in #$command_channel" }
+			if {[llength [poolcommands eval {SELECT command_id FROM commands WHERE command=$command_name AND coin=$command_coin AND channel=$command_channel}]] == 0} {
+				if {$debug eq "1"} { putlog "-> INSERT: activating command $command_name in #$command_channel" }
 				putquick "PRIVMSG $chan :activating command $command_name in #$command_channel"
-				poolcommands eval {INSERT INTO commands (command,channel,activated) VALUES ($command_name,$command_channel,1)}
+				poolcommands eval {INSERT INTO commands (command,coin,channel,activated) VALUES ($command_name,$command_coin,$command_channel,1)}
 			} else {
-				if {$debug eq "1"} { putlog "-> activating command $command_name in #$command_channel" }
+				if {$debug eq "1"} { putlog "-> UPDATE: activating command $command_name in #$command_channel" }
 				putquick "PRIVMSG $chan :activating command $command_name in #$command_channel"
 				poolcommands eval {UPDATE commands SET activated=1 WHERE command=$command_name AND channel=$command_channel}
 			}
-
 		}
 	} elseif {$command_action eq "disable" || $command_action eq "false" || $command_action eq "0"} {
 		if {[llength [announcecoins eval {SELECT announce_id FROM announce WHERE channel=$command_channel}]] == 0} {
 			if {$debug eq "1"} { putlog "-> #$announce_channel not found in Database " }
 		} else {
-			if {[llength [poolcommands eval {SELECT command_id FROM commands WHERE channel=$command_channel}]] == 0} {
-				if {$debug eq "1"} { putlog "-> deactivating command $command_name in #$command_channel" }
+			if {[llength [poolcommands eval {SELECT command_id FROM commands WHERE command=$command_name AND coin=$command_coin AND channel=$command_channel}]] == 0} {
+				if {$debug eq "1"} { putlog "-> INSERT: deactivating command $command_name in #$command_channel" }
 				putquick "PRIVMSG $chan :deactivating command $command_name in #$command_channel"
-				poolcommands eval {INSERT INTO commands (command,channel,activated) VALUES ($command_name,$command_channel,0)}
+				poolcommands eval {INSERT INTO commands (command,coin,channel,activated) VALUES ($command_name,$command_coin,$command_channel,0)}
 			} else {
-				if {$debug eq "1"} { putlog "-> deactivating command $command_name in #$command_channel" }
+				if {$debug eq "1"} { putlog "-> UPDATE: deactivating command $command_name in #$command_channel" }
 				putquick "PRIVMSG $chan :deactivating command $command_name in #$command_channel"
-				poolcommands eval {UPDATE commands SET activated=0 WHERE command=$command_name AND channel=$command_channel)}
+				poolcommands eval {UPDATE commands SET activated=0 WHERE command=$command_name AND channel=$command_channel}
 			}
-
 		}
+	} elseif {$command_action eq "delete"} {
+		if {[llength [poolcommands eval {SELECT command_id FROM commands WHERE command=$command_name AND coin=$command_coin AND channel=$command_channel}]] == 0} {
+			if {$debug eq "1"} { putlog "-> command $command_name for #$command_channel not found in Database " }
+		} else {
+			if {$debug eq "1"} { putlog "-> deleting command $command_name in #$command_channel" }
+			putquick "PRIVMSG $chan :deleting command $command_name in #$command_channel"
+			poolcommands eval {DELETE FROM commands WHERE command=$command_name AND channel=$command_channel}
+		}
+	} else {
+		if {$debug eq "1"} { putlog "-> something went wrong..." }
 	}
+
 	announcecoins close
 	poolcommands close
 }
@@ -100,7 +113,6 @@ proc announce_channel {nick uhost hand chan arg} {
 		set announce_action [string tolower [lindex $arg 2]]
 		if {$debug eq "1"} { putlog "$announce_coin - $announce_channel - $announce_action" }
 	}
-	
 	
 	if {$arg eq ""} {
 		set scount [announcecoins eval {SELECT COUNT(1) FROM announce}]
@@ -165,7 +177,7 @@ proc announce_channel {nick uhost hand chan arg} {
 proc announce_blockfinder {nick uhost hand chan arg} {
 	global debug sqlite_poolfile
 	sqlite3 registeredpools $sqlite_poolfile
-	
+
 	if {[matchattr $nick +n]} {
 		if {$debug eq "1"} { putlog "$nick is botowner" }
 	} else {
@@ -175,17 +187,17 @@ proc announce_blockfinder {nick uhost hand chan arg} {
 
 	set userarg [charfilter $nick]
 	set hostmask "$userarg!*[getchanhost $userarg $chan]"
-	
+
 	if {[llength $arg] != 2} {
 		putquick "PRIVMSG $chan :wrong arguments, should be !blockfinder POOLURL enable/disable"
 		return
 	}
-	
+
 	set pool_url [string tolower [lindex $arg 0]]
 	set pool_action [string tolower [lindex $arg 1]]
-	
+
 	if {$debug eq "1"} { putlog "$pool_url - $pool_action" }
-	
+
 	if {$pool_action eq "enable" || $pool_action eq "true" || $pool_action eq "1"} {
 		if {[llength [registeredpools eval {SELECT url FROM pools WHERE url=$pool_url AND apikey != 0}]] != 0} {
 			if {$debug eq "1"} { putlog "-> activating pool" }

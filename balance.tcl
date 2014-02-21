@@ -24,7 +24,8 @@
 # Account Balance
 #
 proc balance_info {nick host hand chan arg} {
-	global help_blocktime help_blocked channels debug debugoutput output onlyallowregisteredusers ownersbalanceonly output_balance output_balance_percoin protected_commands
+	global help_blocktime help_blocked channels debug debugoutput output onlyallowregisteredusers ownersbalanceonly output_balance output_balance_percoin protected_commands sqlite_commands
+	sqlite3 poolcommands $sqlite_commands
 	package require http
 	package require json
 	package require tls
@@ -77,13 +78,22 @@ proc balance_info {nick host hand chan arg} {
 		if {$debug eq "1"} { putlog "no pool data" }
 		return
 	}
-	
-	if {[info exists protected_commands("balance")]} {
-		putlog "-> protected"
-	} else {
-		putlog "-> not protected"
-	}
 
+	if {[lsearch $protected_commands "balance"] > 0 } {
+		regsub "#" $chan "" command_channel
+		if {[llength [poolcommands eval {SELECT command_id FROM commands WHERE channel=$command_channel AND command="balance" AND activated=1}]] != 0} {
+			putlog "-> command balance found"
+		} elseif {[llength [poolcommands eval {SELECT command_id FROM commands WHERE channel=$command_channel AND command="all" AND activated=1}]] != 0} {
+			putlog "-> command ALL found"
+		} else {
+			putlog "-> protected"
+			putquick "PRIVMSG $chan :command !balance not allowed in $chan"
+			return
+		}
+    } else {
+    	putlog "-> not protected"
+    }
+    
 	set newurl [lindex $pool_info 1]
 	append newurl $action
 	append newurl [lindex $pool_info 2]
@@ -163,11 +173,7 @@ proc balance_info {nick host hand chan arg} {
 	set lineoutput [replacevar $lineoutput "%balance_orphan%" $balance_orphan]
 
 	if {$output eq "CHAN"} {
-		foreach advert $channels {
-			if {$advert eq $chan} {
-				putquick "PRIVMSG $chan :$lineoutput"
-			}
-		}
+		putquick "PRIVMSG $chan :$lineoutput"
 	} elseif {$output eq "NOTICE"} {
 		putquick "NOTICE $nick :$lineoutput"	
 	} else {

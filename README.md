@@ -32,6 +32,7 @@ FEATURES
 * Easy add Pools on the fly
 * Enable/Disable Pools on the fly
 * Output can set to separate channels for each coin
+* Command ACL per Channel, Coin and Command
 * All Pool related Settings can be set on the fly and without rehashing the Bot
 * Show registered Pools on channel
 * Advertise Pools in Channel at a given timeframe
@@ -192,6 +193,57 @@ Querying userinfos works like that
 <pre>
 !user BTC USERNAME
 </pre>
+
+Commands ACL
+================
+
+You can set access rights for every command and coin in defined Channels. Only set Commands
+that should be protected in use.
+
+<pre>
+set protected_commands {
+	"hashrate"
+	"diff"
+	"pool"
+	"block"
+	"last"
+	"user"
+	"round"
+	"worker"
+	"balance"
+	"coinchoose"
+	"request"
+	"price"
+}
+</pre>
+
+This is a Standard List of Commands that are protected. If you want specific Commands
+not to be protected, remove them from the list and they will trigger in every Channel.
+If you want to allow commands for a specific channel or coin, only activate them via
+!command.
+
+Use one of the Values set in protected_commands as COMMANDNAME. If you use ALL instead
+of COMMANDNAME, all commands are allowed in specified channel.
+<pre>
+e.g. !command COMMANDNAME COIN #channel enable
+or !command COMMANDNAME COIN #channel true
+or !command COMMANDNAME COIN #channel 1
+</pre>
+
+You can simply disable the Command like this
+<pre>
+e.g. !command COMMANDNAME COIN #channel disable
+or !command COMMANDNAME COIN #channel false
+or !command COMMANDNAME COIN #channel 0
+</pre>
+
+Or delete them from Command list
+<pre>
+e.g. !command COMMANDNAME COIN #channel delete
+</pre>
+
+NOTE:
+Commands in protected_commands and not enabled via !command, will not work
 
 Creating self defined Output
 ================

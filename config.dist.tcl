@@ -63,10 +63,32 @@ set output "CHAN"
 set scriptpath "./scripts/mininginfo/"
 
 # channels to advertise new block information
-# and post requested command output, if the bot
-# sits in other channels, they will be ignored
+# this channels will be used if no specific channel
+# is set for coin announcement
 #
 set channels "#channel1 #channel2"
+
+#
+# Setting list of protected commands
+#
+# here you can set a list of protected commands
+# per channel. all commands set in this list can't
+# be triggered if not set to enabled. commands not in
+# this list can be triggered from every channel.
+#
+set protected_commands {
+	"hashrate"
+	"diff"
+	"pool"
+	"block"
+	"last"
+	"user"
+	"round"
+	"worker"
+	"balance"
+	"coinchoose"
+	"request"
+}
 
 # admins who should receive notifications and
 # error messages from channel or scripts

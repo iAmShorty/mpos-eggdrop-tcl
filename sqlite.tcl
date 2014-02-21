@@ -58,7 +58,7 @@ if {![file exists $sqlite_announce]} {
 
 if {![file exists $sqlite_commands]} { 
 	sqlite3 commands $sqlite_commands
-	commands eval {CREATE TABLE commands(command_id integer primary key autoincrement, command TEXT NOT NULL, channel TEXT NOT NULL, activated INTEGER DEFAULT 0)}
+	commands eval {CREATE TABLE commands(command_id integer primary key autoincrement, coin TEXT NOT NULL, command TEXT NOT NULL, channel TEXT NOT NULL, activated INTEGER DEFAULT 0)}
 	commands close
 }
 

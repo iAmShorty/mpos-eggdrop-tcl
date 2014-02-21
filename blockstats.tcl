@@ -24,7 +24,8 @@
 # block information
 #
 proc block_info {nick host hand chan arg} {
-	global help_blocktime help_blocked channels debug debugoutput output onlyallowregisteredusers output_blockinfo output_blockinfo_percoin
+	global help_blocktime help_blocked channels debug debugoutput output onlyallowregisteredusers output_blockinfo output_blockinfo_percoin protected_commands sqlite_commands
+	sqlite3 poolcommands $sqlite_commands
 	package require http
 	package require json
 	package require tls
@@ -65,6 +66,21 @@ proc block_info {nick host hand chan arg} {
 		return
 	} 
 
+	if {[lsearch $protected_commands "block"] > 0 } {
+		regsub "#" $chan "" command_channel
+		if {[llength [poolcommands eval {SELECT command_id FROM commands WHERE channel=$command_channel AND command="block" AND activated=1}]] != 0} {
+			putlog "-> command block found"
+		} elseif {[llength [poolcommands eval {SELECT command_id FROM commands WHERE channel=$command_channel AND command="all" AND activated=1}]] != 0} {
+			putlog "-> command ALL found"
+		} else {
+			putlog "-> protected"
+         	putquick "PRIVMSG $chan :command !block not allowed in $chan"
+         	return
+		}
+    } else {
+    	putlog "-> not protected"
+    }
+    
 	set newurl [lindex $pool_info 1]
 	append newurl $action
 	append newurl [lindex $pool_info 2]
@@ -160,11 +176,7 @@ proc block_info {nick host hand chan arg} {
 	set lineoutput [replacevar $lineoutput "%blockstats_timelast%" $blockstats_timelast]
 	
 	if {$output eq "CHAN"} {
-		foreach advert $channels {
-			if {$advert eq $chan} {
-				putquick "PRIVMSG $chan :$lineoutput"
-			}
-		}	
+		putquick "PRIVMSG $chan :$lineoutput"
 	} elseif {$output eq "NOTICE"} {
 		putquick "NOTICE $nick :$lineoutput"	
 	} else {
@@ -177,7 +189,8 @@ proc block_info {nick host hand chan arg} {
 # last block found
 #
 proc last_info {nick host hand chan arg } {
-	global help_blocktime help_blocked channels debug debugoutput output onlyallowregisteredusers output_lastblock output_lastblock_percoin
+	global help_blocktime help_blocked channels debug debugoutput output onlyallowregisteredusers output_lastblock output_lastblock_percoin protected_commands sqlite_commands
+	sqlite3 poolcommands $sqlite_commands
 	package require http
 	package require json
 	package require tls
@@ -227,6 +240,21 @@ proc last_info {nick host hand chan arg } {
 		return
 	} 
 
+	if {[lsearch $protected_commands "last"] > 0 } {
+		regsub "#" $chan "" command_channel
+		if {[llength [poolcommands eval {SELECT command_id FROM commands WHERE channel=$command_channel AND command="last" AND activated=1}]] != 0} {
+			putlog "-> command last found"
+		} elseif {[llength [poolcommands eval {SELECT command_id FROM commands WHERE channel=$command_channel AND command="all" AND activated=1}]] != 0} {
+			putlog "-> command ALL found"
+		} else {
+			putlog "-> protected"
+			putquick "PRIVMSG $chan :command !last not allowed in $chan"
+			return
+		}
+    } else {
+    	putlog "-> not protected"
+    }
+    
 	set newurl [lindex $pool_info 1]
 	append newurl $action
 	append newurl [lindex $pool_info 2]
@@ -332,11 +360,7 @@ proc last_info {nick host hand chan arg } {
 	set lineoutput [replacevar $lineoutput "%blockstats_lastfinder%" $blockstats_lastfinder]
 	
 	if {$output eq "CHAN"} {
-		foreach advert $channels {
-			if {$advert eq $chan} {
-				putquick "PRIVMSG $chan :$lineoutput"
-			}
-		}
+		putquick "PRIVMSG $chan :$lineoutput"
 	} elseif {$output eq "NOTICE"} {
 		putquick "NOTICE $nick :$lineoutput"
 	} else {

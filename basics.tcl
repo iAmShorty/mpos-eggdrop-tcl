@@ -32,6 +32,7 @@ bind pub - !worker worker_info
 bind pub - !balance balance_info
 bind pub - !hashrate pool_hashrate
 bind pub - !diff pool_diff
+bind pub - !price price_info
 bind pub - !coinchoose coinchoose_info
 bind pub - !request user_request
 bind pub - ?help printUsage
@@ -46,7 +47,7 @@ bind msg no|- !apikey pool_apikey
 bind pub no|- !blockfinder announce_blockfinder
 bind pub no|- !announce announce_channel
 
-bind pub no|- !commands channel_commands
+bind pub no|- !command channel_commands
 
 
 if {[catch {package require http 2.5}]} { 
@@ -69,23 +70,6 @@ if {[array exists output_userstats_percoin]} { unset output_userstats_percoin }
 if {[array exists output_workerinfo_percoin]} { unset output_workerinfo_percoin }
 if {[array exists output_worker_offline_percoin]} { unset output_worker_offline_percoin }
 if {[array exists output_worker_online_percoin]} { unset output_worker_online_percoin }
-
-#
-# Setting protected Commands
-#
-set protected_commands {
-	"hashrate"
-	"diff"
-	"pool"
-	"block"
-	"last"
-	"user"
-	"round"
-	"worker"
-	"balance"
-	"coinchoose"
-	"request"
-}
 
 #
 # getting the pool vars from dictionary

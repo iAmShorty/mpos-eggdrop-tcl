@@ -24,7 +24,8 @@
 # pool information
 #
 proc pool_info {nick host hand chan arg} {
-	global help_blocktime help_blocked channels debug debugoutput output onlyallowregisteredusers shownethashrate showpoolhashrate output_poolstats output_poolstats_percoin
+	global help_blocktime help_blocked channels debug debugoutput output onlyallowregisteredusers shownethashrate showpoolhashrate output_poolstats output_poolstats_percoin protected_commands sqlite_commands
+	sqlite3 poolcommands $sqlite_commands
 	package require http
 	package require json
 	package require tls
@@ -65,6 +66,21 @@ proc pool_info {nick host hand chan arg} {
 		return
 	} 
 
+	if {[lsearch $protected_commands "pool"] > 0 } {
+		regsub "#" $chan "" command_channel
+		if {[llength [poolcommands eval {SELECT command_id FROM commands WHERE channel=$command_channel AND command="pool" AND activated=1}]] != 0} {
+			putlog "-> command pool found"
+		} elseif {[llength [poolcommands eval {SELECT command_id FROM commands WHERE channel=$command_channel AND command="all" AND activated=1}]] != 0} {
+			putlog "-> command ALL found"
+		} else {
+			putlog "-> protected"
+			putquick "PRIVMSG $chan :command !pool not allowed in $chan"
+			return
+		}
+    } else {
+    	putlog "-> not protected"
+    }
+    
 	set newurl [lindex $pool_info 1]
 	append newurl $action
 	append newurl [lindex $pool_info 2]
@@ -244,11 +260,7 @@ proc pool_info {nick host hand chan arg} {
 	set lineoutput [replacevar $lineoutput "%poolstats_efficiency%" [format "%.2f" [expr {100 - double(double($poolstats_sharesinvalid)/double($poolstats_sharesvalid)*100)}]]]
 	
 	if {$output eq "CHAN"} {
-		foreach advert $channels {
-			if {$advert eq $chan} {
-				putquick "PRIVMSG $chan :$lineoutput"
-			}
-		}
+		putquick "PRIVMSG $chan :$lineoutput"
 	} elseif {$output eq "NOTICE"} {
 		putquick "NOTICE $nick :$lineoutput"	
 	} else {
