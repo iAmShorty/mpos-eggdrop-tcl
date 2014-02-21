@@ -145,7 +145,7 @@ or   !blockfinder http://youpoolurl.tld false
 or   !blockfinder http://youpoolurl.tld 0
 </pre>
 
-Setting different Channels for specified Coin
+Setting different Channel Announces for specified Coin
 ================
 
 NOTE:
