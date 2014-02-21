@@ -26,6 +26,7 @@
 proc pool_add {nick uhost hand chan arg} {
 	global debug sqlite_poolfile
 	sqlite3 registeredpools $sqlite_poolfile
+	package require http
 	
 	if {[matchattr $nick +n]} {
 		putlog "$nick is botowner"
@@ -47,6 +48,45 @@ proc pool_add {nick uhost hand chan arg} {
 	set pool_payout [string toupper [lindex $arg 2]]
 	set pool_fee [lindex $arg 3]
 	set actualtime [unixtime]
+	
+	if {[string match "*https*" [string tolower $pool_url]]} {
+		set usehttps 1
+	} else {
+		set usehttps 0
+	}
+
+	if {$usehttps eq "1"} {
+		::http::register https 443 tls::socket
+	}
+
+	if {[catch { set token [http::geturl $pool_url -timeout 3000]} error] == 1} {
+		putlog "$error"
+		putquick "PRIVMSG $chan :ERROR: $error"
+		http::cleanup $token
+		return
+	} elseif {[http::ncode $token] == "404"} {
+		putlog "Error: [http::code $token]"
+		putquick "PRIVMSG $chan :ERROR: [http::code $token]"
+		http::cleanup $token
+		return
+	} elseif {[http::status $token] == "ok"} {
+		set data [http::data $token]
+		http::cleanup $token
+	} elseif {[http::status $token] == "timeout"} {
+		putlog "Timeout occurred"
+		putquick "PRIVMSG $chan :ERROR: Timeout occurred"
+		http::cleanup $token
+		return
+	} elseif {[http::status $token] == "error"} {
+		putlog "Error: [http::error $token]"
+		putquick "PRIVMSG $chan :ERROR: [http::error $token]"
+		http::cleanup $token
+		return
+	}
+        
+	if {$usehttps eq "1"} {
+		::http::unregister https
+	}	
 	
 	if {[llength [registeredpools eval {SELECT coin FROM pools WHERE coin=$pool_coin}]] == 0} {
 		if {[llength [registeredpools eval {SELECT url FROM pools WHERE url=$pool_url}]] == 0} {
@@ -192,7 +232,7 @@ proc pool_apikey {nick uhost hand arg} {
 	}
 
 	if {[llength $arg] != "2"} {
-		putquick "PRIVMSG $nick :wrong arguments, should be /msg BOTNICK !apikey POOLURL APIKEY"
+		putquick "NOTICE $nick :wrong arguments, should be /msg BOTNICK !apikey POOLURL APIKEY"
 		return
 	}
 	
@@ -200,7 +240,7 @@ proc pool_apikey {nick uhost hand arg} {
 	set api_key [lindex $arg 1]
 	if {[llength [registeredpools eval {SELECT url FROM pools WHERE url=$pool_url}]] != 0} {
 		putlog "-> adding api key"
-		putquick "PRIVMSG $nick :added api key for $pool_url"
+		putquick "NOTICE $nick :added api key for $pool_url"
 		registeredpools eval {UPDATE pools SET apikey=$api_key WHERE url=$pool_url}
 	}
 	registeredpools close

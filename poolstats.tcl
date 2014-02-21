@@ -78,9 +78,32 @@ proc pool_info {nick host hand chan arg} {
 	if {$usehttps eq "1"} {
 		::http::register https 443 tls::socket
 	}
-	set token [::http::geturl "$newurl"]
-	set data [::http::data $token]
-	::http::cleanup $token
+
+	if {[catch { set token [http::geturl $newurl -timeout 3000]} error] == 1} {
+		putlog "$error"
+		putquick "PRIVMSG $chan :ERROR: $error"
+		http::cleanup $token
+		return
+	} elseif {[http::ncode $token] == "404"} {
+		putlog "Error: [http::code $token]"
+		putquick "PRIVMSG $chan :ERROR: [http::code $token]"
+		http::cleanup $token
+		return
+	} elseif {[http::status $token] == "ok"} {
+		set data [http::data $token]
+		http::cleanup $token
+	} elseif {[http::status $token] == "timeout"} {
+		putlog "Timeout occurred"
+		putquick "PRIVMSG $chan :ERROR: Timeout occurred"
+		http::cleanup $token
+		return
+	} elseif {[http::status $token] == "error"} {
+		putlog "Error: [http::error $token]"
+		putquick "PRIVMSG $chan :ERROR: [http::error $token]"
+		http::cleanup $token
+		return
+	}
+
 	if {$usehttps eq "1"} {
 		::http::unregister https
 	}
