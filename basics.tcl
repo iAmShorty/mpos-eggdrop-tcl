@@ -46,7 +46,6 @@ bind pub no|- !pools pool_list
 bind msg no|- !apikey pool_apikey
 bind pub no|- !blockfinder announce_blockfinder
 bind pub no|- !announce announce_channel
-
 bind pub no|- !command channel_commands
 
 

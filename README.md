@@ -23,7 +23,7 @@ with some hard earned coins feel free to donate:
 * Bitcoin:             `14p1qAwme57Foq1vMBPxJGC51wuE9V6d9M`
 * DOGE:                `DEYvtW2u1gaJsBFMwRGTXZC2BZMoBjMznD`
 * Crypts Trade Key:    `d2e11bd8d3fcd98ba686a92be71f6c1d606a3368`
-* 
+
 FEATURES
 ================
 
@@ -275,9 +275,8 @@ USAGE
 If you are on IRC and the Bot sits in your channel, type one of the following commands to
 communicate with the bot and get the output right in the channel
 
+Commands for all Users
 <pre>
-!adduser IRCNICK                       - Adding User to userfile"
-!deluser IRCNICK                       - Deleting User from userfile"
 !block COINNAME                        - Blockstats"
 !pool COINNAME                         - Pool Information"
 !round COINNAME                        - Round Information"
@@ -289,14 +288,21 @@ communicate with the bot and get the output right in the channel
 !balance COINNAME USER                 - User Wallet Balance"
 !price                                 - Get actual Coinprice"
 !coinchoose COINNAME                   - Get actual Coininfo from Coinchoose"
-!pools                                 - Shows all registered Miningpools"
-!pools COINNAME                        - Shows registered Miningpools for specified coin"
-!addpool URL COIN PAYOUTSYS FEE        - Add Pool to Database"
-!delpool URL                           - Delete Pool from Database"
-!blockfinder URL enable/disable        - Activate/Deactivate Blockfinder announce in channel for specified pool"
-!announce COIN CHANNEL enable/disable  - Set Announce for specified Coin an Channel, else post in Standard set in config"
-/msg Botnick !apikey URL APIKEY        - Adds Apikey for specified host"
 ?help                                  - This help text"
+</pre>
+
+Commands only for Bot Owners
+<pre>
+!adduser IRCNICK                           - Adding User to userfile"
+!deluser IRCNICK                           - Deleting User from userfile"
+!pools                                     - Shows all registered Miningpools"
+!pools COINNAME                            - Shows registered Miningpools for specified coin"
+!addpool URL COIN PAYOUTSYS FEE            - Add Pool to Database"
+!delpool URL                               - Delete Pool from Database"
+!blockfinder URL enable/disable            - Activate/Deactivate Blockfinder announce in channel for specified pool"
+!announce COIN CHANNEL enable/disable      - Set Announce for specified Coin an Channel, else post in Standard set in config"
+!command COMMANDNAME COIN #channel enable  - Set ACL for Commands"
+/msg Botnick !apikey URL APIKEY            - Adds Apikey for specified host"
 </pre>
 
 Contributing
