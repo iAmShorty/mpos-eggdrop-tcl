@@ -286,8 +286,10 @@ proc advertise_block {blockid blockfinder_coinname blockfinder_newblock blockfin
 	
 	if {[llength [announcecoins eval {SELECT announce_id FROM announce WHERE coin=$blockfinder_coinname AND advertise=1}]] != 0} {
 		set advertchan [announcecoins eval {SELECT channel FROM announce WHERE coin=$blockfinder_coinname}]
-		putquick "PRIVMSG $advertchan :$lineoutput"
+		if {$debug eq "1"} { putlog "specific chan for coin $blockfinder_coinname found: $advertchan!" }
+		putquick "PRIVMSG #$advertchan :$lineoutput"
 	} else {
+		if {$debug eq "1"} { putlog "no specific chan for coin $blockfinder_coinname found!" }
 		foreach advert $channels {
 			putquick "PRIVMSG $advert :$lineoutput"
 		}

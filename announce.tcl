@@ -38,6 +38,7 @@ proc announce_channel {nick uhost hand chan arg} {
 	if {[llength $arg] == 3} {
 		set announce_coin [string toupper [lindex $arg 0]]
 		set announce_channel [string tolower [lindex $arg 1]]
+		regsub "#" $announce_channel "" announce_channel
 		set announce_action [string tolower [lindex $arg 2]]
 		if {$debug eq "1"} { putlog "$announce_coin - $announce_channel - $announce_action" }
 	}
@@ -53,7 +54,7 @@ proc announce_channel {nick uhost hand chan arg} {
 				} else {
 					set announcement "inactive" 
 				}
-				append outvar "\002Coin:\002 $coin -> \002Channel:\002 $channel -> \002Announce:\002 $announcement\n"
+				append outvar "\002Coin:\002 $coin -> \002Channel:\002 #$channel -> \002Announce:\002 $announcement\n"
 			}
 		}
 		
@@ -72,7 +73,7 @@ proc announce_channel {nick uhost hand chan arg} {
 			} else {
 				if {$debug eq "1"} { putlog "-> activating announce for coin $announce_coin" }
 				putquick "PRIVMSG $chan :activating announce for coin $announce_coin"
-				announcecoins eval {UPDATE announce SET advertise=1 WHERE coin=$announce_coin}
+				announcecoins eval {UPDATE announce SET channel=$announce_channel, advertise=1 WHERE coin=$announce_coin}
 			}
 		} else {
 			if {$debug eq "1"} { putlog "-> Pool URL or API Key for coin $announce_coin not found" }
@@ -81,7 +82,7 @@ proc announce_channel {nick uhost hand chan arg} {
 		if {[llength [announcecoins eval {SELECT announce_id FROM announce WHERE coin=$announce_coin}]] != 0} {
 			if {$debug eq "1"} { putlog "-> deactivating announce for coin $announce_coin" }
 			putquick "PRIVMSG $chan :deactivating announce for coin $announce_coin"
-			announcecoins eval {UPDATE announce SET advertise=0 WHERE coin=$announce_coin}
+			announcecoins eval {UPDATE announce SET channel=$announce_channel, advertise=0 WHERE coin=$announce_coin}
 		} else {
 			if {$debug eq "1"} { putlog "-> No Anncounce for Coin $announce_coin in Database" }
 		}
