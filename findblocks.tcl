@@ -97,13 +97,11 @@ proc checknewblocks {} {
 
 			if {[catch { set token [http::geturl $newurl -timeout 3000]} error] == 1} {
 				putlog "$error"
-				putquick "PRIVMSG $chan :ERROR: $error"
 				catch {::http::cleanup $token}
 				set checknewblocks_running [utimer $blockchecktime checknewblocks]
 				return
 			} elseif {[http::ncode $token] == "404"} {
 				putlog "Error: [http::code $token]"
-				putquick "PRIVMSG $chan :ERROR: [http::code $token]"
 				catch {::http::cleanup $token}
 				set checknewblocks_running [utimer $blockchecktime checknewblocks]
 				return
@@ -112,13 +110,11 @@ proc checknewblocks {} {
 				catch {::http::cleanup $token}
 			} elseif {[http::status $token] == "timeout"} {
 				putlog "Timeout occurred"
-				putquick "PRIVMSG $chan :ERROR: Timeout occurred"
 				catch {::http::cleanup $token}
 				set checknewblocks_running [utimer $blockchecktime checknewblocks]
 				return
 			} elseif {[http::status $token] == "error"} {
 				putlog "Error: [http::error $token]"
-				putquick "PRIVMSG $chan :ERROR: [http::error $token]"
 				catch {::http::cleanup $token}
 				set checknewblocks_running [utimer $blockchecktime checknewblocks]
 				return

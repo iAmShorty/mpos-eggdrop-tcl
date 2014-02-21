@@ -26,6 +26,7 @@ set sqlite_poolfile "$scriptpath/db/pooldata.db"
 set sqlite_userfile "$scriptpath/db/userdata.db"
 set sqlite_blockfile "$scriptpath/db/blockdata.db"
 set sqlite_announce "$scriptpath/db/announce.db"
+set sqlite_commands "$scriptpath/db/commands.db"
 
 if {![file exists "$scriptpath/db"]} {
 	file mkdir "$scriptpath/db" 
@@ -53,6 +54,12 @@ if {![file exists $sqlite_announce]} {
 	sqlite3 announce $sqlite_announce
 	announce eval {CREATE TABLE announce(announce_id integer primary key autoincrement, coin TEXT NOT NULL, channel TEXT NOT NULL, advertise INTEGER DEFAULT 0)}
 	announce close
+}
+
+if {![file exists $sqlite_commands]} { 
+	sqlite3 commands $sqlite_commands
+	commands eval {CREATE TABLE commands(command_id integer primary key autoincrement, command TEXT NOT NULL, channel TEXT NOT NULL, activated INTEGER DEFAULT 0)}
+	commands close
 }
 
 putlog "===>> Mining-Pool-DB-Initialization - Version $scriptversion loaded"

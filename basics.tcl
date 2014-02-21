@@ -43,6 +43,10 @@ bind msg no|- !apikey pool_apikey
 bind pub no|- !blockfinder announce_blockfinder
 bind pub no|- !announce announce_channel
 
+bind pub no|- !commands channel_commands
+bind pub - !hashrate pool_hashrate
+bind pub - !diff pool_diff
+
 if {[catch {package require http 2.5}]} { 
 	putlog "Eggdrop: package http 2.5 or above required"
 	die "Eggdrop: package http 2.5 or above required"
@@ -63,6 +67,15 @@ if {[array exists output_userstats_percoin]} { unset output_userstats_percoin }
 if {[array exists output_workerinfo_percoin]} { unset output_workerinfo_percoin }
 if {[array exists output_worker_offline_percoin]} { unset output_worker_offline_percoin }
 if {[array exists output_worker_online_percoin]} { unset output_worker_online_percoin }
+
+#
+# Setting Array for Commands
+#
+set protected_commands {
+	"hashrate"
+	"diff"
+}
+
 #
 # getting the pool vars from dictionary
 # set in config for specific pool

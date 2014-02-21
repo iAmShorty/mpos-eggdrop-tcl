@@ -21,6 +21,64 @@
 ######################################################################
 
 #
+# Allowing commands for Coins in Channel
+#
+proc channel_commands {nick uhost hand chan arg} {
+	global debug sqlite_commands sqlite_announce
+	sqlite3 poolcommands $sqlite_commands
+	sqlite3 announcecoins $sqlite_announce
+
+	if {[matchattr $nick +n]} {
+		if {$debug eq "1"} { putlog "$nick is botowner" }
+	} else {
+		if {$debug eq "1"} { putlog "$nick tried to add $arg to pools" }
+		return
+	}
+
+	if {[llength $arg] == 3} {
+		set command_name [string toupper [lindex $arg 0]]
+		set command_channel [string tolower [lindex $arg 1]]
+		regsub "#" $command_channel "" command_channel
+		set command_action [string tolower [lindex $arg 2]]
+		if {$debug eq "1"} { putlog "$command_name - $command_channel - $command_action" }
+	}
+	
+	if {$command_action eq "enable" || $command_action eq "true" || $command_action eq "1"} {
+		if {[llength [announcecoins eval {SELECT announce_id FROM announce WHERE channel=$command_channel}]] == 0} {
+			if {$debug eq "1"} { putlog "-> #$announce_channel not found in Database " }
+		} else {
+			if {[llength [poolcommands eval {SELECT command_id FROM commands WHERE channel=$command_channel}]] == 0} {
+				if {$debug eq "1"} { putlog "-> activating command $command_name in #$command_channel" }
+				putquick "PRIVMSG $chan :activating command $command_name in #$command_channel"
+				poolcommands eval {INSERT INTO commands (command,channel,activated) VALUES ($command_name,$command_channel,1)}
+			} else {
+				if {$debug eq "1"} { putlog "-> activating command $command_name in #$command_channel" }
+				putquick "PRIVMSG $chan :activating command $command_name in #$command_channel"
+				poolcommands eval {UPDATE commands SET activated=1 WHERE command=$command_name AND channel=$command_channel}
+			}
+
+		}
+	} elseif {$command_action eq "disable" || $command_action eq "false" || $command_action eq "0"} {
+		if {[llength [announcecoins eval {SELECT announce_id FROM announce WHERE channel=$command_channel}]] == 0} {
+			if {$debug eq "1"} { putlog "-> #$announce_channel not found in Database " }
+		} else {
+			if {[llength [poolcommands eval {SELECT command_id FROM commands WHERE channel=$command_channel}]] == 0} {
+				if {$debug eq "1"} { putlog "-> deactivating command $command_name in #$command_channel" }
+				putquick "PRIVMSG $chan :deactivating command $command_name in #$command_channel"
+				poolcommands eval {INSERT INTO commands (command,channel,activated) VALUES ($command_name,$command_channel,0)}
+			} else {
+				if {$debug eq "1"} { putlog "-> deactivating command $command_name in #$command_channel" }
+				putquick "PRIVMSG $chan :deactivating command $command_name in #$command_channel"
+				poolcommands eval {UPDATE commands SET activated=0 WHERE command=$command_name AND channel=$command_channel)}
+			}
+
+		}
+	}
+	announcecoins close
+	poolcommands close
+}
+
+#
 # adding specific channels for advertising blockfinder stats
 #
 proc announce_channel {nick uhost hand chan arg} {
@@ -67,12 +125,12 @@ proc announce_channel {nick uhost hand chan arg} {
 	} elseif {$announce_action eq "enable" || $announce_action eq "true" || $announce_action eq "1"} {
 		if {[llength [registeredpools eval {SELECT pool_id FROM pools WHERE coin=$announce_coin AND apikey != 0}]] != 0} {
 			if {[llength [announcecoins eval {SELECT announce_id FROM announce WHERE coin=$announce_coin AND channel=$announce_channel}]] == 0} {
-				if {$debug eq "1"} { putlog "-> activating announce for coin $announce_coin" }
-				putquick "PRIVMSG $chan :activating announce for coin $announce_coin"
+				if {$debug eq "1"} { putlog "-> activating announce for coin $announce_coin in #$announce_channel" }
+				putquick "PRIVMSG $chan :activating announce for coin $announce_coin in #$announce_channel"
 				announcecoins eval {INSERT INTO announce (coin,channel,advertise) VALUES ($announce_coin,$announce_channel,1)}
 			} else {
-				if {$debug eq "1"} { putlog "-> activating announce for coin $announce_coin" }
-				putquick "PRIVMSG $chan :activating announce for coin $announce_coin"
+				if {$debug eq "1"} { putlog "-> activating announce for coin $announce_coin in #$announce_channel" }
+				putquick "PRIVMSG $chan :activating announce for coin $announce_coin in #$announce_channel"
 				announcecoins eval {UPDATE announce SET advertise=1 WHERE coin=$announce_coin AND channel=$announce_channel}
 			}
 		} else {
@@ -80,22 +138,22 @@ proc announce_channel {nick uhost hand chan arg} {
 		}
 	} elseif {$announce_action eq "disable" || $announce_action eq "false" || $announce_action eq "0"} {
 		if {[llength [announcecoins eval {SELECT announce_id FROM announce WHERE coin=$announce_coin AND channel=$announce_channel}]] != 0} {
-			if {$debug eq "1"} { putlog "-> deactivating announce for coin $announce_coin" }
-			putquick "PRIVMSG $chan :deactivating announce for coin $announce_coin"
+			if {$debug eq "1"} { putlog "-> deactivating announce for coin $announce_coin in #$announce_channel" }
+			putquick "PRIVMSG $chan :deactivating announce for coin $announce_coin in #$announce_channel"
 			announcecoins eval {UPDATE announce SET advertise=0 WHERE coin=$announce_coin AND channel=$announce_channel}
 		} else {
 			if {$debug eq "1"} { putlog "-> No Anncounce for Coin $announce_coin in Database" }
 		}
 	} elseif {$announce_action eq "delete"} {
 		if {[llength [announcecoins eval {SELECT announce_id FROM announce WHERE coin=$announce_coin AND channel=$announce_channel}]] != 0} {
-			if {$debug eq "1"} { putlog "-> deleting announce for coin $announce_coin" }
-			putquick "PRIVMSG $chan :deleting announce for coin $announce_coin"
+			if {$debug eq "1"} { putlog "-> deleting announce for coin $announce_coin in #$announce_channel" }
+			putquick "PRIVMSG $chan :deleting announce for coin $announce_coin in #$announce_channel"
 			announcecoins eval {DELETE FROM announce WHERE coin=$announce_coin AND channel=$announce_channel}
 		} else {
 			if {$debug eq "1"} { putlog "-> No Anncounce for Coin $announce_coin in Database" }
 		}
 	} else {
-		if {$debug eq "1"} { putlog "-> internal error, should not happen..." }
+		if {$debug eq "1"} { putlog "-> something went wrong..." }
 	}
 	announcecoins close
 	registeredpools close
