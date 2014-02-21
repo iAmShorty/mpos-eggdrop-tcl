@@ -30,12 +30,15 @@ bind pub - !user user_info
 bind pub - !round round_info
 bind pub - !worker worker_info
 bind pub - !balance balance_info
+bind pub - !hashrate pool_hashrate
+bind pub - !diff pool_diff
 bind pub - !coinchoose coinchoose_info
+bind pub - !request user_request
 bind pub - ?help printUsage
 bind pub - !help printUsage
+
 bind pub no|- !adduser user_add
 bind pub no|- !deluser user_del
-bind pub - !request user_request
 bind pub no|- !addpool pool_add
 bind pub no|- !delpool pool_del
 bind pub no|- !pools pool_list
@@ -44,8 +47,7 @@ bind pub no|- !blockfinder announce_blockfinder
 bind pub no|- !announce announce_channel
 
 bind pub no|- !commands channel_commands
-bind pub - !hashrate pool_hashrate
-bind pub - !diff pool_diff
+
 
 if {[catch {package require http 2.5}]} { 
 	putlog "Eggdrop: package http 2.5 or above required"
@@ -69,11 +71,20 @@ if {[array exists output_worker_offline_percoin]} { unset output_worker_offline_
 if {[array exists output_worker_online_percoin]} { unset output_worker_online_percoin }
 
 #
-# Setting Array for Commands
+# Setting protected Commands
 #
 set protected_commands {
 	"hashrate"
 	"diff"
+	"pool"
+	"block"
+	"last"
+	"user"
+	"round"
+	"worker"
+	"balance"
+	"coinchoose"
+	"request"
 }
 
 #
@@ -85,7 +96,7 @@ proc pool_vars {coinname} {
 	sqlite3 registeredpools $sqlite_poolfile
 	
 	set pool_found "false"
-	if {[llength [registeredpools eval {SELECT apikey FROM pools WHERE coin=$coinname}]] == 0} {
+	if {[llength [registeredpools eval {SELECT apikey FROM pools WHERE coin=$coinname}]] != 0} {
 		set poolscount [registeredpools eval {SELECT COUNT(1) FROM pools WHERE apikey != 0 AND coin == $coinname}]
 		putlog "Number of Pools: $poolscount"
 		foreach {apiurl poolcoin apikey} [registeredpools eval {SELECT url,coin,apikey FROM pools WHERE apikey != 0 AND coin == $coinname} ] {

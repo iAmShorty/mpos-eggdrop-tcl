@@ -24,7 +24,7 @@
 # Account Balance
 #
 proc balance_info {nick host hand chan arg} {
-	global help_blocktime help_blocked channels debug debugoutput output onlyallowregisteredusers ownersbalanceonly output_balance output_balance_percoin
+	global help_blocktime help_blocked channels debug debugoutput output onlyallowregisteredusers ownersbalanceonly output_balance output_balance_percoin protected_commands
 	package require http
 	package require json
 	package require tls
@@ -51,7 +51,7 @@ proc balance_info {nick host hand chan arg} {
 		}
 	}
 
-	if {$arg eq "" || [llength $arg] < 2} {
+	if {$arg eq "" || [llength $arg] != 2} {
 		if {$debug eq "1"} { putlog "wrong arguments, must be !balance poolname username" }
 		return
 	}
@@ -76,7 +76,13 @@ proc balance_info {nick host hand chan arg} {
 	} else {
 		if {$debug eq "1"} { putlog "no pool data" }
 		return
-	} 
+	}
+	
+	if {[info exists protected_commands("balance")]} {
+		putlog "-> protected"
+	} else {
+		putlog "-> not protected"
+	}
 
 	set newurl [lindex $pool_info 1]
 	append newurl $action
