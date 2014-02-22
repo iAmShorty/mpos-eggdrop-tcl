@@ -26,9 +26,6 @@
 proc block_info {nick host hand chan arg} {
 	global help_blocktime help_blocked channels debug debugoutput output onlyallowregisteredusers output_blockinfo output_blockinfo_percoin protected_commands sqlite_commands
 	sqlite3 poolcommands $sqlite_commands
-	package require http
-	package require json
-	package require tls
 
 	if {$onlyallowregisteredusers eq "1"} {
 		set hostmask "$nick!*[getchanhost $nick $chan]"
@@ -69,16 +66,16 @@ proc block_info {nick host hand chan arg} {
 	if {[lsearch $protected_commands "block"] > 0 } {
 		regsub "#" $chan "" command_channel
 		if {[llength [poolcommands eval {SELECT command_id FROM commands WHERE channel=$command_channel AND command="block" AND activated=1}]] != 0} {
-			putlog "-> command block found"
+			if {$debug eq "1"} { putlog "-> command block found" }
 		} elseif {[llength [poolcommands eval {SELECT command_id FROM commands WHERE channel=$command_channel AND command="all" AND activated=1}]] != 0} {
-			putlog "-> command ALL found"
+			if {$debug eq "1"} { putlog "-> command ALL found" }
 		} else {
-			putlog "-> protected"
+			if {$debug eq "1"} { putlog "-> protected" }
          	putquick "PRIVMSG $chan :command !block not allowed in $chan"
          	return
 		}
     } else {
-    	putlog "-> not protected"
+    	if {$debug eq "1"} { putlog "-> not protected" }
     }
     
 	set newurl [lindex $pool_info 1]
@@ -191,9 +188,6 @@ proc block_info {nick host hand chan arg} {
 proc last_info {nick host hand chan arg } {
 	global help_blocktime help_blocked channels debug debugoutput output onlyallowregisteredusers output_lastblock output_lastblock_percoin protected_commands sqlite_commands
 	sqlite3 poolcommands $sqlite_commands
-	package require http
-	package require json
-	package require tls
 
 	if {$onlyallowregisteredusers eq "1"} {
 		set hostmask "$nick!*[getchanhost $nick $chan]"
@@ -243,16 +237,16 @@ proc last_info {nick host hand chan arg } {
 	if {[lsearch $protected_commands "last"] > 0 } {
 		regsub "#" $chan "" command_channel
 		if {[llength [poolcommands eval {SELECT command_id FROM commands WHERE channel=$command_channel AND command="last" AND activated=1}]] != 0} {
-			putlog "-> command last found"
+			if {$debug eq "1"} { putlog "-> command last found" }
 		} elseif {[llength [poolcommands eval {SELECT command_id FROM commands WHERE channel=$command_channel AND command="all" AND activated=1}]] != 0} {
-			putlog "-> command ALL found"
+			if {$debug eq "1"} { putlog "-> command ALL found" }
 		} else {
-			putlog "-> protected"
+			if {$debug eq "1"} { putlog "-> protected" }
 			putquick "PRIVMSG $chan :command !last not allowed in $chan"
 			return
 		}
     } else {
-    	putlog "-> not protected"
+    	if {$debug eq "1"} { putlog "-> not protected" }
     }
     
 	set newurl [lindex $pool_info 1]

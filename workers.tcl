@@ -26,10 +26,7 @@
 proc worker_info {nick host hand chan arg} {
 	global help_blocktime help_blocked channels debug debugoutput output onlyallowregisteredusers ownersworkeronly output_workerinfo output_worker_online output_worker_offline protected_commands sqlite_commands
 	sqlite3 poolcommands $sqlite_commands
-	package require http
-	package require json
-	package require tls
-
+	
 	# only allow bot owners to get workers for 
 	# specified users
 	#
@@ -82,16 +79,16 @@ proc worker_info {nick host hand chan arg} {
 	if {[lsearch $protected_commands "worker"] > 0 } {
 		regsub "#" $chan "" command_channel
 		if {[llength [poolcommands eval {SELECT command_id FROM commands WHERE channel=$command_channel AND command="worker" AND activated=1}]] != 0} {
-			putlog "-> command worker found"
+			if {$debug eq "1"} { putlog "-> command worker found" }
 		} elseif {[llength [poolcommands eval {SELECT command_id FROM commands WHERE channel=$command_channel AND command="all" AND activated=1}]] != 0} {
-			putlog "-> command ALL found"
+			if {$debug eq "1"} { putlog "-> command ALL found" }
 		} else {
-			putlog "-> protected"
+			if {$debug eq "1"} { putlog "-> protected" }
 			putquick "PRIVMSG $chan :command !worker not allowed in $chan"
 			return
 		}
     } else {
-    	putlog "-> not protected"
+    	if {$debug eq "1"} { putlog "-> not protected" }
     }
     
 	set newurl [lindex $pool_info 1]

@@ -54,10 +54,6 @@ proc checknewblocks {} {
 	sqlite3 advertiseblocks $sqlite_blockfile
 	sqlite3 registeredpools $sqlite_poolfile
 	
-	package require http
-	package require json
-	package require tls
-	
 	set action "/index.php?page=api&action=getblocksfound&api_key="
 	set advertise_block 0
 	set writeblockfile "no"
@@ -72,9 +68,9 @@ proc checknewblocks {} {
 
 	set poolscount [registeredpools eval {SELECT COUNT(1) FROM pools WHERE blockfinder != 0 AND apikey != 0}]
 	if {$poolscount == 0} {
-		putlog "\[BLOCKFINDER\] -> no active pools found"
+		if {$debug eq "1"} { putlog "\[BLOCKFINDER\] -> no active pools found" }
 	} else {
-		putlog "\[BLOCKFINDER\] -> active Pools: $poolscount"
+		if {$debug eq "1"} { putlog "\[BLOCKFINDER\] -> active Pools: $poolscount" }
 		foreach {apiurl poolcoin apikey} [registeredpools eval {SELECT url,coin,apikey FROM pools WHERE blockfinder != 0 AND apikey != 0} ] {
 			if {$debug eq "1"} { putlog "checking for new blocks on [string toupper $poolcoin] Pool" }
 			if {$debug eq "1"} { putlog "COIN: $poolcoin" }
@@ -96,12 +92,12 @@ proc checknewblocks {} {
 			}
 
 			if {[catch { set token [http::geturl $newurl -timeout 3000]} error] == 1} {
-				putlog "$error"
+				if {$debug eq "1"} { putlog "$error" }
 				catch {::http::cleanup $token}
 				set checknewblocks_running [utimer $blockchecktime checknewblocks]
 				return
 			} elseif {[http::ncode $token] == "404"} {
-				putlog "Error: [http::code $token]"
+				if {$debug eq "1"} { putlog "Error: [http::code $token]" }
 				catch {::http::cleanup $token}
 				set checknewblocks_running [utimer $blockchecktime checknewblocks]
 				return
@@ -109,12 +105,12 @@ proc checknewblocks {} {
 				set data [::http::data $token]
 				catch {::http::cleanup $token}
 			} elseif {[http::status $token] == "timeout"} {
-				putlog "Timeout occurred"
+				if {$debug eq "1"} { putlog "Timeout occurred" }
 				catch {::http::cleanup $token}
 				set checknewblocks_running [utimer $blockchecktime checknewblocks]
 				return
 			} elseif {[http::status $token] == "error"} {
-				putlog "Error: [http::error $token]"
+				if {$debug eq "1"} { putlog "Error: [http::error $token]" }
 				catch {::http::cleanup $token}
 				set checknewblocks_running [utimer $blockchecktime checknewblocks]
 				return

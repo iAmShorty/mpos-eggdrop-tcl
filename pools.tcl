@@ -27,10 +27,6 @@ proc pool_add {nick uhost hand chan arg} {
 	global debug sqlite_poolfile
 	sqlite3 registeredpools $sqlite_poolfile
 	
-	package require http
-	package require json
-	package require tls
-	
 	if {[matchattr $nick +n]} {
 		if {$debug eq "1"} { putlog "$nick is botowner" }
 	} else {

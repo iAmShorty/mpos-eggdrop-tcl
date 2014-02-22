@@ -22,7 +22,7 @@ with some hard earned coins feel free to donate:
 * Litecoin:            `LQXG758pmkFsMVvne3pxBB7222PNyLJUMk`
 * Bitcoin:             `14p1qAwme57Foq1vMBPxJGC51wuE9V6d9M`
 * DOGE:                `DEYvtW2u1gaJsBFMwRGTXZC2BZMoBjMznD`
-* Crypts Trade Key:    `d2e11bd8d3fcd98ba686a92be71f6c1d606a3368`
+* Cryptsy Trade Key:    `d2e11bd8d3fcd98ba686a92be71f6c1d606a3368`
 
 FEATURES
 ================
@@ -157,19 +157,23 @@ Commands typed in channel, not for Advertising Blockfinder Statistics.
 Activating Announce for specified Coin to a specific Channel
 
 <pre>
-!announce COIN #channel 1
+e.g. !announce COIN #channel enable
+or !announce COIN #channel true
+or !announce COIN #channel 1
 </pre>
 
 Deactivating Announce for specified Coin to a specific Channel (defaults from config File will be used)
 
 <pre>
-!announce mac #channel 0
+e.g. !announce COIN #channel disable
+or !announce COIN #channel false
+or !announce COIN #channel 0
 </pre>
 
 Deleting Announces from Database
 
 <pre>
-!announce mac #auxmining delete
+!announce COIN #channel delete
 </pre>
 
 Showing Announcement entries, will show all entries in Announce Table

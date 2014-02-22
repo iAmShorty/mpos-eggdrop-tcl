@@ -48,12 +48,26 @@ bind pub no|- !blockfinder announce_blockfinder
 bind pub no|- !announce announce_channel
 bind pub no|- !command channel_commands
 
-
+#
+# check for required packages
+#
 if {[catch {package require http 2.5}]} { 
-	putlog "Eggdrop: package http 2.5 or above required"
+	if {$debug eq "1"} { putlog "Eggdrop: package http 2.5 or above required" }
 	die "Eggdrop: package http 2.5 or above required"
 }
-      
+if {[catch {package require json}]} { 
+	if {$debug eq "1"} { putlog "Eggdrop: package json required" }
+	die "Eggdrop: package json required"
+}
+if {[catch {package require tls}]} { 
+	if {$debug eq "1"} { putlog "Eggdrop: package tls required" }
+	die "Eggdrop: package tls required"
+}
+if {[catch {package require sqlite3}]} { 
+	if {$debug eq "1"} { putlog "Eggdrop: package sqlite3 required" }
+	die "Eggdrop: package sqlite3 required"
+}
+
 #
 # unset arrays for userdefined ouput when rehashing the bot, otherwise the
 # array variables are always present, even if they are commented out. arrays are set
@@ -81,7 +95,7 @@ proc pool_vars {coinname} {
 	set pool_found "false"
 	if {[llength [registeredpools eval {SELECT apikey FROM pools WHERE coin=$coinname}]] != 0} {
 		set poolscount [registeredpools eval {SELECT COUNT(1) FROM pools WHERE apikey != 0 AND coin == $coinname}]
-		putlog "Number of Pools: $poolscount"
+		if {$debug eq "1"} { putlog "Number of Pools: $poolscount" }
 		foreach {apiurl poolcoin apikey} [registeredpools eval {SELECT url,coin,apikey FROM pools WHERE apikey != 0 AND coin == $coinname} ] {
 			if {[string toupper $poolcoin] eq [string toupper $coinname]} {
 				set pool_found "true"
@@ -89,7 +103,7 @@ proc pool_vars {coinname} {
 			}
 		}
 	} else {
-		putlog "API Key for Pool not found"
+		if {$debug eq "1"} { putlog "API Key for Pool not found" }
 	}
 
 	registeredpools close
