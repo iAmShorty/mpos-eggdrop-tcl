@@ -22,8 +22,8 @@ with some hard earned coins feel free to donate:
 * Litecoin:            `LQXG758pmkFsMVvne3pxBB7222PNyLJUMk`
 * Bitcoin:             `14p1qAwme57Foq1vMBPxJGC51wuE9V6d9M`
 * DOGE:                `DEYvtW2u1gaJsBFMwRGTXZC2BZMoBjMznD`
-* Crypts Trade Key:    `d2e11bd8d3fcd98ba686a92be71f6c1d606a3368`
-* 
+* Cryptsy Trade Key:    `d2e11bd8d3fcd98ba686a92be71f6c1d606a3368`
+
 FEATURES
 ================
 
@@ -31,6 +31,8 @@ FEATURES
 * Support for multiple Pools
 * Easy add Pools on the fly
 * Enable/Disable Pools on the fly
+* Output can set to separate channels for each coin
+* Command ACL per Channel, Coin and Command
 * All Pool related Settings can be set on the fly and without rehashing the Bot
 * Show registered Pools on channel
 * Advertise Pools in Channel at a given timeframe
@@ -70,15 +72,11 @@ INSTALL
 #
 # basic scripts for settings and functions
 #
-source scripts/mininginfo/http.tcl
 source scripts/mininginfo/config.tcl
 source scripts/mininginfo/basics.tcl
 source scripts/mininginfo/bothelp.tcl
 source scripts/mininginfo/output.tcl
 source scripts/mininginfo/sqlite.tcl
-source scripts/mininginfo/pools.tcl
-source scripts/mininginfo/users.tcl
-
 # statistic scripts
 #
 source scripts/mininginfo/balance.tcl
@@ -91,6 +89,9 @@ source scripts/mininginfo/workers.tcl
 
 # additional scripts - non mpos related
 #
+source scripts/mininginfo/pools.tcl
+source scripts/mininginfo/users.tcl
+source scripts/mininginfo/announce.tcl
 source scripts/mininginfo/marketdata.tcl
 source scripts/mininginfo/coinchoose.tcl
 source scripts/mininginfo/notify.tcl
@@ -103,7 +104,8 @@ Setting up multiple Pools is very easy
 
 NOTE:
 Only Botowners can manage Pools. You have to be recognized by the bot, else
-you can't fire any of the commands.
+you can't fire any of the commands. You can add as many Pools as you want.
+Apiurl and Apikey are the Values from your MPOS installation.
 
 Add a Pool
 <pre>
@@ -144,9 +146,47 @@ or   !blockfinder http://youpoolurl.tld false
 or   !blockfinder http://youpoolurl.tld 0
 </pre>
 
-You can add as many as you want. For example, the Value "BTC" is the Coin Name, used to query the Pool.
-Apiurl and Apikey are the Values from your MPOS installation. So, if your Pool Coin is set to "BTC"
-you can query the bot with following command
+Setting different Channel Announces for specified Coin
+================
+
+NOTE:
+If not set for Coin, default Channels from Config file will be used. If you set different
+Channels to advertise the Coins, config file entries will only be used to recognize
+Commands typed in channel, not for Advertising Blockfinder Statistics.
+
+Activating Announce for specified Coin to a specific Channel
+
+<pre>
+e.g. !announce COIN #channel enable
+or !announce COIN #channel true
+or !announce COIN #channel 1
+</pre>
+
+Deactivating Announce for specified Coin to a specific Channel (defaults from config File will be used)
+
+<pre>
+e.g. !announce COIN #channel disable
+or !announce COIN #channel false
+or !announce COIN #channel 0
+</pre>
+
+Deleting Announces from Database
+
+<pre>
+!announce COIN #channel delete
+</pre>
+
+Showing Announcement entries, will show all entries in Announce Table
+
+<pre>
+!announce
+</pre>
+
+Using Commands to query the Infos
+================
+
+Let's say the Value "BTC" is the Coin Name, used to query the Pool.
+So, if your Pool Coin is set to "BTC" you can query the bot with following command
 
 <pre>
 !pool BTC
@@ -157,6 +197,57 @@ Querying userinfos works like that
 <pre>
 !user BTC USERNAME
 </pre>
+
+Commands ACL
+================
+
+You can set access rights for every command and coin in defined Channels. Only set Commands
+that should be protected in use.
+
+<pre>
+set protected_commands {
+	"hashrate"
+	"diff"
+	"pool"
+	"block"
+	"last"
+	"user"
+	"round"
+	"worker"
+	"balance"
+	"coinchoose"
+	"request"
+	"price"
+}
+</pre>
+
+This is a Standard List of Commands that are protected. If you want specific Commands
+not to be protected, remove them from the list and they will trigger in every Channel.
+If you want to allow commands for a specific channel or coin, only activate them via
+!command.
+
+Use one of the Values set in protected_commands as COMMANDNAME. If you use ALL instead
+of COMMANDNAME, all commands are allowed in specified channel.
+<pre>
+e.g. !command COMMANDNAME COIN #channel enable
+or !command COMMANDNAME COIN #channel true
+or !command COMMANDNAME COIN #channel 1
+</pre>
+
+You can simply disable the Command like this
+<pre>
+e.g. !command COMMANDNAME COIN #channel disable
+or !command COMMANDNAME COIN #channel false
+or !command COMMANDNAME COIN #channel 0
+</pre>
+
+Or delete them from Command list
+<pre>
+e.g. !command COMMANDNAME COIN #channel delete
+</pre>
+
+NOTE:
+Commands in protected_commands and not enabled via !command, will not work
 
 Creating self defined Output
 ================
@@ -188,27 +279,35 @@ USAGE
 If you are on IRC and the Bot sits in your channel, type one of the following commands to
 communicate with the bot and get the output right in the channel
 
+Commands for all Users
 <pre>
-!adduser IRCNICK                  - Adding User to userfile"
-!deluser IRCNICK                  - Deleting User from userfile"
-!block COINNAME                   - Blockstats"
-!pool COINNAME                    - Pool Information"
-!round COINNAME                   - Round Information"
-!last COINNAME                    - Last found Block"
-!user COINNAME USER               - User Information"
-!worker COINNAME USER             - Workerinfo for user"
-!worker COINNAME USER active      - Users active Workers"
-!worker COINNAME USER inactive    - User inactive Workers"
-!balance COINNAME USER            - User Wallet Balance"
-!price                            - Get actual Coinprice"
-!coinchoose COINNAME              - Get actual Coininfo from Coinchoose"
-!pools                            - Shows all registered Miningpools"
-!pools COINNAME                   - Shows registered Miningpools for specified coin"
-!addpool URL COIN PAYOUTSYS FEE   - Add Pool to Database"
-!delpool URL                      - Delete Pool from Database"
-!blockfinder URL enable/disable   - Activate/Deactivate Blockfinder announce in channel for specified pool"
-/msg Botnick !apikey URL APIKEY   - Adds Apikey for specified host"
-?help                             - This help text"
+!block COINNAME                        - Blockstats
+!pool COINNAME                         - Pool Information
+!round COINNAME                        - Round Information
+!last COINNAME                         - Last found Block
+!user COINNAME USER                    - User Information
+!worker COINNAME USER                  - Workerinfo for user
+!worker COINNAME USER active           - Users active Workers
+!worker COINNAME USER inactive         - User inactive Workers
+!balance COINNAME USER                 - User Wallet Balance
+!price                                 - Get actual Coinprice
+!coinchoose COINNAME                   - Get actual Coininfo from Coinchoose
+!request                               - Request Access to Bot Commands
+?help                                  - This help text
+</pre>
+
+Commands only for Bot Owners
+<pre>
+!adduser IRCNICK                           - Adding User to userfile
+!deluser IRCNICK                           - Deleting User from userfile
+!pools                                     - Shows all registered Miningpools
+!pools COINNAME                            - Shows registered Miningpools for specified coin
+!addpool URL COIN PAYOUTSYS FEE            - Add Pool to Database
+!delpool URL                               - Delete Pool from Database
+!blockfinder URL enable/disable            - Activate/Deactivate Blockfinder announce in channel for specified pool
+!announce COIN CHANNEL enable/disable      - Set Announce for specified Coin an Channel, else post in Standard set in config
+!command COMMANDNAME COIN #channel enable  - Set ACL for Commands
+/msg Botnick !apikey URL APIKEY            - Adds Apikey for specified host
 </pre>
 
 Contributing

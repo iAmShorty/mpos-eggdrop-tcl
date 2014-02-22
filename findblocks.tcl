@@ -54,10 +54,6 @@ proc checknewblocks {} {
 	sqlite3 advertiseblocks $sqlite_blockfile
 	sqlite3 registeredpools $sqlite_poolfile
 	
-	package require http
-	package require json
-	package require tls
-	
 	set action "/index.php?page=api&action=getblocksfound&api_key="
 	set advertise_block 0
 	set writeblockfile "no"
@@ -72,9 +68,9 @@ proc checknewblocks {} {
 
 	set poolscount [registeredpools eval {SELECT COUNT(1) FROM pools WHERE blockfinder != 0 AND apikey != 0}]
 	if {$poolscount == 0} {
-		putlog "\[BLOCKFINDER\] -> no active pools found"
+		if {$debug eq "1"} { putlog "\[BLOCKFINDER\] -> no active pools found" }
 	} else {
-		putlog "\[BLOCKFINDER\] -> active Pools: $poolscount"
+		if {$debug eq "1"} { putlog "\[BLOCKFINDER\] -> active Pools: $poolscount" }
 		foreach {apiurl poolcoin apikey} [registeredpools eval {SELECT url,coin,apikey FROM pools WHERE blockfinder != 0 AND apikey != 0} ] {
 			if {$debug eq "1"} { putlog "checking for new blocks on [string toupper $poolcoin] Pool" }
 			if {$debug eq "1"} { putlog "COIN: $poolcoin" }
@@ -96,14 +92,12 @@ proc checknewblocks {} {
 			}
 
 			if {[catch { set token [http::geturl $newurl -timeout 3000]} error] == 1} {
-				putlog "$error"
-				putquick "PRIVMSG $chan :ERROR: $error"
+				if {$debug eq "1"} { putlog "$error" }
 				catch {::http::cleanup $token}
 				set checknewblocks_running [utimer $blockchecktime checknewblocks]
 				return
 			} elseif {[http::ncode $token] == "404"} {
-				putlog "Error: [http::code $token]"
-				putquick "PRIVMSG $chan :ERROR: [http::code $token]"
+				if {$debug eq "1"} { putlog "Error: [http::code $token]" }
 				catch {::http::cleanup $token}
 				set checknewblocks_running [utimer $blockchecktime checknewblocks]
 				return
@@ -111,14 +105,12 @@ proc checknewblocks {} {
 				set data [::http::data $token]
 				catch {::http::cleanup $token}
 			} elseif {[http::status $token] == "timeout"} {
-				putlog "Timeout occurred"
-				putquick "PRIVMSG $chan :ERROR: Timeout occurred"
+				if {$debug eq "1"} { putlog "Timeout occurred" }
 				catch {::http::cleanup $token}
 				set checknewblocks_running [utimer $blockchecktime checknewblocks]
 				return
 			} elseif {[http::status $token] == "error"} {
-				putlog "Error: [http::error $token]"
-				putquick "PRIVMSG $chan :ERROR: [http::error $token]"
+				if {$debug eq "1"} { putlog "Error: [http::error $token]" }
 				catch {::http::cleanup $token}
 				set checknewblocks_running [utimer $blockchecktime checknewblocks]
 				return
@@ -239,8 +231,9 @@ proc checknewblocks {} {
 # advertising the block
 #
 proc advertise_block {blockid blockfinder_coinname blockfinder_newblock blockfinder_laststatus blockfinder_lastestshares blockfinder_lastshares blockfinder_lastfinder blockfinder_confirmations blockfinder_diff blockfinder_anon blockfinder_worker blockfinder_amount blockfinder_time} {
-	global channels debug debugoutput output_findblocks output_findblocks_percoin sqlite_blockfile
+	global channels debug debugoutput output_findblocks output_findblocks_percoin sqlite_blockfile sqlite_announce
 	sqlite3 advertiseblocks $sqlite_blockfile
+	sqlite3 announcecoins $sqlite_announce
 
 	set blockfinder_lastblock [advertiseblocks eval {SELECT last_block FROM blocks WHERE posted = 'Y' AND poolcoin = $blockfinder_coinname ORDER BY last_block DESC LIMIT 1}]
 
@@ -282,10 +275,17 @@ proc advertise_block {blockid blockfinder_coinname blockfinder_newblock blockfin
 	set lineoutput [replacevar $lineoutput "%blockfinder_amount%" $blockfinder_amount]
 	set lineoutput [replacevar $lineoutput "%blockfinder_time%" [clock format $blockfinder_time -format "%D %T"]]
 	
-	foreach advert $channels {
-		putquick "PRIVMSG $advert :$lineoutput"
+	if {[llength [announcecoins eval {SELECT announce_id FROM announce WHERE coin=$blockfinder_coinname AND advertise=1}]] != 0} {
+		if {$debug eq "1"} { putlog "specific chan for coin $blockfinder_coinname found!" }
+		foreach {advertchan} [announcecoins eval {SELECT channel FROM announce WHERE coin=$blockfinder_coinname AND advertise=1} ] {
+			putquick "PRIVMSG #$advertchan :$lineoutput"
+		}
+	} else {
+		if {$debug eq "1"} { putlog "no specific chan for coin $blockfinder_coinname found!" }
+		foreach advert $channels {
+			putquick "PRIVMSG $advert :$lineoutput"
+		}
 	}
-	
 }
 
 putlog "===>> Mining-Pool-Findblocks - Version $scriptversion loaded"

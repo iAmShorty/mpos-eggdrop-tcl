@@ -21,18 +21,11 @@
 ######################################################################
 
 #
-# key bindings
-#
-bind pub - !price price_info
-
-#
 # info for specific market set in config
 #
 proc price_info {nick host hand chan arg} {
-	global help_blocktime help_blocked channels debug debugoutput usehttps output marketapi activemarket vircurex_querycoin cryptsy_marketid onlyallowregisteredusers output_marketdata
-	package require http
-	package require json
-	package require tls
+	global help_blocktime help_blocked channels debug debugoutput usehttps output marketapi activemarket vircurex_querycoin cryptsy_marketid onlyallowregisteredusers output_marketdata protected_commands sqlite_commands
+	sqlite3 poolcommands $sqlite_commands
 
 	if {$onlyallowregisteredusers eq "1"} {
 		set hostmask "$nick!*[getchanhost $nick $chan]"
@@ -52,6 +45,21 @@ proc price_info {nick host hand chan arg} {
 		return
 	}
 
+	if {[lsearch $protected_commands "price"] > 0 } {
+		regsub "#" $chan "" command_channel
+		if {[llength [poolcommands eval {SELECT command_id FROM commands WHERE channel=$command_channel AND command="price" AND activated=1}]] != 0} {
+			if {$debug eq "1"} { putlog "-> command price found" }
+		} elseif {[llength [poolcommands eval {SELECT command_id FROM commands WHERE channel=$command_channel AND command="all" AND activated=1}]] != 0} {
+			if {$debug eq "1"} { putlog "-> command ALL found" }
+		} else {
+			if {$debug eq "1"} { putlog "-> protected" }
+			putquick "PRIVMSG $chan :command !price not allowed in $chan"
+			return
+		}
+    } else {
+    	if {$debug eq "1"} { putlog "-> not protected" }
+    }
+    
 	set newurl $marketapi
 
 	set trade_price "0"
@@ -89,26 +97,22 @@ proc price_info {nick host hand chan arg} {
 	}
 
 	if {[catch { set token [http::geturl $newurl -timeout 3000]} error] == 1} {
-		putlog "$error"
-		putquick "PRIVMSG $chan :ERROR: $error"
+		if {$debug eq "1"} { putlog "$error" }
 		http::cleanup $token
 		return
 	} elseif {[http::ncode $token] == "404"} {
-		putlog "Error: [http::code $token]"
-		putquick "PRIVMSG $chan :ERROR: [http::code $token]"
+		if {$debug eq "1"} { putlog "Error: [http::code $token]" }
 		http::cleanup $token
 		return
 	} elseif {[http::status $token] == "ok"} {
 		set data [http::data $token]
 		http::cleanup $token
 	} elseif {[http::status $token] == "timeout"} {
-		putlog "Timeout occurred"
-		putquick "PRIVMSG $chan :ERROR: Timeout occurred"
+		if {$debug eq "1"} { putlog "Timeout occurred" }
 		http::cleanup $token
 		return
 	} elseif {[http::status $token] == "error"} {
-		putlog "Error: [http::error $token]"
-		putquick "PRIVMSG $chan :ERROR: [http::error $token]"
+		if {$debug eq "1"} { putlog "Error: [http::error $token]" }
 		http::cleanup $token
 		return
 	}
@@ -142,7 +146,7 @@ proc price_info {nick host hand chan arg} {
 # output for coins-e api
 #
 proc market_coinse {chan marketdataresult} {
-	global channels debug debugoutput output coinse_querycoin output_marketdata_coinse
+	global debug debugoutput output coinse_querycoin output_marketdata_coinse
 	
 	foreach {key value} $marketdataresult {
 		#putlog "DATA: $key"
@@ -189,11 +193,7 @@ proc market_coinse {chan marketdataresult} {
 	set lineoutput [replacevar $lineoutput "%marketdata_basecoin%" $basecoin]
 
 	if {$output eq "CHAN"} {
-		foreach advert $channels {
-			if {$advert eq $chan} {
-				putquick "PRIVMSG $chan :$lineoutput"
-			}
-		}
+		putquick "PRIVMSG $chan :$lineoutput"
 	} elseif {$output eq "NOTICE"} {
 		putquick "NOTICE $nick :$lineoutput"
 	} else {
@@ -205,7 +205,7 @@ proc market_coinse {chan marketdataresult} {
 # output for vircurex api
 #
 proc market_vircurex {chan marketdataresult} {
-	global channels debug debugoutput output output_marketdata_vircurex
+	global debug debugoutput output output_marketdata_vircurex
 	
 	if {$marketdataresult eq "Unknown currency"} {
 		putquick "PRIVMSG $chan :Unknown currency, please check api settings"
@@ -238,7 +238,7 @@ proc market_vircurex {chan marketdataresult} {
 # output for cryptsy api
 #
 proc market_cryptsy {chan marketdataresult} {
-	global channels debug debugoutput output output_marketdata_cryptsy
+	global debug debugoutput output output_marketdata_cryptsy
 	
 	foreach {key value} $marketdataresult {
 		#putlog "Key: $key - $value"
@@ -271,11 +271,7 @@ proc market_cryptsy {chan marketdataresult} {
 	set lineoutput [replacevar $lineoutput "%marketdata_tradevolume%" $marketdata_tradevolume]
 	
 	if {$output eq "CHAN"} {
-		foreach advert $channels {
-			if {$advert eq $chan} {
-				putquick "PRIVMSG $chan :$lineoutput"
-			}
-		}
+		putquick "PRIVMSG $chan :$lineoutput"
 	} elseif {$output eq "NOTICE"} {
 		putquick "NOTICE $nick :$lineoutput"
 	} else {

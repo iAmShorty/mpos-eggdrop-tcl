@@ -24,11 +24,9 @@
 # get worker information
 #
 proc worker_info {nick host hand chan arg} {
-	global help_blocktime help_blocked channels debug debugoutput output onlyallowregisteredusers ownersworkeronly output_workerinfo output_worker_online output_worker_offline
-	package require http
-	package require json
-	package require tls
-
+	global help_blocktime help_blocked channels debug debugoutput output onlyallowregisteredusers ownersworkeronly output_workerinfo output_worker_online output_worker_offline protected_commands sqlite_commands
+	sqlite3 poolcommands $sqlite_commands
+	
 	# only allow bot owners to get workers for 
 	# specified users
 	#
@@ -77,7 +75,22 @@ proc worker_info {nick host hand chan arg} {
 		if {$debug eq "1"} { putlog "no pool data" }
 		return
 	}
-	
+
+	if {[lsearch $protected_commands "worker"] > 0 } {
+		regsub "#" $chan "" command_channel
+		if {[llength [poolcommands eval {SELECT command_id FROM commands WHERE channel=$command_channel AND command="worker" AND activated=1}]] != 0} {
+			if {$debug eq "1"} { putlog "-> command worker found" }
+		} elseif {[llength [poolcommands eval {SELECT command_id FROM commands WHERE channel=$command_channel AND command="all" AND activated=1}]] != 0} {
+			if {$debug eq "1"} { putlog "-> command ALL found" }
+		} else {
+			if {$debug eq "1"} { putlog "-> protected" }
+			putquick "PRIVMSG $chan :command !worker not allowed in $chan"
+			return
+		}
+    } else {
+    	if {$debug eq "1"} { putlog "-> not protected" }
+    }
+    
 	set newurl [lindex $pool_info 1]
 	append newurl $action
 	append newurl [lindex $pool_info 2]
@@ -93,26 +106,22 @@ proc worker_info {nick host hand chan arg} {
 	}
 
 	if {[catch { set token [http::geturl $newurl -timeout 3000]} error] == 1} {
-		putlog "$error"
-		putquick "PRIVMSG $chan :ERROR: $error"
+		if {$debug eq "1"} { putlog "$error" }
 		http::cleanup $token
 		return
 	} elseif {[http::ncode $token] == "404"} {
-		putlog "Error: [http::code $token]"
-		putquick "PRIVMSG $chan :ERROR: [http::code $token]"
+		if {$debug eq "1"} { putlog "Error: [http::code $token]" }
 		http::cleanup $token
 		return
 	} elseif {[http::status $token] == "ok"} {
 		set data [http::data $token]
 		http::cleanup $token
 	} elseif {[http::status $token] == "timeout"} {
-		putlog "Timeout occurred"
-		putquick "PRIVMSG $chan :ERROR: Timeout occurred"
+		if {$debug eq "1"} { putlog "Timeout occurred" }
 		http::cleanup $token
 		return
 	} elseif {[http::status $token] == "error"} {
-		putlog "Error: [http::error $token]"
-		putquick "PRIVMSG $chan :ERROR: [http::error $token]"
+		if {$debug eq "1"} { putlog "Error: [http::error $token]" }
 		http::cleanup $token
 		return
 	}
@@ -200,11 +209,7 @@ proc worker_info {nick host hand chan arg} {
 	set len [expr {512-[string len ":$::botname PRIVMSG $chan :\r\n"]}] 
 	foreach line [wordwrap $lineoutput $len] { 
 		if {$output eq "CHAN"} {
-			foreach advert $channels {
-				if {$advert eq $chan} {
-					putquick "PRIVMSG $chan :$line"
-				}
-			}
+			putquick "PRIVMSG $chan :$line"
 		} elseif {$output eq "NOTICE"} {
 			putquick "NOTICE $nick :$line"
 		} else {

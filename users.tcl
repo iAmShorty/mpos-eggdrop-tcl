@@ -32,10 +32,10 @@ proc check_mpos_user {username hostmask} {
 	
 	if {[llength [registeredusers eval {SELECT ircnick,hostmask FROM users WHERE hostmask=$registeredhostmask}]] == 0} {
 		set userhasrights "false"
-		putlog "user not in database"
+		if {$debug eq "1"} { putlog "user not in database" }
 	} else {
 		set userhasrights "true"
-		putlog "user in database"
+		if {$debug eq "1"} { putlog "user in database" }
 	}
 	
 	registeredusers close
@@ -50,14 +50,14 @@ proc user_add {nick uhost hand chan arg} {
 	sqlite3 registeredusers $sqlite_userfile
 
 	if {[matchattr $nick +n]} {
-		putlog "$nick is botowner"
+		if {$debug eq "1"} { putlog "$nick is botowner" }
 	} else {
-		putlog "$nick tried to add $arg to userfile"
+		if {$debug eq "1"} { putlog "$nick tried to add $arg to userfile" }
 		return
 	}
  
 	if {$arg eq ""} {
-		putlog "no user to add"
+		if {$debug eq "1"} { putlog "no user to add" }
 		return
 	} 
 
@@ -66,11 +66,11 @@ proc user_add {nick uhost hand chan arg} {
 	if {$debug eq "1"} { putlog "Hostmask is: [string tolower $hostmask]"}
 	
 	if {[llength [registeredusers eval {SELECT ircnick,hostmask FROM users WHERE hostmask=$hostmask}]] == 0} {
-		putlog "adding user"
+		if {$debug eq "1"} { putlog "adding user" }
 		putquick "PRIVMSG $nick :user $arg added"
 		registeredusers eval {INSERT INTO users (ircnick,hostmask) VALUES ($arg,$hostmask)}
 	} else {
-		putlog "updating user"
+		if {$debug eq "1"} { putlog "updating user" }
 		putquick "PRIVMSG $nick :user $arg updated"
 		registeredusers eval {UPDATE users SET hostmask=$hostmask WHERE ircnick=$arg}
 	}
@@ -86,9 +86,9 @@ proc user_del {nick uhost hand chan arg} {
 	sqlite3 registeredusers $sqlite_userfile
 	
 	if {[matchattr $nick +n]} {
-		putlog "$nick is botowner"
+		if {$debug eq "1"} { putlog "$nick is botowner" }
 	} else {
-		putlog "$nick tried to delete $arg from users"
+		if {$debug eq "1"} { putlog "$nick tried to delete $arg from users" }
 		return
 	}
 
@@ -111,14 +111,14 @@ proc user_request {nick uhost hand chan arg} {
 	global debug scriptpath registereduserfile notificationadmins
 
 	if {[matchattr $nick +n]} {
-		putlog "$nick is botowner"
+		if {$debug eq "1"} { putlog "$nick is botowner" }
 	} else {
-		putlog "$nick requested adding user $arg to userfile"
+		if {$debug eq "1"} { putlog "$nick requested adding user $arg to userfile" }
 		return
 	}
 
 	if {$arg eq ""} {
-		putlog "no user to add"
+		if {$debug eq "1"} { putlog "no user to add" }
 		return
 	}
 

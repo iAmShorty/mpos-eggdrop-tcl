@@ -25,6 +25,8 @@ package require sqlite3
 set sqlite_poolfile "$scriptpath/db/pooldata.db"
 set sqlite_userfile "$scriptpath/db/userdata.db"
 set sqlite_blockfile "$scriptpath/db/blockdata.db"
+set sqlite_announce "$scriptpath/db/announce.db"
+set sqlite_commands "$scriptpath/db/commands.db"
 
 if {![file exists "$scriptpath/db"]} {
 	file mkdir "$scriptpath/db" 
@@ -46,6 +48,18 @@ if {![file exists $sqlite_blockfile]} {
 	sqlite3 blocks $sqlite_blockfile
 	blocks eval {CREATE TABLE blocks(block_id integer primary key autoincrement, poolcoin TEXT NOT NULL default 'null', last_block INTEGER NOT NULL, last_status TEXT NOT NULL default 'null', last_estshares INTEGER NOT NULL, last_shares INTEGER NOT NULL, last_finder TEXT NOT NULL default 'null', last_confirmations INTEGER NOT NULL, last_diff FLOAT NOT NULL default '0', last_anon TEXT NOT NULL default 'null', last_worker TEXT NOT NULL default 'null', last_amount FLOAT NOT NULL, posted TEXT NOT NULL default 'N', timestamp DATETIME)}
 	blocks close
+}
+
+if {![file exists $sqlite_announce]} { 
+	sqlite3 announce $sqlite_announce
+	announce eval {CREATE TABLE announce(announce_id integer primary key autoincrement, coin TEXT NOT NULL, channel TEXT NOT NULL, advertise INTEGER DEFAULT 0)}
+	announce close
+}
+
+if {![file exists $sqlite_commands]} { 
+	sqlite3 commands $sqlite_commands
+	commands eval {CREATE TABLE commands(command_id integer primary key autoincrement, coin TEXT NOT NULL, command TEXT NOT NULL, channel TEXT NOT NULL, activated INTEGER DEFAULT 0)}
+	commands close
 }
 
 putlog "===>> Mining-Pool-DB-Initialization - Version $scriptversion loaded"

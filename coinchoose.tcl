@@ -24,10 +24,8 @@
 # info for specific coin form coinchoose
 #
 proc coinchoose_info {nick host hand chan arg} {
-	global help_blocktime help_blocked channels debug debugoutput output onlyallowregisteredusers output_coinchoose
-	package require http
-	package require json
-	package require tls
+	global help_blocktime help_blocked channels debug debugoutput output onlyallowregisteredusers output_coinchoose protected_commands sqlite_commands
+	sqlite3 poolcommands $sqlite_commands
 
 	if {$onlyallowregisteredusers eq "1"} {
 		set hostmask "$nick!*[getchanhost $nick $chan]"
@@ -51,7 +49,22 @@ proc coinchoose_info {nick host hand chan arg} {
 		putquick "NOTICE $nick :You have been blocked for $help_blocktime Seconds, please be patient..."
 		return
 	}
-	
+
+	if {[lsearch $protected_commands "coinchoose"] > 0 } {
+		regsub "#" $chan "" command_channel
+		if {[llength [poolcommands eval {SELECT command_id FROM commands WHERE channel=$command_channel AND command="coinchoose" AND activated=1}]] != 0} {
+			if {$debug eq "1"} { putlog "-> command coinchoose found" }
+		} elseif {[llength [poolcommands eval {SELECT command_id FROM commands WHERE channel=$command_channel AND command="all" AND activated=1}]] != 0} {
+			if {$debug eq "1"} { putlog "-> command ALL found" }
+		} else {
+			if {$debug eq "1"} { putlog "-> protected" }
+			putquick "PRIVMSG $chan :command !coinchoose not allowed in $chan"
+			return
+		}
+    } else {
+    	if {$debug eq "1"} { putlog "-> not protected" }
+    }
+    
 	set coinchoose_api "http://www.coinchoose.com/api.php?base=BTC"
 	
 	if {[string match "*https*" [string tolower $coinchoose_api]]} {
@@ -65,26 +78,22 @@ proc coinchoose_info {nick host hand chan arg} {
 	}
 
 	if {[catch { set token [http::geturl $coinchoose_api -timeout 3000]} error] == 1} {
-		putlog "$error"
-		putquick "PRIVMSG $chan :ERROR: $error"
+		if {$debug eq "1"} { putlog "$error" }
 		http::cleanup $token
 		return
 	} elseif {[http::ncode $token] == "404"} {
-		putlog "Error: [http::code $token]"
-		putquick "PRIVMSG $chan :ERROR: [http::code $token]"
+		if {$debug eq "1"} { putlog "Error: [http::code $token]" }
 		http::cleanup $token
 		return
 	} elseif {[http::status $token] == "ok"} {
 		set data [http::data $token]
 		http::cleanup $token
 	} elseif {[http::status $token] == "timeout"} {
-		putlog "Timeout occurred"
-		putquick "PRIVMSG $chan :ERROR: Timeout occurred"
+		if {$debug eq "1"} { putlog "Timeout occurred" }
 		http::cleanup $token
 		return
 	} elseif {[http::status $token] == "error"} {
-		putlog "Error: [http::error $token]"
-		putquick "PRIVMSG $chan :ERROR: [http::error $token]"
+		if {$debug eq "1"} { putlog "Error: [http::error $token]" }
 		http::cleanup $token
 		return
 	}
@@ -253,11 +262,7 @@ proc coinchoose_info {nick host hand chan arg} {
 	}
 	
 	if {$output eq "CHAN"} {
-		foreach advert $channels {
-			if {$advert eq $chan} {
-				putquick "PRIVMSG $chan :$lineoutput"
-		}
-		}
+		putquick "PRIVMSG $chan :$lineoutput"
 	} elseif {$output eq "NOTICE"} {
 		putquick "NOTICE $nick :$lineoutput"	
 	} else {

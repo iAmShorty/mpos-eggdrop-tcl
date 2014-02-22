@@ -24,10 +24,8 @@
 # round information
 #
 proc round_info {nick host hand chan arg } {
-	global help_blocktime help_blocked channels debug debugoutput output onlyallowregisteredusers output_roundstats output_roundstats_percoin
-	package require http
-	package require json
-	package require tls
+	global help_blocktime help_blocked channels debug debugoutput output onlyallowregisteredusers output_roundstats output_roundstats_percoin protected_commands sqlite_commands
+	sqlite3 poolcommands $sqlite_commands
 
 	if {$onlyallowregisteredusers eq "1"} {
 		set hostmask "$nick!*[getchanhost $nick $chan]"
@@ -65,6 +63,21 @@ proc round_info {nick host hand chan arg } {
 		return
 	} 
 
+	if {[lsearch $protected_commands "round"] > 0 } {
+		regsub "#" $chan "" command_channel
+		if {[llength [poolcommands eval {SELECT command_id FROM commands WHERE channel=$command_channel AND command="round" AND activated=1}]] != 0} {
+			if {$debug eq "1"} { putlog "-> command round found" }
+		} elseif {[llength [poolcommands eval {SELECT command_id FROM commands WHERE channel=$command_channel AND command="all" AND activated=1}]] != 0} {
+			if {$debug eq "1"} { putlog "-> command ALL found" }
+		} else {
+			if {$debug eq "1"} { putlog "-> protected" }
+			putquick "PRIVMSG $chan :command !round not allowed in $chan"
+			return
+		}
+    } else {
+    	if {$debug eq "1"} { putlog "-> not protected" }
+    }
+    
 	set newurl [lindex $pool_info 1]
 	append newurl $action
 	append newurl [lindex $pool_info 2]
@@ -80,26 +93,22 @@ proc round_info {nick host hand chan arg } {
 	}
 
 	if {[catch { set token [http::geturl $newurl -timeout 3000]} error] == 1} {
-		putlog "$error"
-		putquick "PRIVMSG $chan :ERROR: $error"
+		if {$debug eq "1"} { putlog "$error" }
 		http::cleanup $token
 		return
 	} elseif {[http::ncode $token] == "404"} {
-		putlog "Error: [http::code $token]"
-		putquick "PRIVMSG $chan :ERROR: [http::code $token]"
+		if {$debug eq "1"} { putlog "Error: [http::code $token]" }
 		http::cleanup $token
 		return
 	} elseif {[http::status $token] == "ok"} {
 		set data [http::data $token]
 		http::cleanup $token
 	} elseif {[http::status $token] == "timeout"} {
-		putlog "Timeout occurred"
-		putquick "PRIVMSG $chan :ERROR: Timeout occurred"
+		if {$debug eq "1"} { putlog "Timeout occurred" }
 		http::cleanup $token
 		return
 	} elseif {[http::status $token] == "error"} {
-		putlog "Error: [http::error $token]"
-		putquick "PRIVMSG $chan :ERROR: [http::error $token]"
+		if {$debug eq "1"} { putlog "Error: [http::error $token]" }
 		http::cleanup $token
 		return
 	}
@@ -175,11 +184,7 @@ proc round_info {nick host hand chan arg } {
 	set lineoutput [replacevar $lineoutput "%roundstats_progress%" $shares_progress]	
 	
 	if {$output eq "CHAN"} {
-		foreach advert $channels {
-			if {$advert eq $chan} {
-				putquick "PRIVMSG $chan :$lineoutput"
-			}
-		}
+		putquick "PRIVMSG $chan :$lineoutput"
 	} elseif {$output eq "NOTICE"} {
 		putquick "NOTICE $nick :$lineoutput"	
 	} else {

@@ -30,23 +30,44 @@ bind pub - !user user_info
 bind pub - !round round_info
 bind pub - !worker worker_info
 bind pub - !balance balance_info
+bind pub - !hashrate pool_hashrate
+bind pub - !diff pool_diff
+bind pub - !price price_info
 bind pub - !coinchoose coinchoose_info
+bind pub - !request user_request
 bind pub - ?help printUsage
 bind pub - !help printUsage
+
 bind pub no|- !adduser user_add
 bind pub no|- !deluser user_del
-bind pub - !request user_request
 bind pub no|- !addpool pool_add
 bind pub no|- !delpool pool_del
 bind pub no|- !pools pool_list
-bind pub no|- !blockfinder pool_blockfinder
 bind msg no|- !apikey pool_apikey
+bind pub no|- !blockfinder announce_blockfinder
+bind pub no|- !announce announce_channel
+bind pub no|- !command channel_commands
 
+#
+# check for required packages
+#
 if {[catch {package require http 2.5}]} { 
-	putlog "Eggdrop: package http 2.5 or above required"
+	if {$debug eq "1"} { putlog "Eggdrop: package http 2.5 or above required" }
 	die "Eggdrop: package http 2.5 or above required"
 }
-      
+if {[catch {package require json}]} { 
+	if {$debug eq "1"} { putlog "Eggdrop: package json required" }
+	die "Eggdrop: package json required"
+}
+if {[catch {package require tls}]} { 
+	if {$debug eq "1"} { putlog "Eggdrop: package tls required" }
+	die "Eggdrop: package tls required"
+}
+if {[catch {package require sqlite3}]} { 
+	if {$debug eq "1"} { putlog "Eggdrop: package sqlite3 required" }
+	die "Eggdrop: package sqlite3 required"
+}
+
 #
 # unset arrays for userdefined ouput when rehashing the bot, otherwise the
 # array variables are always present, even if they are commented out. arrays are set
@@ -62,6 +83,7 @@ if {[array exists output_userstats_percoin]} { unset output_userstats_percoin }
 if {[array exists output_workerinfo_percoin]} { unset output_workerinfo_percoin }
 if {[array exists output_worker_offline_percoin]} { unset output_worker_offline_percoin }
 if {[array exists output_worker_online_percoin]} { unset output_worker_online_percoin }
+
 #
 # getting the pool vars from dictionary
 # set in config for specific pool
@@ -71,15 +93,19 @@ proc pool_vars {coinname} {
 	sqlite3 registeredpools $sqlite_poolfile
 	
 	set pool_found "false"
-	set poolscount [registeredpools eval {SELECT COUNT(1) FROM pools WHERE apikey != 0 AND coin == $coinname}]
-	putlog "Number of Pools: $poolscount"
-	foreach {apiurl poolcoin apikey} [registeredpools eval {SELECT url,coin,apikey FROM pools WHERE apikey != 0 AND coin == $coinname} ] {
-		if {[string toupper $poolcoin] eq [string toupper $coinname]} {
-			set pool_found "true"
-			set pool_data "[string toupper $poolcoin] $apiurl $apikey"
+	if {[llength [registeredpools eval {SELECT apikey FROM pools WHERE coin=$coinname}]] != 0} {
+		set poolscount [registeredpools eval {SELECT COUNT(1) FROM pools WHERE apikey != 0 AND coin == $coinname}]
+		if {$debug eq "1"} { putlog "Number of Pools: $poolscount" }
+		foreach {apiurl poolcoin apikey} [registeredpools eval {SELECT url,coin,apikey FROM pools WHERE apikey != 0 AND coin == $coinname} ] {
+			if {[string toupper $poolcoin] eq [string toupper $coinname]} {
+				set pool_found "true"
+				set pool_data "[string toupper $poolcoin] $apiurl $apikey"
+			}
 		}
+	} else {
+		if {$debug eq "1"} { putlog "API Key for Pool not found" }
 	}
-	
+
 	registeredpools close
 	
 	if {$pool_found eq "true"} {
