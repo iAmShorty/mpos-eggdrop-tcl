@@ -89,7 +89,7 @@ if {[array exists output_worker_online_percoin]} { unset output_worker_online_pe
 # set in config for specific pool
 #
 proc pool_vars {coinname} {
-	global sqlite_poolfile
+	global sqlite_poolfile debug
 	sqlite3 registeredpools $sqlite_poolfile
 	
 	set pool_found "false"
