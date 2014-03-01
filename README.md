@@ -56,6 +56,7 @@ Requirements
 ================
 
  - <a href="http://www.tcl.tk" target="_blank">TCL</a> (with JSON, SQLITE and TLS Support)
+ <code>sudo apt-get install libsqlite3-tcl tcl tcl-tls tcl8.5 tcl8.5-dev tcllib</code>
  - <a href="http://www.eggheads.org" target="_blank">eggdrop</a> IRC Bot
  - <a href="https://github.com/TheSerapher/php-mpos" target="_blank">MPOS</a>
 
