@@ -8,11 +8,6 @@ This script is an addon for the popular eggdrop <a href="http://www.eggheads.org
 and gets API Data from <a href="https://github.com/TheSerapher/php-mpos" target="_blank">MPOS</a>, 
 a fantastic Webinterface for people running Cryptocoin Pools
 
-Active Pools
-================
-
-* http://machinecoin.auxmining.de
-
 Donations
 ================
 
