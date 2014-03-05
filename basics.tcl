@@ -43,10 +43,35 @@ bind pub no|- !deluser user_del
 bind pub no|- !addpool pool_add
 bind pub no|- !delpool pool_del
 bind pub no|- !pools pool_list
-bind msg no|- !apikey pool_apikey
 bind pub no|- !blockfinder announce_blockfinder
 bind pub no|- !announce announce_channel
 bind pub no|- !command channel_commands
+
+bind msg no|- !apikey pool_apikey
+
+bind msg - !pool pool_info
+bind msg - !block block_info
+bind msg - !last last_info
+bind msg - !user user_info
+bind msg - !round round_info
+bind msg - !worker worker_info
+bind msg - !balance balance_info
+bind msg - !hashrate pool_hashrate
+bind msg - !diff pool_diff
+bind msg - !price price_info
+bind msg - !coinchoose coinchoose_info
+bind msg - !request user_request
+bind msg - ?help printUsage
+bind msg - !help printUsage
+
+bind msg no|- !adduser user_add
+bind msg no|- !deluser user_del
+bind msg no|- !addpool pool_add
+bind msg no|- !delpool pool_del
+bind msg no|- !pools pool_list
+bind msg no|- !blockfinder announce_blockfinder
+bind msg no|- !announce announce_channel
+bind msg no|- !command channel_commands
 
 #
 # check for required packages
