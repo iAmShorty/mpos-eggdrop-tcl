@@ -128,11 +128,11 @@ proc price_info {nick host hand chan arg} {
 	#putlog "DATA: $results"
 
 	if {$activemarket eq "1"} {
-		market_coinse $chan $results
+		market_coinse $nick $chan $results
 	} elseif {$activemarket eq "2"} { 
-		market_vircurex $chan $results
+		market_vircurex $nick $chan $results
 	} elseif {$activemarket eq "3"} { 
-		market_cryptsy $chan $results
+		market_cryptsy $nick $chan $results
 	} else {
 		return
 	}
@@ -145,7 +145,7 @@ proc price_info {nick host hand chan arg} {
 #
 # output for coins-e api
 #
-proc market_coinse {chan marketdataresult} {
+proc market_coinse {nick chan marketdataresult} {
 	global debug debugoutput output coinse_querycoin output_marketdata_coinse
 	
 	foreach {key value} $marketdataresult {
@@ -204,7 +204,7 @@ proc market_coinse {chan marketdataresult} {
 #
 # output for vircurex api
 #
-proc market_vircurex {chan marketdataresult} {
+proc market_vircurex {nick chan marketdataresult} {
 	global debug debugoutput output output_marketdata_vircurex
 	
 	if {$marketdataresult eq "Unknown currency"} {
@@ -237,7 +237,7 @@ proc market_vircurex {chan marketdataresult} {
 #
 # output for cryptsy api
 #
-proc market_cryptsy {chan marketdataresult} {
+proc market_cryptsy {nick chan marketdataresult} {
 	global debug debugoutput output output_marketdata_cryptsy
 	
 	foreach {key value} $marketdataresult {
