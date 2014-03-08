@@ -49,7 +49,7 @@ proc channel_commands {nick uhost hand chan arg} {
 	
 	if {$command_action eq "enable" || $command_action eq "true" || $command_action eq "1"} {
 		if {[llength [announcecoins eval {SELECT announce_id FROM announce WHERE channel=$command_channel}]] == 0} {
-			if {$debug eq "1"} { putlog "-> #$announce_channel not found in Database " }
+			if {$debug eq "1"} { putlog "-> #$command_channel not found in Database " }
 		} else {
 			if {[llength [poolcommands eval {SELECT command_id FROM commands WHERE command=$command_name AND coin=$command_coin AND channel=$command_channel}]] == 0} {
 				if {$debug eq "1"} { putlog "-> INSERT: activating command $command_name in #$command_channel" }
@@ -63,7 +63,7 @@ proc channel_commands {nick uhost hand chan arg} {
 		}
 	} elseif {$command_action eq "disable" || $command_action eq "false" || $command_action eq "0"} {
 		if {[llength [announcecoins eval {SELECT announce_id FROM announce WHERE channel=$command_channel}]] == 0} {
-			if {$debug eq "1"} { putlog "-> #$announce_channel not found in Database " }
+			if {$debug eq "1"} { putlog "-> #$command_channel not found in Database " }
 		} else {
 			if {[llength [poolcommands eval {SELECT command_id FROM commands WHERE command=$command_name AND coin=$command_coin AND channel=$command_channel}]] == 0} {
 				if {$debug eq "1"} { putlog "-> INSERT: deactivating command $command_name in #$command_channel" }
