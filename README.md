@@ -275,7 +275,7 @@ USAGE
 If you are on IRC and the Bot sits in your channel, type one of the following commands to
 communicate with the bot and get the output right in the channel. All this commands can be
 used as a direct message to the Bot. You only have to do /msg BOTNICK COMMAND. So nothing
-is visible in the channe.
+is visible in the channel.
 
 Commands for all Users
 <pre>
