@@ -100,8 +100,10 @@ Setting up multiple Pools is very easy
 
 NOTE:
 Only Botowners can manage Pools. You have to be recognized by the bot, else
-you can't fire any of the commands. You can add as many Pools as you want.
-Apiurl and Apikey are the Values from your MPOS installation.
+you can't fire any of the commands. Be sure you have +n rights and a valid hostmask
+on the bots userfile.
+
+You can add as many Pools as you want. Apiurl and Apikey are the Values from your MPOS installation.
 
 Add a Pool
 <pre>
