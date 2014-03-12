@@ -49,13 +49,11 @@ proc user_add {nick uhost hand chan arg} {
 	global debug sqlite_userfile
 	sqlite3 registeredusers $sqlite_userfile
 
-	if {[matchattr $nick +n]} {
-		if {$debug eq "1"} { putlog "$nick is botowner" }
-	} else {
+	if {[check_userrights $chan $nick] eq "false"} {
 		if {$debug eq "1"} { putlog "$nick tried to add $arg to userfile" }
 		return
 	}
- 
+	
 	if {$arg eq ""} {
 		if {$debug eq "1"} { putlog "no user to add" }
 		return
@@ -85,9 +83,7 @@ proc user_del {nick uhost hand chan arg} {
 	global debug sqlite_userfile
 	sqlite3 registeredusers $sqlite_userfile
 	
-	if {[matchattr $nick +n]} {
-		if {$debug eq "1"} { putlog "$nick is botowner" }
-	} else {
+	if {[check_userrights $chan $nick] eq "false"} {
 		if {$debug eq "1"} { putlog "$nick tried to delete $arg from users" }
 		return
 	}
@@ -109,13 +105,6 @@ proc user_del {nick uhost hand chan arg} {
 #
 proc user_request {nick uhost hand chan arg} {
 	global debug scriptpath registereduserfile notificationadmins
-
-	if {[matchattr $nick +n]} {
-		if {$debug eq "1"} { putlog "$nick is botowner" }
-	} else {
-		if {$debug eq "1"} { putlog "$nick requested adding user $arg to userfile" }
-		return
-	}
 
 	if {$arg eq ""} {
 		if {$debug eq "1"} { putlog "no user to add" }

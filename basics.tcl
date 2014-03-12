@@ -141,6 +141,30 @@ proc pool_vars {coinname} {
 }
 
 #
+# getting the user status
+#
+proc check_userrights {chan nick} {
+	if {[matchattr $nick +n]} {
+		putlog "$nick is botowner"
+		return "true"
+	} else {
+		return "false"
+	}
+}
+
+#
+# getting the user status
+#
+proc check_registereduser {chan nick} {
+	set hostmask "$nick!*[getchanhost $nick $chan]"
+	if {[check_mpos_user $nick $hostmask] eq "false"} {
+		return "false"
+	} else {
+		return "true"
+	}
+}
+
+#
 # replace variables
 #
 proc replacevar {string cookie value} {

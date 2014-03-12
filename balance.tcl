@@ -31,17 +31,14 @@ proc balance_info {nick host hand chan arg} {
 	# specified users
 	#
 	if {$ownersbalanceonly eq "1"} {
-		if {[matchattr $nick +n]} {
-			putlog "$nick is botowner"
-		} else {
+		if {[check_userrights $chan $nick] eq "false"} {
 			putlog "$nick tried to get balance for user $arg"
 			putquick "PRIVMSG $chan :Access to Balance denied, only Botowners can check balances"
 			return
 		}
 	} else {
 		if {$onlyallowregisteredusers eq "1"} {
-			set hostmask "$nick!*[getchanhost $nick $chan]"
-			if {[check_mpos_user $nick $hostmask] eq "false"} {
+			if {[check_registereduser $chan $nick] eq "false"} {
 				putquick "NOTICE $nick :you are not allowed to use this command"
 				putquick "NOTICE $nick :please use !request command to get access to the bot"
 				return
