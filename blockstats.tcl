@@ -28,8 +28,7 @@ proc block_info {nick host hand chan arg} {
 	sqlite3 poolcommands $sqlite_commands
 
 	if {$onlyallowregisteredusers eq "1"} {
-		set hostmask "$nick!*[getchanhost $nick $chan]"
-		if {[check_mpos_user $nick $hostmask] eq "false"} {
+		if {[check_registereduser $chan $nick] eq "false"} {
 			putquick "NOTICE $nick :you are not allowed to use this command"
 			putquick "NOTICE $nick :please use !request command to get access to the bot"
 			return
@@ -82,46 +81,10 @@ proc block_info {nick host hand chan arg} {
 	append newurl $action
 	append newurl [lindex $pool_info 2]
 
-	if {[string match "*https*" [string tolower $newurl]]} {
-		set usehttps 1
-	} else {
-		set usehttps 0
-	}
-
-	if {$usehttps eq "1"} {
-		::http::register https 443 tls::socket
-	}
-
-	if {[catch { set token [http::geturl $newurl -timeout 3000]} error] == 1} {
-		if {$debug eq "1"} { putlog "$error" }
-		http::cleanup $token
+	set data [check_httpdata $newurl]
+	if { [regexp -nocase {error} $data] } {
+		putlog $data
 		return
-	} elseif {[http::ncode $token] == "404"} {
-		if {$debug eq "1"} { putlog "Error: [http::code $token]" }
-		http::cleanup $token
-		return
-	} elseif {[http::status $token] == "ok"} {
-		set data [http::data $token]
-		http::cleanup $token
-	} elseif {[http::status $token] == "timeout"} {
-		if {$debug eq "1"} { putlog "Timeout occurred" }
-		http::cleanup $token
-		return
-	} elseif {[http::status $token] == "error"} {
-		if {$debug eq "1"} { putlog "Error: [http::error $token]" }
-		http::cleanup $token
-		return
-	}
-
-	if {$usehttps eq "1"} {
-		::http::unregister https
-	}
-
-	if {$debugoutput eq "1"} { putlog "xml: $data" }
-
-	if {$data eq "Access denied"} { 
-		putquick "PRIVMSG $chan :Access to Blockinfo denied"
-		return 0
 	}
 
 	set results [::json::json2dict $data]
@@ -190,8 +153,7 @@ proc last_info {nick host hand chan arg } {
 	sqlite3 poolcommands $sqlite_commands
 
 	if {$onlyallowregisteredusers eq "1"} {
-		set hostmask "$nick!*[getchanhost $nick $chan]"
-		if {[check_mpos_user $nick $hostmask] eq "false"} {
+		if {[check_registereduser $chan $nick] eq "false"} {
 			putquick "NOTICE $nick :you are not allowed to use this command"
 			putquick "NOTICE $nick :please use !request command to get access to the bot"
 			return
@@ -253,46 +215,10 @@ proc last_info {nick host hand chan arg } {
 	append newurl $action
 	append newurl [lindex $pool_info 2]
 
-	if {[string match "*https*" [string tolower $newurl]]} {
-		set usehttps 1
-	} else {
-		set usehttps 0
-	}
-
-	if {$usehttps eq "1"} {
-		::http::register https 443 tls::socket
-	}
-
-	if {[catch { set token [http::geturl $newurl -timeout 3000]} error] == 1} {
-		if {$debug eq "1"} { putlog "$error" }
-		http::cleanup $token
+	set data [check_httpdata $newurl]
+	if { [regexp -nocase {error} $data] } {
+		putlog $data
 		return
-	} elseif {[http::ncode $token] == "404"} {
-		if {$debug eq "1"} { putlog "Error: [http::code $token]" }
-		http::cleanup $token
-		return
-	} elseif {[http::status $token] == "ok"} {
-		set data [http::data $token]
-		http::cleanup $token
-	} elseif {[http::status $token] == "timeout"} {
-		if {$debug eq "1"} { putlog "Timeout occurred" }
-		http::cleanup $token
-		return
-	} elseif {[http::status $token] == "error"} {
-		if {$debug eq "1"} { putlog "Error: [http::error $token]" }
-		http::cleanup $token
-		return
-	}
-
-	if {$usehttps eq "1"} {
-		::http::unregister https
-	}
-
-	if {$debugoutput eq "1"} { putlog "xml: $data" }
-
-	if {$data eq "Access denied"} { 
-		putquick "PRIVMSG $chan :Access to Lastblocks denied"
-		return 0 
 	}
 
 	set results [::json::json2dict $data]

@@ -141,6 +141,77 @@ proc pool_vars {coinname} {
 }
 
 #
+# getting the user status
+#
+proc check_userrights {chan nick} {
+	if {[matchattr $nick +n]} {
+		putlog "$nick is botowner"
+		return "true"
+	} else {
+		return "false"
+	}
+}
+
+#
+# getting the user status
+#
+proc check_registereduser {chan nick} {
+	set hostmask "$nick!*[getchanhost $nick $chan]"
+	if {[check_mpos_user $nick $hostmask] eq "false"} {
+		return "false"
+	} else {
+		return "true"
+	}
+}
+
+#
+# checking http data
+#
+proc check_httpdata {url} {
+	global debug debugoutput
+
+	set returnvalue ""
+	
+	if {[string match "*https*" [string tolower $url]]} {
+		set usehttps 1
+	} else {
+		set usehttps 0
+	}
+
+	if {$usehttps eq "1"} {
+		::http::register https 443 tls::socket
+	}
+	
+	if {[catch { set token [http::geturl $url -timeout 3000]} error] == 1} {
+		if {$debug eq "1"} { putlog "$error" }
+		http::cleanup $token
+		set returnvalue "error - $error"
+	} elseif {[http::ncode $token] == "404"} {
+		if {$debug eq "1"} { putlog "Error: [http::code $token]" }
+		http::cleanup $token
+		set returnvalue "error - [http::code $token]"
+	} elseif {[http::status $token] == "ok"} {
+		set data [http::data $token]
+		http::cleanup $token
+		set returnvalue "success $data"
+	} elseif {[http::status $token] == "timeout"} {
+		if {$debug eq "1"} { putlog "Timeout occurred" }
+		http::cleanup $token
+		set returnvalue "error - Timeout occurred"
+	} elseif {[http::status $token] == "error"} {
+		if {$debug eq "1"} { putlog "Error: [http::error $token]" }
+		http::cleanup $token
+		set returnvalue "error - [http::error $token]"
+	}
+
+	if {$usehttps eq "1"} {
+		::http::unregister https
+	}
+	
+	return $returnvalue
+}
+
+#
 # replace variables
 #
 proc replacevar {string cookie value} {

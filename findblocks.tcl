@@ -81,43 +81,10 @@ proc checknewblocks {} {
 			append newurl $action
 			append newurl $apikey
 
-			if {[string match "*https*" [string tolower $newurl]]} {
-				set usehttps 1
-			} else {
-				set usehttps 0
-			}  
-
-			if {$usehttps eq "1"} {
-				::http::register https 443 tls::socket
-			}
-
-			if {[catch { set token [http::geturl $newurl -timeout 3000]} error] == 1} {
-				if {$debug eq "1"} { putlog "$error" }
-				catch {::http::cleanup $token}
-				set checknewblocks_running [utimer $blockchecktime checknewblocks]
+			set data [check_httpdata $newurl]
+			if { [regexp -nocase {error} $data] } {
+				putlog $data
 				return
-			} elseif {[http::ncode $token] == "404"} {
-				if {$debug eq "1"} { putlog "Error: [http::code $token]" }
-				catch {::http::cleanup $token}
-				set checknewblocks_running [utimer $blockchecktime checknewblocks]
-				return
-			} elseif {[http::status $token] == "ok"} {
-				set data [::http::data $token]
-				catch {::http::cleanup $token}
-			} elseif {[http::status $token] == "timeout"} {
-				if {$debug eq "1"} { putlog "Timeout occurred" }
-				catch {::http::cleanup $token}
-				set checknewblocks_running [utimer $blockchecktime checknewblocks]
-				return
-			} elseif {[http::status $token] == "error"} {
-				if {$debug eq "1"} { putlog "Error: [http::error $token]" }
-				catch {::http::cleanup $token}
-				set checknewblocks_running [utimer $blockchecktime checknewblocks]
-				return
-			}
-	
-			if {$usehttps eq "1"} {
-				::http::unregister https
 			}
 
 			if {$debugoutput eq "1"} { putlog "xml: $data" }
