@@ -65,40 +65,11 @@ proc coinchoose_info {nick host hand chan arg} {
     }
     
 	set coinchoose_api "http://www.coinchoose.com/api.php?base=BTC"
-	
-	if {[string match "*https*" [string tolower $coinchoose_api]]} {
-		set usehttps 1
-	} else {
-		set usehttps 0
-	}
 
-	if {$usehttps eq "1"} {
-		::http::register https 443 tls::socket
-	}
-
-	if {[catch { set token [http::geturl $coinchoose_api -timeout 3000]} error] == 1} {
-		if {$debug eq "1"} { putlog "$error" }
-		http::cleanup $token
+	set data [check_httpdata $coinchoose_api]
+	if { [regexp -nocase {error} $data] } {
+		putlog $data
 		return
-	} elseif {[http::ncode $token] == "404"} {
-		if {$debug eq "1"} { putlog "Error: [http::code $token]" }
-		http::cleanup $token
-		return
-	} elseif {[http::status $token] == "ok"} {
-		set data [http::data $token]
-		http::cleanup $token
-	} elseif {[http::status $token] == "timeout"} {
-		if {$debug eq "1"} { putlog "Timeout occurred" }
-		http::cleanup $token
-		return
-	} elseif {[http::status $token] == "error"} {
-		if {$debug eq "1"} { putlog "Error: [http::error $token]" }
-		http::cleanup $token
-		return
-	}
-
-	if {$usehttps eq "1"} {
-		::http::unregister https
 	}
 
 	if {$debugoutput eq "1"} { putlog "xml: $data" }
