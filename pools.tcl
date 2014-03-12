@@ -26,10 +26,8 @@
 proc pool_add {nick uhost hand chan arg} {
 	global debug sqlite_poolfile
 	sqlite3 registeredpools $sqlite_poolfile
-	
-	if {[matchattr $nick +n]} {
-		if {$debug eq "1"} { putlog "$nick is botowner" }
-	} else {
+
+	if {[check_userrights $chan $nick] eq "false"} {
 		if {$debug eq "1"} { putlog "$nick tried to add $arg to pools" }
 		return
 	}
@@ -48,43 +46,10 @@ proc pool_add {nick uhost hand chan arg} {
 	set pool_fee [lindex $arg 3]
 	set actualtime [unixtime]
 	
-	if {[string match "*https*" [string tolower $pool_url]]} {
-		set usehttps 1
-	} else {
-		set usehttps 0
-	}
-
-	if {$usehttps eq "1"} {
-		::http::register https 443 tls::socket
-	}
-
-	if {[catch { set token [http::geturl $pool_url -timeout 3000]} error] == 1} {
-		if {$debug eq "1"} { putlog "$error" }
-		putquick "PRIVMSG $chan :ERROR: $error"
-		http::cleanup $token
+	set data [check_httpdata $pool_url]
+	if { [regexp -nocase {error} $data] } {
+		putlog $data
 		return
-	} elseif {[http::ncode $token] == "404"} {
-		if {$debug eq "1"} { putlog "Error: [http::code $token]" }
-		putquick "PRIVMSG $chan :ERROR: [http::code $token]"
-		http::cleanup $token
-		return
-	} elseif {[http::status $token] == "ok"} {
-		set data [http::data $token]
-		http::cleanup $token
-	} elseif {[http::status $token] == "timeout"} {
-		if {$debug eq "1"} { putlog "Timeout occurred" }
-		putquick "PRIVMSG $chan :ERROR: Timeout occurred"
-		http::cleanup $token
-		return
-	} elseif {[http::status $token] == "error"} {
-		if {$debug eq "1"} { putlog "Error: [http::error $token]" }
-		putquick "PRIVMSG $chan :ERROR: [http::error $token]"
-		http::cleanup $token
-		return
-	}
-        
-	if {$usehttps eq "1"} {
-		::http::unregister https
 	}
 	
 	if {[llength [registeredpools eval {SELECT coin FROM pools WHERE coin=$pool_coin}]] == 0} {
@@ -112,10 +77,8 @@ proc pool_del {nick uhost hand chan arg} {
 	global debug sqlite_poolfile
 	sqlite3 registeredpools $sqlite_poolfile
 	
-	if {[matchattr $nick +n]} {
-		if {$debug eq "1"} { putlog "$nick is botowner" }
-	} else {
-		if {$debug eq "1"} { putlog "$nick tried to delete $arg from pools" }
+	if {[check_userrights $chan $nick] eq "false"} {
+		if {$debug eq "1"} { putlog "$nick tried to delete $arg to pools" }
 		return
 	}
 
@@ -142,10 +105,8 @@ proc pool_apikey {nick uhost hand arg} {
 	global debug sqlite_poolfile
 	sqlite3 registeredpools $sqlite_poolfile
 	
-	if {[matchattr $nick +n]} {
-		if {$debug eq "1"} { putlog "$nick is botowner" }
-	} else {
-		if {$debug eq "1"} { putlog "$nick tried to add apikey $arg to pools" }
+	if {[check_userrights $chan $nick] eq "false"} {
+		if {$debug eq "1"} { putlog "$nick tried to add api key $arg to pools" }
 		return
 	}
 
@@ -172,10 +133,8 @@ proc pool_list {nick uhost hand chan arg} {
 	global debug sqlite_poolfile
 	sqlite3 registeredpools $sqlite_poolfile
 	
-	if {[matchattr $nick +n]} {
-		if {$debug eq "1"} { putlog "$nick is botowner" }
-	} else {
-		if {$debug eq "1"} { putlog "$nick tried to list $arg from pools" }
+	if {[check_userrights $chan $nick] eq "false"} {
+		if {$debug eq "1"} { putlog "$nick tried to list $arg to pools" }
 		return
 	}
 	
