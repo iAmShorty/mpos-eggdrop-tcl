@@ -26,10 +26,8 @@
 proc pool_add {nick uhost hand chan arg} {
 	global debug sqlite_poolfile
 	sqlite3 registeredpools $sqlite_poolfile
-	
-	if {[matchattr $nick +n]} {
-		if {$debug eq "1"} { putlog "$nick is botowner" }
-	} else {
+
+	if {[check_userrights $chan $nick] eq "false"} {
 		if {$debug eq "1"} { putlog "$nick tried to add $arg to pools" }
 		return
 	}
@@ -112,10 +110,8 @@ proc pool_del {nick uhost hand chan arg} {
 	global debug sqlite_poolfile
 	sqlite3 registeredpools $sqlite_poolfile
 	
-	if {[matchattr $nick +n]} {
-		if {$debug eq "1"} { putlog "$nick is botowner" }
-	} else {
-		if {$debug eq "1"} { putlog "$nick tried to delete $arg from pools" }
+	if {[check_userrights $chan $nick] eq "false"} {
+		if {$debug eq "1"} { putlog "$nick tried to delete $arg to pools" }
 		return
 	}
 
@@ -142,10 +138,8 @@ proc pool_apikey {nick uhost hand arg} {
 	global debug sqlite_poolfile
 	sqlite3 registeredpools $sqlite_poolfile
 	
-	if {[matchattr $nick +n]} {
-		if {$debug eq "1"} { putlog "$nick is botowner" }
-	} else {
-		if {$debug eq "1"} { putlog "$nick tried to add apikey $arg to pools" }
+	if {[check_userrights $chan $nick] eq "false"} {
+		if {$debug eq "1"} { putlog "$nick tried to add api key $arg to pools" }
 		return
 	}
 
@@ -172,10 +166,8 @@ proc pool_list {nick uhost hand chan arg} {
 	global debug sqlite_poolfile
 	sqlite3 registeredpools $sqlite_poolfile
 	
-	if {[matchattr $nick +n]} {
-		if {$debug eq "1"} { putlog "$nick is botowner" }
-	} else {
-		if {$debug eq "1"} { putlog "$nick tried to list $arg from pools" }
+	if {[check_userrights $chan $nick] eq "false"} {
+		if {$debug eq "1"} { putlog "$nick tried to list $arg to pools" }
 		return
 	}
 	
