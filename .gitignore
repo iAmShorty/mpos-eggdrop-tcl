@@ -2,3 +2,6 @@
 config.tcl
 output.tcl
 .DS_Store
+
+# DB Files
+/db/*
