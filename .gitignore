@@ -5,3 +5,5 @@ output.tcl
 
 # DB Files
 /db/*
+*.db
+*.sql
