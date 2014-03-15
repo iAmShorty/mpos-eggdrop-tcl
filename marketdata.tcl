@@ -24,8 +24,7 @@
 # info for specific market set in config
 #
 proc price_info {nick host hand chan arg} {
-	global help_blocktime help_blocked channels debug debugoutput usehttps output marketapi activemarket vircurex_querycoin cryptsy_marketid onlyallowregisteredusers output_marketdata protected_commands sqlite_commands
-	sqlite3 poolcommands $sqlite_commands
+	global help_blocktime help_blocked channels debug debugoutput usehttps output marketapi activemarket vircurex_querycoin cryptsy_marketid onlyallowregisteredusers output_marketdata command_protect
 
 	if {$onlyallowregisteredusers eq "1"} {
 		if {[check_registereduser $chan $nick] eq "false"} {

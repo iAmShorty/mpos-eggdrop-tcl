@@ -24,8 +24,7 @@
 # info for specific coin form coinchoose
 #
 proc coinchoose_info {nick host hand chan arg} {
-	global help_blocktime help_blocked channels debug debugoutput output onlyallowregisteredusers output_coinchoose protected_commands sqlite_commands
-	sqlite3 poolcommands $sqlite_commands
+	global help_blocktime help_blocked channels debug debugoutput output onlyallowregisteredusers output_coinchoose command_protect
 
 	if {$onlyallowregisteredusers eq "1"} {
 		if {[check_registereduser $chan $nick] eq "false"} {

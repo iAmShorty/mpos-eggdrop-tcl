@@ -24,8 +24,7 @@
 # info for specific user
 #
 proc user_info {nick host hand chan arg} {
-	global help_blocktime help_blocked channels debug debugoutput output onlyallowregisteredusers output_userstats output_userstats_percoin protected_commands sqlite_commands
-	sqlite3 poolcommands $sqlite_commands
+	global help_blocktime help_blocked channels debug debugoutput output onlyallowregisteredusers output_userstats output_userstats_percoin command_protect
 
 	if {$onlyallowregisteredusers eq "1"} {
 		if {[check_registereduser $chan $nick] eq "false"} {

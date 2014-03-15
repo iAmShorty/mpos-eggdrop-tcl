@@ -24,8 +24,7 @@
 # pool information
 #
 proc pool_info {nick host hand chan arg} {
-	global help_blocktime help_blocked channels debug debugoutput output onlyallowregisteredusers shownethashrate showpoolhashrate output_poolstats output_poolstats_percoin protected_commands sqlite_commands
-	sqlite3 poolcommands $sqlite_commands
+	global help_blocktime help_blocked channels debug debugoutput output onlyallowregisteredusers shownethashrate showpoolhashrate output_poolstats output_poolstats_percoin command_protect
 
 	if {$onlyallowregisteredusers eq "1"} {
 		if {[check_registereduser $chan $nick] eq "false"} {

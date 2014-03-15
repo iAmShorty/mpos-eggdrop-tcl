@@ -24,8 +24,7 @@
 # get worker information
 #
 proc worker_info {nick host hand chan arg} {
-	global help_blocktime help_blocked channels debug debugoutput output onlyallowregisteredusers ownersworkeronly output_workerinfo output_worker_online output_worker_offline protected_commands sqlite_commands
-	sqlite3 poolcommands $sqlite_commands
+	global help_blocktime help_blocked channels debug debugoutput output onlyallowregisteredusers ownersworkeronly output_workerinfo output_worker_online output_worker_offline command_protect
 	
 	# only allow bot owners to get workers for 
 	# specified users

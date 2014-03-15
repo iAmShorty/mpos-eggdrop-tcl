@@ -24,8 +24,7 @@
 # block information
 #
 proc block_info {nick host hand chan arg} {
-	global help_blocktime help_blocked channels debug debugoutput output onlyallowregisteredusers output_blockinfo output_blockinfo_percoin protected_commands sqlite_commands
-	sqlite3 poolcommands $sqlite_commands
+	global help_blocktime help_blocked channels debug debugoutput output onlyallowregisteredusers output_blockinfo output_blockinfo_percoin command_protect
 
 	if {$onlyallowregisteredusers eq "1"} {
 		if {[check_registereduser $chan $nick] eq "false"} {
@@ -141,8 +140,7 @@ proc block_info {nick host hand chan arg} {
 # last block found
 #
 proc last_info {nick host hand chan arg } {
-	global help_blocktime help_blocked channels debug debugoutput output onlyallowregisteredusers output_lastblock output_lastblock_percoin protected_commands sqlite_commands
-	sqlite3 poolcommands $sqlite_commands
+	global help_blocktime help_blocked channels debug debugoutput output onlyallowregisteredusers output_lastblock output_lastblock_percoin command_protect
 
 	if {$onlyallowregisteredusers eq "1"} {
 		if {[check_registereduser $chan $nick] eq "false"} {
