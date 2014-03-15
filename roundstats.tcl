@@ -62,20 +62,12 @@ proc round_info {nick host hand chan arg } {
 		return
 	} 
 
-	if {[lsearch $protected_commands "round"] > 0 } {
-		regsub "#" $chan "" command_channel
-		if {[llength [poolcommands eval {SELECT command_id FROM commands WHERE channel=$command_channel AND command="round" AND activated=1}]] != 0} {
-			if {$debug eq "1"} { putlog "-> command round found" }
-		} elseif {[llength [poolcommands eval {SELECT command_id FROM commands WHERE channel=$command_channel AND command="all" AND activated=1}]] != 0} {
-			if {$debug eq "1"} { putlog "-> command ALL found" }
-		} else {
-			if {$debug eq "1"} { putlog "-> protected" }
+	if {$command_protect eq "1"} {
+		if {[channel_command_acl $chan "round"] eq "False"} {
 			putquick "PRIVMSG $chan :command !round not allowed in $chan"
 			return
 		}
-    } else {
-    	if {$debug eq "1"} { putlog "-> not protected" }
-    }
+	}
     
 	set newurl [lindex $pool_info 1]
 	append newurl $action

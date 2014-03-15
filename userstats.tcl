@@ -62,20 +62,12 @@ proc user_info {nick host hand chan arg} {
 		return
 	} 
 
-	if {[lsearch $protected_commands "user"] > 0 } {
-		regsub "#" $chan "" command_channel
-		if {[llength [poolcommands eval {SELECT command_id FROM commands WHERE channel=$command_channel AND command="user" AND activated=1}]] != 0} {
-			if {$debug eq "1"} { putlog "-> command user found" }
-		} elseif {[llength [poolcommands eval {SELECT command_id FROM commands WHERE channel=$command_channel AND command="all" AND activated=1}]] != 0} {
-			if {$debug eq "1"} { putlog "-> command ALL found" }
-		} else {
-			if {$debug eq "1"} { putlog "-> protected" }
+	if {$command_protect eq "1"} {
+		if {[channel_command_acl $chan "user"] eq "False"} {
 			putquick "PRIVMSG $chan :command !user not allowed in $chan"
 			return
 		}
-    } else {
-    	if {$debug eq "1"} { putlog "-> not protected" }
-    }
+	}
     
 	set newurl [lindex $pool_info 1]
 	append newurl $action

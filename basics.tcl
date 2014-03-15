@@ -212,6 +212,32 @@ proc check_httpdata {url} {
 }
 
 #
+# ACL Command Check
+#
+proc channel_command_acl {channel command} {
+	global protected_commands sqlite_commands debug
+	sqlite3 poolcommands $sqlite_commands
+
+	if {[lsearch $protected_commands $command] > 0 } {
+		regsub "#" $channel "" command_channel
+		if {[llength [poolcommands eval {SELECT command_id FROM commands WHERE channel=$command_channel AND command="$command" AND activated=1}]] != 0} {
+			if {$debug eq "1"} { putlog "-> command !balance found" }
+			return "True"
+		} elseif {[llength [poolcommands eval {SELECT command_id FROM commands WHERE channel=$command_channel AND command="all" AND activated=1}]] != 0} {
+			if {$debug eq "1"} { putlog "-> command ALL found" }
+			return "True"
+		} else {
+			if {$debug eq "1"} { putlog "-> protected" }
+			return "False"
+		}
+    } else {
+    	if {$debug eq "1"} { putlog "-> not protected" }
+    	return "True"
+    }
+    
+}
+
+#
 # replace variables
 #
 proc replacevar {string cookie value} {
