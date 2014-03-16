@@ -24,8 +24,7 @@
 # pool information
 #
 proc pool_info {nick host hand chan arg} {
-	global help_blocktime help_blocked channels debug debugoutput output onlyallowregisteredusers shownethashrate showpoolhashrate output_poolstats output_poolstats_percoin protected_commands sqlite_commands
-	sqlite3 poolcommands $sqlite_commands
+	global help_blocktime help_blocked channels debug debugoutput output onlyallowregisteredusers shownethashrate showpoolhashrate output_poolstats output_poolstats_percoin command_protect
 
 	if {$onlyallowregisteredusers eq "1"} {
 		if {[check_registereduser $chan $nick] eq "false"} {
@@ -62,20 +61,12 @@ proc pool_info {nick host hand chan arg} {
 		return
 	} 
 
-	if {[lsearch $protected_commands "pool"] > 0 } {
-		regsub "#" $chan "" command_channel
-		if {[llength [poolcommands eval {SELECT command_id FROM commands WHERE channel=$command_channel AND command="pool" AND activated=1}]] != 0} {
-			if {$debug eq "1"} { putlog "-> command pool found" }
-		} elseif {[llength [poolcommands eval {SELECT command_id FROM commands WHERE channel=$command_channel AND command="all" AND activated=1}]] != 0} {
-			if {$debug eq "1"} { putlog "-> command ALL found" }
-		} else {
-			if {$debug eq "1"} { putlog "-> protected" }
+	if {$command_protect eq "1"} {
+		if {[channel_command_acl $chan "pool"] eq "False"} {
 			putquick "PRIVMSG $chan :command !pool not allowed in $chan"
 			return
 		}
-    } else {
-    	if {$debug eq "1"} { putlog "-> not protected" }
-    }
+	}
     
 	set newurl [lindex $pool_info 1]
 	append newurl $action

@@ -76,6 +76,10 @@ set channels "#channel1 #channel2"
 # be triggered if not set to enabled. commands not in
 # this list can be triggered from every channel.
 #
+# set command_protect to 1 to activate it
+#
+set command_protect "0"
+
 set protected_commands {
 	"hashrate"
 	"diff"
@@ -109,14 +113,11 @@ set changechanneltopic "0"
 
 # posting coininfo to channel
 # there are 2 modes to set
+# 0 -> deactivated
 # 1 -> activates posting actual coinprice in given interval
 # 2 -> activates posting coinprice at a give value
 #      if price of coin has reached this value, it will
 #      be announced in channel 5 times with 1 minute interval
-#
-# 0 - deactivated
-# 1 - activated
-# 2 - only when price reached
 #
 set postcoininfo "0"
 

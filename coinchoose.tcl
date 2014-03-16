@@ -24,8 +24,7 @@
 # info for specific coin form coinchoose
 #
 proc coinchoose_info {nick host hand chan arg} {
-	global help_blocktime help_blocked channels debug debugoutput output onlyallowregisteredusers output_coinchoose protected_commands sqlite_commands
-	sqlite3 poolcommands $sqlite_commands
+	global help_blocktime help_blocked channels debug debugoutput output onlyallowregisteredusers output_coinchoose command_protect
 
 	if {$onlyallowregisteredusers eq "1"} {
 		if {[check_registereduser $chan $nick] eq "false"} {
@@ -49,20 +48,12 @@ proc coinchoose_info {nick host hand chan arg} {
 		return
 	}
 
-	if {[lsearch $protected_commands "coinchoose"] > 0 } {
-		regsub "#" $chan "" command_channel
-		if {[llength [poolcommands eval {SELECT command_id FROM commands WHERE channel=$command_channel AND command="coinchoose" AND activated=1}]] != 0} {
-			if {$debug eq "1"} { putlog "-> command coinchoose found" }
-		} elseif {[llength [poolcommands eval {SELECT command_id FROM commands WHERE channel=$command_channel AND command="all" AND activated=1}]] != 0} {
-			if {$debug eq "1"} { putlog "-> command ALL found" }
-		} else {
-			if {$debug eq "1"} { putlog "-> protected" }
+	if {$command_protect eq "1"} {
+		if {[channel_command_acl $chan "coinchoose"] eq "False"} {
 			putquick "PRIVMSG $chan :command !coinchoose not allowed in $chan"
 			return
 		}
-    } else {
-    	if {$debug eq "1"} { putlog "-> not protected" }
-    }
+	}
     
 	set coinchoose_api "http://www.coinchoose.com/api.php?base=BTC"
 
