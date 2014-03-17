@@ -30,7 +30,7 @@ proc worker_info {nick host hand chan arg} {
 	# specified users
 	#
 	if {$ownersworkeronly eq "1"} {
-		if {[check_userrights $chan $nick] eq "false"} {
+		if {[check_userrights $nick] eq "false"} {
 			putlog "$nick tried to get worker for user $arg"
 			putquick "PRIVMSG $chan :Access to Workers denied, only Botowners can check workers"
 			return

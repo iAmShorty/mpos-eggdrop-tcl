@@ -49,7 +49,7 @@ proc user_add {nick uhost hand chan arg} {
 	global debug sqlite_userfile
 	sqlite3 registeredusers $sqlite_userfile
 
-	if {[check_userrights $chan $nick] eq "false"} {
+	if {[check_userrights $nick] eq "false"} {
 		if {$debug eq "1"} { putlog "$nick tried to add $arg to userfile" }
 		return
 	}
@@ -83,7 +83,7 @@ proc user_del {nick uhost hand chan arg} {
 	global debug sqlite_userfile
 	sqlite3 registeredusers $sqlite_userfile
 	
-	if {[check_userrights $chan $nick] eq "false"} {
+	if {[check_userrights $nick] eq "false"} {
 		if {$debug eq "1"} { putlog "$nick tried to delete $arg from users" }
 		return
 	}

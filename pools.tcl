@@ -27,7 +27,7 @@ proc pool_add {nick uhost hand chan arg} {
 	global debug sqlite_poolfile
 	sqlite3 registeredpools $sqlite_poolfile
 
-	if {[check_userrights $chan $nick] eq "false"} {
+	if {[check_userrights $nick] eq "false"} {
 		if {$debug eq "1"} { putlog "$nick tried to add $arg to pools" }
 		return
 	}
@@ -41,6 +41,7 @@ proc pool_add {nick uhost hand chan arg} {
 	}
 	
 	set pool_url [string tolower [lindex $arg 0]]
+	set pool_url [string trimright $pool_url "/"]
 	set pool_coin [string toupper [lindex $arg 1]]
 	set pool_payout [string toupper [lindex $arg 2]]
 	set pool_fee [lindex $arg 3]
@@ -77,7 +78,7 @@ proc pool_del {nick uhost hand chan arg} {
 	global debug sqlite_poolfile
 	sqlite3 registeredpools $sqlite_poolfile
 	
-	if {[check_userrights $chan $nick] eq "false"} {
+	if {[check_userrights $nick] eq "false"} {
 		if {$debug eq "1"} { putlog "$nick tried to delete $arg to pools" }
 		return
 	}
@@ -105,7 +106,7 @@ proc pool_apikey {nick uhost hand arg} {
 	global debug sqlite_poolfile
 	sqlite3 registeredpools $sqlite_poolfile
 	
-	if {[check_userrights $chan $nick] eq "false"} {
+	if {[check_userrights $nick] eq "false"} {
 		if {$debug eq "1"} { putlog "$nick tried to add api key $arg to pools" }
 		return
 	}
@@ -133,7 +134,7 @@ proc pool_list {nick uhost hand chan arg} {
 	global debug sqlite_poolfile
 	sqlite3 registeredpools $sqlite_poolfile
 	
-	if {[check_userrights $chan $nick] eq "false"} {
+	if {[check_userrights $nick] eq "false"} {
 		if {$debug eq "1"} { putlog "$nick tried to list $arg to pools" }
 		return
 	}
