@@ -41,6 +41,7 @@ proc pool_add {nick uhost hand chan arg} {
 	}
 	
 	set pool_url [string tolower [lindex $arg 0]]
+	set pool_url [string trimright $pool_url "/"]
 	set pool_coin [string toupper [lindex $arg 1]]
 	set pool_payout [string toupper [lindex $arg 2]]
 	set pool_fee [lindex $arg 3]
