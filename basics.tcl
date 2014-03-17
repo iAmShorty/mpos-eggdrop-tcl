@@ -124,6 +124,7 @@ proc pool_vars {coinname} {
 		foreach {apiurl poolcoin apikey} [registeredpools eval {SELECT url,coin,apikey FROM pools WHERE apikey != 0 AND coin == $coinname} ] {
 			if {[string toupper $poolcoin] eq [string toupper $coinname]} {
 				set pool_found "true"
+				set apiurl [string trimright $apiurl "/"]
 				set pool_data "[string toupper $poolcoin] $apiurl $apikey"
 			}
 		}
