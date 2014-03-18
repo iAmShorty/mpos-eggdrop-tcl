@@ -36,6 +36,8 @@ proc printUsage {nick host hand chan arg} {
 	putquick "NOTICE $nick : !balance COINNAME <user>                   - User Wallet Balance"
 	putquick "NOTICE $nick : !price                                     - Get actual Coinprice"
 	putquick "NOTICE $nick : !coinchoose COINNAME                       - Get actual Coininfo from Coinchoose"
+	putquick "NOTICE $nick : !hashrate COINNAME                         - Get actual Hashrate form Pool"
+	putquick "NOTICE $nick : !calc <YOURHASHRATE> COINNAME              - Profit Calculator based on Hashrate"
 	putquick "NOTICE $nick : !request                                   - Request Access to Bot Commands"
 	if {[matchattr $nick +n]} {
 		putquick "NOTICE $nick : !adduser <ircnick>                         - Adding User to userfile"

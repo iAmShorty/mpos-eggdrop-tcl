@@ -73,6 +73,7 @@ source scripts/mininginfo/basics.tcl
 source scripts/mininginfo/bothelp.tcl
 source scripts/mininginfo/output.tcl
 source scripts/mininginfo/sqlite.tcl
+#
 # statistic scripts
 #
 source scripts/mininginfo/balance.tcl
@@ -82,7 +83,8 @@ source scripts/mininginfo/poolstats.tcl
 source scripts/mininginfo/roundstats.tcl
 source scripts/mininginfo/userstats.tcl
 source scripts/mininginfo/workers.tcl
-
+source scripts/mininginfo/income.tcl
+#
 # additional scripts - non mpos related
 #
 source scripts/mininginfo/pools.tcl
@@ -216,6 +218,7 @@ set protected_commands {
 	"coinchoose"
 	"request"
 	"price"
+	"calc"
 }
 </pre>
 
@@ -290,8 +293,11 @@ Commands for all Users
 !worker COINNAME USER active           - Users active Workers
 !worker COINNAME USER inactive         - User inactive Workers
 !balance COINNAME USER                 - User Wallet Balance
-!price                                 - Get actual Coinprice
+!hashrate COINNAME                     - Get actual Hashrate from Pool"
+!diff COINNAME                         - Get actual Difficulty from Pool"
+!calc YOURHASHRATE COINNAME            - Profit Calculator based on Hashrate"
 !coinchoose COINNAME                   - Get actual Coininfo from Coinchoose
+!price                                 - Get actual Coinprice
 !request                               - Request Access to Bot Commands
 ?help                                  - This help text
 </pre>

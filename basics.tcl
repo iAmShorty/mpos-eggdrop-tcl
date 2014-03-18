@@ -30,13 +30,16 @@ bind pub - !user user_info
 bind pub - !round round_info
 bind pub - !worker worker_info
 bind pub - !balance balance_info
-bind pub - !hashrate pool_hashrate
-bind pub - !diff pool_diff
+
 bind pub - !price price_info
 bind pub - !coinchoose coinchoose_info
 bind pub - !request user_request
 bind pub - ?help printUsage
 bind pub - !help printUsage
+
+bind pub - !hashrate pool_hashrate
+bind pub - !diff pool_diff
+bind pub - !calc calc_income
 
 bind pub no|- !adduser user_add
 bind pub no|- !deluser user_del
@@ -48,22 +51,6 @@ bind pub no|- !announce announce_channel
 bind pub no|- !command channel_commands
 
 bind msg no|- !apikey pool_apikey
-
-bind msg - !pool pool_info
-bind msg - !block block_info
-bind msg - !last last_info
-bind msg - !user user_info
-bind msg - !round round_info
-bind msg - !worker worker_info
-bind msg - !balance balance_info
-bind msg - !hashrate pool_hashrate
-bind msg - !diff pool_diff
-bind msg - !price price_info
-bind msg - !coinchoose coinchoose_info
-bind msg - !request user_request
-bind msg - ?help printUsage
-bind msg - !help printUsage
-
 bind msg no|- !adduser user_add
 bind msg no|- !deluser user_del
 bind msg no|- !addpool pool_add

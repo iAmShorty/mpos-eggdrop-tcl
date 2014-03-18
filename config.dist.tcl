@@ -23,7 +23,7 @@
 # General Config
 ##################################################################
 
-set scriptversion "v 1.0"
+set scriptversion "v 1.1"
 
 # time to wait before next command in seconds
 #

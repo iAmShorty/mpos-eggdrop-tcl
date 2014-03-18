@@ -338,6 +338,33 @@ on %workers_coinname% Pool"
 #set output_workerinfo_percoin(btc) "Coin: \0032%workers_coinname%\003 - test output btc"
 #set output_workerinfo_percoin(ltc) "Coin: \0032%workers_coinname%\003 - test output ltc"
 
+#
+# output for income calculator
+#
+# -> %income_coin%
+# -> %income_hashrate%
+# -> %income_diff%
+# -> %income_hour%
+# -> %income_day%
+#
+set output_incomeinfo "\[\0032%income_coin%\003\] estimated income\
+for %income_hashrate% with current difficulty\
+of %income_diff% = %income_hour% %income_coin% per hour,\
+%income_day% %income_coin% per day"
+
+
+# different announcements per coin
+# use coins set in config.tcl with config option
+# -> set poolstocheck "BTC LTC"
+# the coins listed here, can be used for different
+# announcements per coin. if not set or commented out
+# the standard announce will be used for announcing
+#
+# NOTE:
+# coinname must be in lowercase
+#
+#set output_incomeinfo_percoin(btc) "Coin: \0032%income_coin%\003 - test output btc"
+#set output_incomeinfo_percoin(ltc) "Coin: \0032%income_coin%\003 - test output ltc"
 
 ##########################################################################################
 ####################               no pool realated output            ####################
