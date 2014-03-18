@@ -87,7 +87,6 @@ proc pool_info {nick host hand chan arg} {
 
 	set results [::json::json2dict $data]
 
-
 	foreach {key value} $results {
 		#putlog "Key: $key - $value"
 		foreach {sub_key sub_value} $value {
