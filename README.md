@@ -297,7 +297,7 @@ Commands for all Users
 !diff COINNAME                         - Get actual Difficulty from Pool"
 !calc YOURHASHRATE COINNAME            - Profit Calculator based on Hashrate"
 !coinchoose COINNAME                   - Get actual Coininfo from Coinchoose
-!price                                 - Get actual Coinprice
+!price COIN EXCHANGE                   - Get actual Coinprice
 !request                               - Request Access to Bot Commands
 ?help                                  - This help text
 </pre>
@@ -315,6 +315,19 @@ Commands only for Bot Owners
 !command COMMANDNAME COIN #channel enable  - Set ACL for Commands
 /msg Botnick !apikey URL APIKEY            - Adds Apikey for specified host
 </pre>
+
+Market Data
+================
+
+Using the scripts for actual Coinprice, require API Settings in config.tcl
+
+Commands to query the actual Coinprice from the Market API's
+<pre>
+!price QUERYCOIN EXCHANGE
+
+e.g. !price LTC BTC
+</pre>
+This will show you the actual Litecoin Price in Bitcoins
 
 Contributing
 ================

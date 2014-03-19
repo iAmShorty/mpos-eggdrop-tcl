@@ -418,6 +418,24 @@ set output_marketdata_coinse "Market: \0032%marketdata_market%\003\
 | Volume: %marketdata_tradevolume%"
 
 #
+# - MintPal
+#
+# -> %marketdata_market%
+# -> %trade_base%
+# -> %trade_alt%
+# -> %trade_high%
+# -> %trade_low%
+# -> %trade_vol%
+# -> %trade_last%
+#
+set output_marketdata_vircurex "Market: \0032%marketdata_market%\003\
+| Coin: %trade_alt%\
+| High: %trade_high% %trade_base%\
+| Low: %trade_low% %trade_base%\
+| Volume: %trade_vol%\
+| Latest Price: %trade_last% %trade_base%"
+
+#
 # Coinchoose output
 #
 # -> %coinchoose_name%

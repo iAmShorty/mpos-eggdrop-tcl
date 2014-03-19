@@ -47,6 +47,14 @@ set debugoutput "0"
 #
 set output "CHAN"
 
+# set the query timeout for api calls
+# 
+# -> standard value is 5000 ms
+# set this to a higher value if your pool api response is
+# slow or the internet connection from bot is bad
+#
+set http_query_timeout 5000
+
 # script path
 # 
 # path to tcl files
@@ -92,6 +100,7 @@ set protected_commands {
 	"balance"
 	"coinchoose"
 	"request"
+	"calc"
 }
 
 # admins who should receive notifications and
@@ -235,10 +244,11 @@ set blockstokeep "20"
 # coins-e   -> 1
 # vircurex  -> 2
 # cryptsy   -> 3
+# mintpal   -> 4
 #
 # set to 0 to disable marketdata
 #
-set activemarket "3"
+set activemarket "4"
 
 # api url
 #
@@ -249,37 +259,13 @@ set activemarket "3"
 # https://vircurex.com/api/get_highest_bid.json
 # 
 # Cryptsy
-# http://pubapi.cryptsy.com/api.php?method=singlemarketdata&marketid=
+# http://pubapi.cryptsy.com/api.php?method=marketdatav2
+#
+# Mintpal
+# https://api.mintpal.com/market/stats/
 #
 #set marketapi "https://www.coins-e.com/api/v2/markets/data/"
-#set marketapi "https://vircurex.com/api/get_highest_bid.json"
-set marketapi "http://pubapi.cryptsy.com/api.php?method=singlemarketdata&marketid="
-
-#
-# only used if Coins-E Market is defined
-#
-# coinpair to query
-# coinpair must be on api page, e.g. LTC_BTC
-#
-set coinse_querycoin "LTC_BTC"
-
-#
-# only used if Vircurex Market is defined
-#
-set vircurex_querycoin "LTC"
-
-#
-# only used if Cryptsy Market is defined
-#
-# cryptsy market id
-# 
-# get market id from trade in cryptsy portal
-#
-# Litecoin = 3
-# Fastcoin = 44
-# Feathercoin = 5
-# Alphacoin = 57
-#
-set cryptsy_marketid "3"
-
+#set marketapi "https://api.vircurex.com/api/get_highest_bid.json"
+#set marketapi "http://pubapi.cryptsy.com/api.php?method=marketdatav2"
+set marketapi "https://api.mintpal.com/market/stats/"
 putlog "===>> Mining-Pool-Config - Version $scriptversion loaded"

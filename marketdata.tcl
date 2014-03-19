@@ -49,7 +49,14 @@ proc price_info {nick host hand chan arg} {
 			return
 		}
 	}
-    
+
+	if {$arg eq "" || [llength $arg] != 2} {
+		if {$debug eq "1"} { putlog "wrong arguments, must be !price coin exchange" }
+		return
+	}
+	
+	set query_coin [string toupper [lindex $arg 0]]
+	set query_exchange [string toupper [lindex $arg 1]]
 	set newurl $marketapi
 
 	set trade_price "0"
@@ -61,10 +68,12 @@ proc price_info {nick host hand chan arg} {
 		set market_name "Coins-E"
 	} elseif {$activemarket eq "2"} {
 		set market_name "Vircurex"
-		append newurl "?base=$vircurex_querycoin&alt=BTC" 
+		append newurl "?base=$query_exchange&alt=$query_coin" 
 	} elseif {$activemarket eq "3"} {
 		set market_name "Cryptsy"
-		append newurl $cryptsy_marketid
+	} elseif {$activemarket eq "4"} {
+		set market_name "MintPal"
+		append newurl "$query_coin/$query_exchange"
 	} else {
 		if {$output eq "CHAN"} {
 			putquick "PRIVMSG $chan :No active Market"
@@ -89,11 +98,13 @@ proc price_info {nick host hand chan arg} {
 	#putlog "DATA: $results"
 
 	if {$activemarket eq "1"} {
-		market_coinse $nick $chan $results
+		market_coinse $nick $chan $results $query_coin $query_exchange
 	} elseif {$activemarket eq "2"} { 
-		market_vircurex $nick $chan $results
+		market_vircurex $nick $chan $results $query_coin $query_exchange
 	} elseif {$activemarket eq "3"} { 
-		market_cryptsy $nick $chan $results
+		market_cryptsy $nick $chan $results $query_coin $query_exchange
+	} elseif {$activemarket eq "4"} { 
+		market_mintpal $nick $chan $results $query_coin $query_exchange
 	} else {
 		return
 	}
@@ -106,15 +117,26 @@ proc price_info {nick host hand chan arg} {
 #
 # output for coins-e api
 #
-proc market_coinse {nick chan marketdataresult} {
+proc market_coinse {nick chan marketdataresult query_coin query_exchange} {
 	global debug debugoutput output coinse_querycoin output_marketdata_coinse
+	
+	set querycoinpair "$query_coin"
+	append querycoinpair "_"
+	append querycoinpair "$query_exchange"
+	
+	if {$debug eq "1"} { putlog "QUERY: $querycoinpair" }
+
+	set trade_volume "null"
+	set trade_high "null"
+	set trade_low "null"
+	set trade_avg "null"
 	
 	foreach {key value} $marketdataresult {
 		#putlog "DATA: $key"
 		if {$key eq "markets"} {
 			foreach {sub_key sub_value} $value {
 				#putlog "DATA: $sub_key"
-				if {$sub_key eq "$coinse_querycoin"} {
+				if {$sub_key eq "$querycoinpair"} {
 					#putlog "DATA: $sub_value"
 					foreach {elem elem_val} $sub_value {
 						#putlog "DATA: $elem"
@@ -144,6 +166,11 @@ proc market_coinse {nick chan marketdataresult} {
 		}
 	}
 
+	if {$trade_volume eq "null" } { 
+		putquick "PRIVMSG $chan :Unknown currency pair"
+		return
+	}
+
 	set lineoutput $output_marketdata_coinse
 	set lineoutput [replacevar $lineoutput "%marketdata_market%" "Coins-E"]
 	set lineoutput [replacevar $lineoutput "%marketdata_altcoin%" $altcoin]
@@ -165,19 +192,29 @@ proc market_coinse {nick chan marketdataresult} {
 #
 # output for vircurex api
 #
-proc market_vircurex {nick chan marketdataresult} {
+proc market_vircurex {nick chan marketdataresult query_coin query_exchange} {
 	global debug debugoutput output output_marketdata_vircurex
 	
-	if {$marketdataresult eq "Unknown currency"} {
-		putquick "PRIVMSG $chan :Unknown currency, please check api settings"
-		return
-	}
+	if {$debug eq "1"} { putlog "QUERY: $query_coin\/$query_exchange" }
+
+	set trade_base "null"
+	set trade_price "null"
+	set trade_alt "null"
+	set error_status "null"
+	set error_message "null"
 	
 	foreach {key value} $marketdataresult {
 		#putlog "Key: $key - $value"
-		if {$key eq "base"} { set trade_base "Coin: $value" }
+		if {$key eq "status"} { set error_status $value }
+		if {$key eq "status_text"} { set error_message $value }
+		if {$key eq "base"} { set trade_base $value }
 		if {$key eq "alt"} { set trade_alt $value }
-		if {$key eq "value"} { set trade_price "$value" }
+		if {$key eq "value"} { set trade_price $value }
+	}
+
+	if {$error_status eq "8"} { 
+		putquick "PRIVMSG $chan :Unknown currency pair"
+		return
 	}
 
 	set lineoutput $output_marketdata_vircurex
@@ -198,8 +235,15 @@ proc market_vircurex {nick chan marketdataresult} {
 #
 # output for cryptsy api
 #
-proc market_cryptsy {nick chan marketdataresult} {
+proc market_cryptsy {nick chan marketdataresult query_coin query_exchange} {
 	global debug debugoutput output output_marketdata_cryptsy
+	
+	if {$debug eq "1"} { putlog "QUERY: $query_coin\/$query_exchange" }
+	
+	set marketdata_tradeprice "null"
+	set marketdata_tradetrime "null"
+	set marketdata_tradelabel "null"
+	set marketdata_tradevolume "null"
 	
 	foreach {key value} $marketdataresult {
 		#putlog "Key: $key - $value"
@@ -209,21 +253,30 @@ proc market_cryptsy {nick chan marketdataresult} {
 				foreach {elem elem_val} $sub_value {
 					#putlog "Coin: $elem"
 					#putlog "Ele: $elem - Val: $elem_val"
-					foreach {elem2 elem_val2} $elem_val {
-						#putlog "Key: $elem2"
-						#putlog "Subkey: $elem_val2"
-											
-						if {$elem2 eq "lasttradeprice"} { set marketdata_tradeprice "$elem_val2" }
-						if {$elem2 eq "lasttradetime"} { set marketdata_tradetrime "$elem_val2" }
-						if {$elem2 eq "label"} { set marketdata_tradelabel "$elem_val2" }
-						if {$elem2 eq "volume"} { set marketdata_tradevolume "$elem_val2" }
+					if {$elem eq "$query_coin\/$query_exchange"} {
+						putlog "DATA FOUND"
+						foreach {elem2 elem_val2} $elem_val {
+							#putlog "Key: $elem2"
+							#putlog "Subkey: $elem_val2"
+
+							if {$elem2 eq "lasttradeprice"} { set marketdata_tradeprice "$elem_val2" }
+							if {$elem2 eq "lasttradetime"} { set marketdata_tradetrime "$elem_val2" }
+							if {$elem2 eq "label"} { set marketdata_tradelabel "$elem_val2" }
+							if {$elem2 eq "volume"} { set marketdata_tradevolume "$elem_val2" }
 					
+						}
+						break
 					}
 				}
 			}
 		}
 	}
-
+	
+	if {$marketdata_tradeprice eq "null"} { 
+		putquick "PRIVMSG $chan :Unknown currency pair"
+		return
+	}
+	
 	set lineoutput $output_marketdata_cryptsy
 	set lineoutput [replacevar $lineoutput "%marketdata_market%" "Cryptsy"]
 	set lineoutput [replacevar $lineoutput "%marketdata_tradeprice%" $marketdata_tradeprice]
@@ -241,6 +294,60 @@ proc market_cryptsy {nick chan marketdataresult} {
 	
 	return
 	
+}
+
+#
+# output for mintpal api
+#
+proc market_mintpal {nick chan marketdataresult query_coin query_exchange} {
+	global debug debugoutput output output_marketdata_vircurex
+	
+	if {$debug eq "1"} { putlog "QUERY: $query_coin\/$query_exchange" }
+
+	set trade_last "null"
+	set trade_high "null"
+	set trade_low "null"
+	set trade_vol "null"
+	set error_status "null"
+	set error_message "null"
+	
+	#putlog "DATA: $marketdataresult"
+	
+	foreach {key value} $marketdataresult {
+		#putlog "Key: $key - $value"
+		foreach {sub_key sub_value} $key {
+			#putlog "Key: $sub_key - $sub_value"
+			if {$sub_key eq "code"} { set error_status $sub_value }
+			if {$sub_key eq "message"} { set error_message $sub_value }
+			if {$sub_key eq "24hhigh"} { set trade_high $sub_value }
+			if {$sub_key eq "24hlow"} { set trade_low $sub_value }
+			if {$sub_key eq "24hvol"} { set trade_vol $sub_value }
+			if {$sub_key eq "last_price"} { set trade_last $sub_value }
+		}
+
+	}
+
+	if {$error_status eq "404" || $error_message eq "Not Found"} {
+		putquick "PRIVMSG $chan :Unknown currency pair"
+		return
+	}
+
+	set lineoutput $output_marketdata_vircurex
+	set lineoutput [replacevar $lineoutput "%marketdata_market%" "MintPal"]
+	set lineoutput [replacevar $lineoutput "%trade_base%" $query_exchange]
+	set lineoutput [replacevar $lineoutput "%trade_alt%" $query_coin]
+	set lineoutput [replacevar $lineoutput "%trade_last%" $trade_last]
+	set lineoutput [replacevar $lineoutput "%trade_high%" $trade_high]
+	set lineoutput [replacevar $lineoutput "%trade_low%" $trade_low]
+	set lineoutput [replacevar $lineoutput "%trade_vol%" $trade_vol]
+	
+	if {$output eq "CHAN"} {
+		putquick "PRIVMSG $chan :$lineoutput"
+	} elseif {$output eq "NOTICE"} {
+		putquick "NOTICE $nick :$lineoutput"
+	} else {
+		putquick "PRIVMSG $chan :please set output in config file"
+	}
 }
 
 putlog "===>> Mining-Pool-Marketdata - Version $scriptversion loaded"
