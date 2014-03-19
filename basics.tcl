@@ -156,7 +156,7 @@ proc check_registereduser {chan nick} {
 # checking http data
 #
 proc check_httpdata {url} {
-	global debug debugoutput
+	global debug debugoutput http_query_timeout
 
 	set returnvalue ""
 	
@@ -170,7 +170,7 @@ proc check_httpdata {url} {
 		::http::register https 443 tls::socket
 	}
 	
-	if {[catch { set token [http::geturl $url -timeout 3000]} error] == 1} {
+	if {[catch { set token [http::geturl $url -timeout $http_query_timeout]} error] == 1} {
 		if {$debug eq "1"} { putlog "$error" }
 		http::cleanup $token
 		set returnvalue "error - $error"
