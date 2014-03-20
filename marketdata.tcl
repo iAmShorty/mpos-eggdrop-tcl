@@ -74,6 +74,7 @@ proc price_info {nick host hand chan arg} {
 	} elseif {$activemarket eq "4"} {
 		set market_name "MintPal"
 		append newurl "$query_coin/$query_exchange"
+		putlog "URL: $newurl"
 	} else {
 		if {$output eq "CHAN"} {
 			putquick "PRIVMSG $chan :No active Market"

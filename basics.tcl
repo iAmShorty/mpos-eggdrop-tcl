@@ -51,14 +51,6 @@ bind pub no|- !announce announce_channel
 bind pub no|- !command channel_commands
 
 bind msg no|- !apikey pool_apikey
-bind msg no|- !adduser user_add
-bind msg no|- !deluser user_del
-bind msg no|- !addpool pool_add
-bind msg no|- !delpool pool_del
-bind msg no|- !pools pool_list
-bind msg no|- !blockfinder announce_blockfinder
-bind msg no|- !announce announce_channel
-bind msg no|- !command channel_commands
 
 #
 # check for required packages
