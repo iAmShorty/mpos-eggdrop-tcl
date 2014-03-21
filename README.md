@@ -39,7 +39,11 @@ FEATURES
 * Checking for new Blocks on multiple Pools
 * Advertise new Blocks to Channel
 * Advertise Stats and Infos directly into the channel or send via private Message
-* Show actual Coin Price from Cryptsy, Coins-E or Vircurex
+* Show actual Coin Price 
+  - Cryptsy
+  - Coins-E
+  - Vircurex
+  - MintPal
 * Show Coin Infos from choinchoose
 * Create own Channel Output with predefined variables
 * Create custom output per Coin
