@@ -301,7 +301,7 @@ Commands for all Users
 !diff COINNAME                         - Get actual Difficulty from Pool"
 !calc YOURHASHRATE COINNAME            - Profit Calculator based on Hashrate"
 !coinchoose COINNAME                   - Get actual Coininfo from Coinchoose
-!price COIN EXCHANGE                   - Get actual Coinprice
+!price ALTCOIN BASECOIN EXCHANGE       - Get actual Coinprice
 !request                               - Request Access to Bot Commands
 ?help                                  - This help text
 </pre>
@@ -327,9 +327,12 @@ Using the scripts for actual Coinprice, require API Settings in config.tcl
 
 Commands to query the actual Coinprice from the Market API's
 <pre>
-!price QUERYCOIN EXCHANGE
+!price ALTCOIN BASECOIN EXCHANGE
 
-e.g. !price LTC BTC
+e.g. !price LTC BTC cryptsy
+or !price LTC BTC coins-e
+or !price LTC BTC vircurex
+or !price LTC BTC mintpal
 </pre>
 This will show you the actual Litecoin Price in Bitcoins
 

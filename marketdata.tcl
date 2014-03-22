@@ -24,7 +24,7 @@
 # info for specific market set in config
 #
 proc price_info {nick host hand chan arg} {
-	global help_blocktime help_blocked channels debug debugoutput usehttps output marketapi activemarket vircurex_querycoin cryptsy_marketid onlyallowregisteredusers output_marketdata command_protect
+	global help_blocktime help_blocked channels debug debugoutput usehttps output onlyallowregisteredusers output_marketdata command_protect marketapi_coinse marketapi_vircurex marketapi_cryptsy marketapi_mintpal
 
 	if {$onlyallowregisteredusers eq "1"} {
 		if {[check_registereduser $chan $nick] eq "false"} {
@@ -50,30 +50,38 @@ proc price_info {nick host hand chan arg} {
 		}
 	}
 
-	if {$arg eq "" || [llength $arg] != 2} {
-		if {$debug eq "1"} { putlog "wrong arguments, must be !price coin exchange" }
+	if {$arg eq "" || [llength $arg] != 3} {
+		if {$debug eq "1"} { putlog "wrong arguments, must be !price altcoin basecoin exchange" }
 		return
 	}
 	
-	set query_coin [string toupper [lindex $arg 0]]
-	set query_exchange [string toupper [lindex $arg 1]]
-	set newurl $marketapi
+	set query_altcoin [string toupper [lindex $arg 0]]
+	set query_basecoin [string toupper [lindex $arg 1]]
+	set query_exchange [string toupper [lindex $arg 2]]
+	set newurl ""
 
 	set trade_price "0"
 	set trade_trime "0"
 	set trade_label "0"
 	set trade_volume "0"
 
-	if {$activemarket eq "1"} {
+	if {$query_exchange eq "COINS-E"} {
 		set market_name "Coins-E"
-	} elseif {$activemarket eq "2"} {
+		set newurl $marketapi_coinse
+		putlog "URL: $newurl"
+	} elseif {$query_exchange eq "VIRCUREX"} {
 		set market_name "Vircurex"
-		append newurl "?base=$query_exchange&alt=$query_coin" 
-	} elseif {$activemarket eq "3"} {
+		set newurl $marketapi_vircurex
+		append newurl "?base=$query_basecoin&alt=$query_altcoin"
+		putlog "URL: $newurl"
+	} elseif {$query_exchange eq "CRYPTSY"} {
 		set market_name "Cryptsy"
-	} elseif {$activemarket eq "4"} {
+		set newurl $marketapi_cryptsy
+		putlog "URL: $newurl"
+	} elseif {$query_exchange eq "MINTPAL"} {
 		set market_name "MintPal"
-		append newurl "$query_coin/$query_exchange"
+		set newurl $marketapi_mintpal
+		append newurl "$query_altcoin/$query_basecoin"
 		putlog "URL: $newurl"
 	} else {
 		if {$output eq "CHAN"} {
@@ -98,14 +106,14 @@ proc price_info {nick host hand chan arg} {
 
 	#putlog "DATA: $results"
 
-	if {$activemarket eq "1"} {
-		market_coinse $nick $chan $results $query_coin $query_exchange
-	} elseif {$activemarket eq "2"} { 
-		market_vircurex $nick $chan $results $query_coin $query_exchange
-	} elseif {$activemarket eq "3"} { 
-		market_cryptsy $nick $chan $results $query_coin $query_exchange
-	} elseif {$activemarket eq "4"} { 
-		market_mintpal $nick $chan $results $query_coin $query_exchange
+	if {$query_exchange eq "COINS-E"} {
+		market_coinse $nick $chan $results $query_altcoin $query_basecoin
+	} elseif {$query_exchange eq "VIRCUREX"} { 
+		market_vircurex $nick $chan $results $query_altcoin $query_basecoin
+	} elseif {$query_exchange eq "CRYPTSY"} { 
+		market_cryptsy $nick $chan $results $query_altcoin $query_basecoin
+	} elseif {$query_exchange eq "MINTPAL"} { 
+		market_mintpal $nick $chan $results $query_altcoin $query_basecoin
 	} else {
 		return
 	}
@@ -118,12 +126,12 @@ proc price_info {nick host hand chan arg} {
 #
 # output for coins-e api
 #
-proc market_coinse {nick chan marketdataresult query_coin query_exchange} {
-	global debug debugoutput output coinse_querycoin output_marketdata_coinse
+proc market_coinse {nick chan marketdataresult query_altcoin query_basecoin} {
+	global debug debugoutput output output_marketdata_coinse
 	
-	set querycoinpair "$query_coin"
+	set querycoinpair "$query_altcoin"
 	append querycoinpair "_"
-	append querycoinpair "$query_exchange"
+	append querycoinpair "$query_basecoin"
 	
 	if {$debug eq "1"} { putlog "QUERY: $querycoinpair" }
 
@@ -174,7 +182,8 @@ proc market_coinse {nick chan marketdataresult query_coin query_exchange} {
 
 	set lineoutput $output_marketdata_coinse
 	set lineoutput [replacevar $lineoutput "%marketdata_market%" "Coins-E"]
-	set lineoutput [replacevar $lineoutput "%marketdata_altcoin%" $altcoin]
+	set lineoutput [replacevar $lineoutput "%marketdata_trade_basecoin%" $query_basecoin]
+	set lineoutput [replacevar $lineoutput "%marketdata_trade_altcoin%" $query_altcoin]
 	set lineoutput [replacevar $lineoutput "%marketdata_tradehigh%" $trade_high]
 	set lineoutput [replacevar $lineoutput "%marketdata_tradelow%" $trade_low]
 	set lineoutput [replacevar $lineoutput "%marketdata_tradeavg%" $trade_avg]
@@ -193,10 +202,10 @@ proc market_coinse {nick chan marketdataresult query_coin query_exchange} {
 #
 # output for vircurex api
 #
-proc market_vircurex {nick chan marketdataresult query_coin query_exchange} {
+proc market_vircurex {nick chan marketdataresult query_altcoin query_basecoin} {
 	global debug debugoutput output output_marketdata_vircurex
 	
-	if {$debug eq "1"} { putlog "QUERY: $query_coin\/$query_exchange" }
+	if {$debug eq "1"} { putlog "QUERY: $query_altcoin\/$query_basecoin" }
 
 	set trade_base "null"
 	set trade_price "null"
@@ -208,8 +217,6 @@ proc market_vircurex {nick chan marketdataresult query_coin query_exchange} {
 		#putlog "Key: $key - $value"
 		if {$key eq "status"} { set error_status $value }
 		if {$key eq "status_text"} { set error_message $value }
-		if {$key eq "base"} { set trade_base $value }
-		if {$key eq "alt"} { set trade_alt $value }
 		if {$key eq "value"} { set trade_price $value }
 	}
 
@@ -220,9 +227,10 @@ proc market_vircurex {nick chan marketdataresult query_coin query_exchange} {
 
 	set lineoutput $output_marketdata_vircurex
 	set lineoutput [replacevar $lineoutput "%marketdata_market%" "Vircurex"]
-	set lineoutput [replacevar $lineoutput "%trade_base%" $trade_base]
-	set lineoutput [replacevar $lineoutput "%trade_price%" $trade_price]
-	set lineoutput [replacevar $lineoutput "%trade_alt%" $trade_alt]
+	set lineoutput [replacevar $lineoutput "%marketdata_trade_basecoin%" $query_basecoin]
+	set lineoutput [replacevar $lineoutput "%marketdata_trade_altcoin%" $query_altcoin]
+	set lineoutput [replacevar $lineoutput "%marketdata_trade_price%" $trade_price]
+	set lineoutput [replacevar $lineoutput "%marketdata_trade_alt%" $trade_alt]
 	
 	if {$output eq "CHAN"} {
 		putquick "PRIVMSG $chan :$lineoutput"
@@ -236,10 +244,10 @@ proc market_vircurex {nick chan marketdataresult query_coin query_exchange} {
 #
 # output for cryptsy api
 #
-proc market_cryptsy {nick chan marketdataresult query_coin query_exchange} {
+proc market_cryptsy {nick chan marketdataresult query_altcoin query_basecoin} {
 	global debug debugoutput output output_marketdata_cryptsy
 	
-	if {$debug eq "1"} { putlog "QUERY: $query_coin\/$query_exchange" }
+	if {$debug eq "1"} { putlog "QUERY: $query_altcoin\/$query_basecoin" }
 	
 	set marketdata_tradeprice "null"
 	set marketdata_tradetrime "null"
@@ -254,7 +262,7 @@ proc market_cryptsy {nick chan marketdataresult query_coin query_exchange} {
 				foreach {elem elem_val} $sub_value {
 					#putlog "Coin: $elem"
 					#putlog "Ele: $elem - Val: $elem_val"
-					if {$elem eq "$query_coin\/$query_exchange"} {
+					if {$elem eq "$query_altcoin\/$query_basecoin"} {
 						putlog "DATA FOUND"
 						foreach {elem2 elem_val2} $elem_val {
 							#putlog "Key: $elem2"
@@ -280,6 +288,8 @@ proc market_cryptsy {nick chan marketdataresult query_coin query_exchange} {
 	
 	set lineoutput $output_marketdata_cryptsy
 	set lineoutput [replacevar $lineoutput "%marketdata_market%" "Cryptsy"]
+	set lineoutput [replacevar $lineoutput "%marketdata_trade_basecoin%" $query_basecoin]
+	set lineoutput [replacevar $lineoutput "%marketdata_trade_altcoin%" $query_altcoin]
 	set lineoutput [replacevar $lineoutput "%marketdata_tradeprice%" $marketdata_tradeprice]
 	set lineoutput [replacevar $lineoutput "%marketdata_tradelabel%" $marketdata_tradelabel]
 	set lineoutput [replacevar $lineoutput "%marketdata_tradetrime%" $marketdata_tradetrime]
@@ -300,10 +310,10 @@ proc market_cryptsy {nick chan marketdataresult query_coin query_exchange} {
 #
 # output for mintpal api
 #
-proc market_mintpal {nick chan marketdataresult query_coin query_exchange} {
-	global debug debugoutput output output_marketdata_vircurex
+proc market_mintpal {nick chan marketdataresult query_altcoin query_basecoin} {
+	global debug debugoutput output output_marketdata_mintpal
 	
-	if {$debug eq "1"} { putlog "QUERY: $query_coin\/$query_exchange" }
+	if {$debug eq "1"} { putlog "QUERY: $query_altcoin\/$query_basecoin" }
 
 	set trade_last "null"
 	set trade_high "null"
@@ -333,14 +343,14 @@ proc market_mintpal {nick chan marketdataresult query_coin query_exchange} {
 		return
 	}
 
-	set lineoutput $output_marketdata_vircurex
+	set lineoutput $output_marketdata_mintpal
 	set lineoutput [replacevar $lineoutput "%marketdata_market%" "MintPal"]
-	set lineoutput [replacevar $lineoutput "%trade_base%" $query_exchange]
-	set lineoutput [replacevar $lineoutput "%trade_alt%" $query_coin]
-	set lineoutput [replacevar $lineoutput "%trade_last%" $trade_last]
-	set lineoutput [replacevar $lineoutput "%trade_high%" $trade_high]
-	set lineoutput [replacevar $lineoutput "%trade_low%" $trade_low]
-	set lineoutput [replacevar $lineoutput "%trade_vol%" $trade_vol]
+	set lineoutput [replacevar $lineoutput "%marketdata_trade_basecoin%" $query_basecoin]
+	set lineoutput [replacevar $lineoutput "%marketdata_trade_altcoin%" $query_altcoin]
+	set lineoutput [replacevar $lineoutput "%marketdata_trade_last%" $trade_last]
+	set lineoutput [replacevar $lineoutput "%marketdata_trade_high%" $trade_high]
+	set lineoutput [replacevar $lineoutput "%marketdata_trade_low%" $trade_low]
+	set lineoutput [replacevar $lineoutput "%marketdata_trade_vol%" $trade_vol]
 	
 	if {$output eq "CHAN"} {
 		putquick "PRIVMSG $chan :$lineoutput"

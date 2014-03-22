@@ -35,14 +35,22 @@
 # is not colored. Sometimes you have to set channelmode
 # in IRC to -c to get colors working
 #
-# 0  = white		8  = yellow
-# 1  = black		9  = lightgreen
-# 2  = darkblue		10 = darkcyan
-# 3  = darkgreen	11 = lightcyan
-# 4  = red			12 = lightblue
-# 5  = brown		13 = pink
-# 6  = magenta		14 = darkgrey
-# 7  = orange		15 = lightgrey
+# 0  = white
+# 1  = black
+# 2  = darkblue
+# 3  = darkgreen
+# 4  = red
+# 5  = brown
+# 6  = magenta
+# 7  = orange
+# 8  = yellow
+# 9  = lightgreen
+# 10 = darkcyan
+# 11 = lightcyan
+# 12 = lightblue
+# 13 = pink
+# 14 = darkgrey
+# 15 = lightgrey
 #
 # setting colors with \003X where X is the colorcode
 # and resetting color with \003 where color should be
@@ -81,8 +89,9 @@ set output_balance "Coin: \0032%balance_coin%\003\
 # NOTE:
 # coinname must be in lowercase
 #
-#set output_balance_percoin(btc) "Coin: \0032%balance_coin%\003 - test output btc"
-#set output_balance_percoin(ltc) "Coin: \0032%balance_coin%\003 - test output ltc"
+#set output_balance_percoin(alf) "Coin: \0032%balance_coin%\003 - test output alf"
+#set output_balance_percoin(elp) "Coin: \0032%balance_coin%\003 - test output elp"
+#set output_balance_percoin(mac) "Coin: \0032%balance_coin%\003 - test output mac"
 
 #
 # output for current block information
@@ -115,8 +124,9 @@ set output_blockinfo "Coin: \0032%blockstats_coin%\003\
 # NOTE:
 # coinname must be in lowercase
 #
-#set output_blockinfo_percoin(btc) "Coin: \0032%blockstats_coin%\003 - test output btc"
-#set output_blockinfo_percoin(ltc) "Coin: \0032%blockstats_coin%\003 - test output ltc"
+#set output_blockinfo_percoin(alf) "Coin: \0032%blockstats_coin%\003 - test output alf"
+#set output_blockinfo_percoin(elp) "Coin: \0032%blockstats_coin%\003 - test output elp"
+#set output_blockinfo_percoin(mac) "Coin: \0032%blockstats_coin%\003 - test output mac"
 
 #
 # output for last block information
@@ -151,8 +161,9 @@ set output_lastblock "Coin: \0032%blockstats_coin%\003\
 # NOTE:
 # coinname must be in lowercase
 #
-#set output_lastblock_percoin(btc) "Coin: \0032%blockstats_coin%\003 - test output btc"
-#set output_lastblock_percoin(ltc) "Coin: \0032%blockstats_coin%\003 - test output ltc"
+#set output_lastblock_percoin(alf) "Coin: \0032%blockstats_coin%\003 - test output alf"
+#set output_lastblock_percoin(elp) "Coin: \0032%blockstats_coin%\003 - test output elp"
+#set output_lastblock_percoin(mac) "Coin: \0032%blockstats_coin%\003 - test output mac"
 
 #
 # output for advertising blocks
@@ -171,19 +182,25 @@ set output_lastblock "Coin: \0032%blockstats_coin%\003\
 # -> %blockfinder_amount%
 # -> %blockfinder_time%
 #
-set output_findblocks "Coin: \0032%blockfinder_coinname%\003\
-| New Block: #%blockfinder_newblock%\
-| Last Block: #%blockfinder_lastblock%\
-| Status: %blockfinder_laststatus%\
-| Confirmations: %blockfinder_confirmations%\
-| Est. Shares: %blockfinder_lastestshares%\
-| Shares: %blockfinder_lastshares%\
-| Percentage: %blockfinder_percentage% %\
-| Difficulty: %blockfinder_diff%\
-| Amount: %blockfinder_amount%\
-| Finder: %blockfinder_lastfinder%\
-| Worker: %blockfinder_worker%\
-| Time: %blockfinder_time%"
+#set output_findblocks "Coin: \0032%blockfinder_coinname%\003\
+#| New Block: #%blockfinder_newblock%\
+#| Last Block: #%blockfinder_lastblock%\
+#| Status: %blockfinder_laststatus%\
+#| Confirmations: %blockfinder_confirmations%\
+#| Est. Shares: %blockfinder_lastestshares%\
+#| Shares: %blockfinder_lastshares%\
+#| Percentage: %blockfinder_percentage% %\
+#| Difficulty: %blockfinder_diff%\
+#| Amount: %blockfinder_amount%\
+#| Finder: %blockfinder_lastfinder%\
+#| Worker: %blockfinder_worker%\
+#| Time: %blockfinder_time%"
+
+#set output_findblocks "\[\0032%blockfinder_coinname%\003\]\[\002#%blockfinder_newblock%\002\]\[Diff:\00310 %blockfinder_diff%\003\]\[%blockfinder_laststatus%\]\
+found by \002%blockfinder_lastfinder%\002 >\
+Last Block was #%blockfinder_lastblock% > Shares: %blockfinder_lastshares%\
+over %blockfinder_lastestshares% estimated (%blockfinder_percentage% %)\
+>> Amount:\0033 %blockfinder_amount%\003"
 
 # different announcements per coin
 # use coins set in config.tcl with config option
@@ -195,8 +212,20 @@ set output_findblocks "Coin: \0032%blockfinder_coinname%\003\
 # NOTE:
 # coinname must be in lowercase
 #
-#set output_findblocks_percoin(btc) "Coin: \0032%blockfinder_coinname%\003 - test output btc"
-#set output_findblocks_percoin(ltc) "Coin: \0032%blockfinder_coinname%\003 - test output ltc"
+#set output_findblocks_percoin(alf) "Coin: \0032%blockfinder_coinname%\003 - test output alf"
+#set output_findblocks_percoin(elp) "Coin: \0032%blockfinder_coinname%\003 - test output elp"
+#set output_findblocks_percoin(mac) "Coin: \0032%blockfinder_coinname%\003 - test output mac"
+set output_findblocks_percoin(mac) "\[\0032%blockfinder_coinname%\003\]\[\002#%blockfinder_newblock%\002\]\[Diff:\00310 %blockfinder_diff%\003\]\[%blockfinder_laststatus%\]\
+found by \002%blockfinder_lastfinder%\002 >\
+Last Block was #%blockfinder_lastblock% > Shares: %blockfinder_lastshares%\
+over %blockfinder_lastestshares% estimated (%blockfinder_percentage% %)\
+>> Amount:\0033 %blockfinder_amount%\003"
+
+set output_findblocks_percoin(beer) "\[\0038%blockfinder_coinname%\003\]\[\002#%blockfinder_newblock%\002\]\[Diff:\00310 %blockfinder_diff%\003\]\[%blockfinder_laststatus%\]\
+found by \002%blockfinder_lastfinder%\002 >\
+Last Block was #%blockfinder_lastblock% > Shares: %blockfinder_lastshares%\
+over %blockfinder_lastestshares% estimated (%blockfinder_percentage% %)\
+>> Amount:\0033 %blockfinder_amount%\003"
 
 #
 # output for poolstats
@@ -243,8 +272,9 @@ set output_poolstats "Pool: \0032%poolstats_coin%\003\
 # NOTE:
 # coinname must be in lowercase
 #
-#set output_poolstats_percoin(btc) "Coin: \0032%poolstats_coin%\003 - test output btc"
-#set output_poolstats_percoin(ltc) "Coin: \0032%poolstats_coin%\003 - test output ltc"
+#set output_poolstats_percoin(alf) "Coin: \0032%poolstats_coin%\003 - test output alf"
+#set output_poolstats_percoin(elp) "Coin: \0032%poolstats_coin%\003 - test output elp"
+#set output_poolstats_percoin(mac) "Coin: \0032%poolstats_coin%\003 - test output mac"
 
 #
 # output for roundstats
@@ -277,8 +307,9 @@ set output_roundstats "Pool: \0032%roundstats_coin%\003\
 # NOTE:
 # coinname must be in lowercase
 #
-#set output_roundstats_percoin(btc) "Coin: \0032%roundstats_coin%\003 - test output btc"
-#set output_roundstats_percoin(ltc) "Coin: \0032%roundstats_coin%\003 - test output ltc"
+#set output_roundstats_percoin(alf) "Coin: \0032%roundstats_coin%\003 - test output alf"
+#set output_roundstats_percoin(elp) "Coin: \0032%roundstats_coin%\003 - test output elp"
+#set output_roundstats_percoin(mac) "Coin: \0032%roundstats_coin%\003 - test output mac"
 
 #
 # output for userstats
@@ -307,8 +338,9 @@ set output_userstats "Pool: \0032%userstats_coin%\003\
 # NOTE:
 # coinname must be in lowercase
 #
-#set output_userstats_percoin(btc) "Coin: \0032%userstats_coin%\003 - test output btc"
-#set output_userstats_percoin(ltc) "Coin: \0032%userstats_coin%\003 - test output ltc"
+#set output_userstats_percoin(alf) "Coin: \0032%userstats_coin%\003 - test output alf"
+#set output_userstats_percoin(elp) "Coin: \0032%userstats_coin%\003 - test output elp"
+#set output_userstats_percoin(mac) "Coin: \0032%userstats_coin%\003 - test output mac"
 
 #
 # output for general worker information
@@ -335,8 +367,9 @@ on %workers_coinname% Pool"
 # NOTE:
 # coinname must be in lowercase
 #
-#set output_workerinfo_percoin(btc) "Coin: \0032%workers_coinname%\003 - test output btc"
-#set output_workerinfo_percoin(ltc) "Coin: \0032%workers_coinname%\003 - test output ltc"
+#set output_workerinfo_percoin(alf) "Coin: \0032%workers_coinname%\003 - test output alf"
+#set output_workerinfo_percoin(elp) "Coin: \0032%workers_coinname%\003 - test output elp"
+#set output_workerinfo_percoin(mac) "Coin: \0032%workers_coinname%\003 - test output mac"
 
 #
 # output for income calculator
@@ -363,8 +396,9 @@ of %income_diff% = %income_hour% %income_coin% per hour,\
 # NOTE:
 # coinname must be in lowercase
 #
-#set output_incomeinfo_percoin(btc) "Coin: \0032%income_coin%\003 - test output btc"
-#set output_incomeinfo_percoin(ltc) "Coin: \0032%income_coin%\003 - test output ltc"
+#set output_incomeinfo_percoin(alf) "Coin: \0032%income_coin%\003 - test output alf"
+#set output_incomeinfo_percoin(elp) "Coin: \0032%income_coin%\003 - test output elp"
+#set output_incomeinfo_percoin(mac) "Coin: \0032%income_coin%\003 - test output mac"
 
 ##########################################################################################
 ####################               no pool realated output            ####################
@@ -377,12 +411,16 @@ of %income_diff% = %income_hour% %income_coin% per hour,\
 # - Cryptsy
 #
 # -> %marketdata_market%
+# -> %marketdata_trade_basecoin%
+# -> %marketdata_trade_altcoin%
 # -> %marketdata_tradeprice%
 # -> %marketdata_tradetrime%
 # -> %marketdata_tradelabel%
 # -> %marketdata_tradevolume%
 #
 set output_marketdata_cryptsy "Market: \0032%marketdata_market%\003\
+| Basecoin: %marketdata_trade_basecoin%\
+| Altcoin: %marketdata_trade_altcoin%\
 | Latest Price: %marketdata_tradeprice% %marketdata_tradelabel%\
 | Last Trade: %marketdata_tradetrime%\
 | Volume: %marketdata_tradevolume%"
@@ -391,49 +429,52 @@ set output_marketdata_cryptsy "Market: \0032%marketdata_market%\003\
 # - Vircurex
 #
 # -> %marketdata_market%
-# -> %trade_base%
-# -> %trade_price%
-# -> %trade_alt%
+# -> %marketdata_trade_basecoin%
+# -> %marketdata_trade_altcoin%
+# -> %marketdata_trade_price%
 #
 set output_marketdata_vircurex "Market: \0032%marketdata_market%\003\
-| Coin: %trade_base%\
-| Latest Price: %trade_price% %trade_alt%"
+| Basecoin: %marketdata_trade_basecoin%\
+| Altcoin: %marketdata_trade_altcoin%\
+| Latest Price: %marketdata_trade_price% %marketdata_trade_altcoin%"
 
 #
 # - Coins-E
 #
 # -> %marketdata_market%
-# -> %marketdata_altcoin%
+# -> %marketdata_trade_basecoin%
+# -> %marketdata_trade_altcoin%
 # -> %marketdata_tradehigh%
 # -> %marketdata_tradelow%
 # -> %marketdata_tradeavg%
 # -> %marketdata_tradevolume%
-# -> %marketdata_basecoin%
 #
 set output_marketdata_coinse "Market: \0032%marketdata_market%\003\
-| Coin: %marketdata_altcoin%\
+| Basecoin: %marketdata_trade_basecoin%\
+| Altcoin: %marketdata_trade_altcoin%\
 | High: %marketdata_tradehigh% %marketdata_basecoin%\
-| Low: %marketdata_tradelow% %basecoin%\
-| AVG: %marketdata_tradeavg% %marketdata_basecoin%\
+| Low: %marketdata_tradelow% %marketdata_trade_basecoin%\
+| AVG: %marketdata_tradeavg% %marketdata_trade_basecoin%\
 | Volume: %marketdata_tradevolume%"
 
 #
 # - MintPal
 #
 # -> %marketdata_market%
-# -> %trade_base%
-# -> %trade_alt%
-# -> %trade_high%
-# -> %trade_low%
-# -> %trade_vol%
-# -> %trade_last%
+# -> %marketdata_trade_basecoin%
+# -> %marketdata_trade_altcoin%
+# -> %marketdata_trade_high%
+# -> %marketdata_trade_low%
+# -> %marketdata_trade_vol%
+# -> %marketdata_trade_last%
 #
-set output_marketdata_vircurex "Market: \0032%marketdata_market%\003\
-| Coin: %trade_alt%\
-| High: %trade_high% %trade_base%\
-| Low: %trade_low% %trade_base%\
-| Volume: %trade_vol%\
-| Latest Price: %trade_last% %trade_base%"
+set output_marketdata_mintpal "Market: \0032%marketdata_market%\003\
+| Basecoin: %marketdata_trade_basecoin%\
+| Altcoin: %marketdata_trade_altcoin%\
+| High: %marketdata_trade_high% %marketdata_trade_basecoin%\
+| Low: %marketdata_trade_low% %marketdata_trade_basecoin%\
+| Volume: %marketdata_trade_vol%\
+| Latest Price: %marketdata_trade_last% %marketdata_trade_basecoin%"
 
 #
 # Coinchoose output

@@ -239,17 +239,6 @@ set blockstokeep "20"
 # Marketdata Config
 ##################################################################
 
-# what market to use
-#
-# coins-e   -> 1
-# vircurex  -> 2
-# cryptsy   -> 3
-# mintpal   -> 4
-#
-# set to 0 to disable marketdata
-#
-set activemarket "4"
-
 # api url
 #
 # Coins-E
@@ -264,9 +253,9 @@ set activemarket "4"
 # Mintpal
 # https://api.mintpal.com/market/stats/
 #
-#set marketapi "https://www.coins-e.com/api/v2/markets/data/"
-#set marketapi "https://api.vircurex.com/api/get_highest_bid.json"
-#set marketapi "http://pubapi.cryptsy.com/api.php?method=marketdatav2"
+set marketapi "https://www.coins-e.com/api/v2/markets/data/"
+set marketapi "https://api.vircurex.com/api/get_highest_bid.json"
+set marketapi "http://pubapi.cryptsy.com/api.php?method=marketdatav2"
 set marketapi "https://api.mintpal.com/market/stats/"
 
 putlog "===>> Mining-Pool-Config - Version $scriptversion loaded"
