@@ -204,9 +204,7 @@ Querying userinfos works like that
 
 Commands ACL
 ================
-
-You can set access rights for every command and coin in defined Channels. Only set Commands
-that should be protected in use.
+If <code>set command_protect "0"</code> is set to 1 in config, You can set access rights for every command and coin in defined Channels. Only set Commands that should be protected in use. Here is a basic example.
 
 <pre>
 set protected_commands {
