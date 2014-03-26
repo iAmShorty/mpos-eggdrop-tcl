@@ -89,6 +89,7 @@ proc pool_del {nick uhost hand chan arg} {
 	}
 	
 	set pool_url [string tolower $arg]
+	set pool_url [string trimright $pool_url "/"]
 	
 	if {[llength [registeredpools eval {SELECT user FROM pools WHERE url=$pool_url}]] == 0} {
 		puthelp "PRIVMSG $chan :\002$pool_url\002 is not in the database."
@@ -117,6 +118,7 @@ proc pool_apikey {nick uhost hand arg} {
 	}
 	
 	set pool_url [string tolower [lindex $arg 0]]
+	set pool_url [string trimright $pool_url "/"]
 	set api_key [lindex $arg 1]
 	if {[llength [registeredpools eval {SELECT url FROM pools WHERE url=$pool_url}]] != 0} {
 		if {$debug eq "1"} { putlog "-> adding api key" }
