@@ -84,7 +84,7 @@ proc checknewblocks {} {
 			set data [check_httpdata $newurl]
 			if { [regexp -nocase {error} $data] } {
 				putlog $data
-				return
+				continue
 			}
 
 			if {$debugoutput eq "1"} { putlog "xml: $data" }
@@ -95,12 +95,12 @@ proc checknewblocks {} {
 				}
 			} elseif {$data eq ""} {
 				if {$debug eq "1"} { putlog "no data: $data" }
-				return 0
+				continue
 			} else {
 				if {[catch { set results [ [::json::json2dict $data] ]
 					if {$debug eq "1"} { putlog "no data: $data" }
-					set checknewblocks_running [utimer $blockchecktime checknewblocks]
-					return 0
+					#set checknewblocks_running [utimer $blockchecktime checknewblocks]
+					continue
 				}]} {
 					if {$debug eq "1"} { putlog "data found" }
 				}
