@@ -196,7 +196,7 @@ set output_lastblock "Coin: \0032%blockstats_coin%\003\
 #| Worker: %blockfinder_worker%\
 #| Time: %blockfinder_time%"
 
-#set output_findblocks "\[\0032%blockfinder_coinname%\003\]\[\002#%blockfinder_newblock%\002\]\[Diff:\00310 %blockfinder_diff%\003\]\[%blockfinder_laststatus%\]\
+set output_findblocks "\[\0032%blockfinder_coinname%\003\]\[\002#%blockfinder_newblock%\002\]\[Diff:\00310 %blockfinder_diff%\003\]\[%blockfinder_laststatus%\]\
 found by \002%blockfinder_lastfinder%\002 >\
 Last Block was #%blockfinder_lastblock% > Shares: %blockfinder_lastshares%\
 over %blockfinder_lastestshares% estimated (%blockfinder_percentage% %)\
@@ -215,17 +215,6 @@ over %blockfinder_lastestshares% estimated (%blockfinder_percentage% %)\
 #set output_findblocks_percoin(alf) "Coin: \0032%blockfinder_coinname%\003 - test output alf"
 #set output_findblocks_percoin(elp) "Coin: \0032%blockfinder_coinname%\003 - test output elp"
 #set output_findblocks_percoin(mac) "Coin: \0032%blockfinder_coinname%\003 - test output mac"
-set output_findblocks_percoin(mac) "\[\0032%blockfinder_coinname%\003\]\[\002#%blockfinder_newblock%\002\]\[Diff:\00310 %blockfinder_diff%\003\]\[%blockfinder_laststatus%\]\
-found by \002%blockfinder_lastfinder%\002 >\
-Last Block was #%blockfinder_lastblock% > Shares: %blockfinder_lastshares%\
-over %blockfinder_lastestshares% estimated (%blockfinder_percentage% %)\
->> Amount:\0033 %blockfinder_amount%\003"
-
-set output_findblocks_percoin(beer) "\[\0038%blockfinder_coinname%\003\]\[\002#%blockfinder_newblock%\002\]\[Diff:\00310 %blockfinder_diff%\003\]\[%blockfinder_laststatus%\]\
-found by \002%blockfinder_lastfinder%\002 >\
-Last Block was #%blockfinder_lastblock% > Shares: %blockfinder_lastshares%\
-over %blockfinder_lastestshares% estimated (%blockfinder_percentage% %)\
->> Amount:\0033 %blockfinder_amount%\003"
 
 #
 # output for poolstats
