@@ -118,28 +118,28 @@ You can add as many Pools as you want. Apiurl and Apikey are the Values from you
 
 Add a Pool
 <pre>
-!addpool APIURL COIN PAYOUTSYS FEE
+!addpool POOLURL COIN PAYOUTSYS FEE
 
 e.g. !addpool http://yourpoolurl.tld BTC PPLNS 1
 </pre>
 
 Add Apikey to Pool
 <pre>
-/msg Botnick !apikey APIURL APIKEY
+/msg Botnick !apikey POOLURL APIKEY
 
 e.g. /msg Poolbot !apikey http://yourpoolurl.tld 23984710298674309812734098712309471092743
 </pre>
 
 Delete a Pool
 <pre>
-!delpool APIURL
+!delpool POOLURL
 
 e.g. !delpool http://yourpoolurl.tld
 </pre>
 
 Activating a Pool for Block advertising
 <pre>
-!blockfinder APIURL enable
+!blockfinder POOLURL enable
 
 e.g. !blockfinder http://youpoolurl.tld enable
 or   !blockfinder http://youpoolurl.tld true
@@ -148,7 +148,7 @@ or   !blockfinder http://youpoolurl.tld 1
 
 Deactivating a Pool for Block advertising
 <pre>
-!blockfinder APIURL disable
+!blockfinder POOLURL disable
 
 e.g. !blockfinder http://youpoolurl.tld disable
 or   !blockfinder http://youpoolurl.tld false
