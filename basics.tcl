@@ -164,23 +164,33 @@ proc check_httpdata {url} {
 	
 	if {[catch { set token [http::geturl $url -timeout $http_query_timeout]} error] == 1} {
 		if {$debug eq "1"} { putlog "$error" }
-		http::cleanup $token
+		if {[info exists $token]} {
+ 			http::cleanup $token
+		}
 		set returnvalue "error - $error"
 	} elseif {[http::ncode $token] == "404"} {
 		if {$debug eq "1"} { putlog "Error: [http::code $token]" }
-		http::cleanup $token
+		if {[info exists $token]} {
+ 			http::cleanup $token
+		}
 		set returnvalue "error - [http::code $token]"
 	} elseif {[http::status $token] == "ok"} {
 		set data [http::data $token]
-		http::cleanup $token
+		if {[info exists $token]} {
+ 			http::cleanup $token
+		}
 		set returnvalue "success $data"
 	} elseif {[http::status $token] == "timeout"} {
 		if {$debug eq "1"} { putlog "Timeout occurred" }
-		http::cleanup $token
+		if {[info exists $token]} {
+ 			http::cleanup $token
+		}
 		set returnvalue "error - Timeout occurred"
 	} elseif {[http::status $token] == "error"} {
 		if {$debug eq "1"} { putlog "Error: [http::error $token]" }
-		http::cleanup $token
+		if {[info exists $token]} {
+ 			http::cleanup $token
+		}
 		set returnvalue "error - [http::error $token]"
 	}
 
