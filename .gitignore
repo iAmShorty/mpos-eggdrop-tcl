@@ -9,3 +9,4 @@ output.tcl
 *.sql
 *.sqlite
 *.sqlite3
+*.sqlitedb
