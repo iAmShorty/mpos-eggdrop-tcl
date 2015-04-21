@@ -336,9 +336,3 @@ You can contribute to this project in different ways:
 * Report outstanding issues and bugs by creating an [Issue][1]
 * Suggest feature enhancements also via [Issues][1]
 
-Contact
-================
-
-You can find me on Freenode.net, #MPOS.
-
-[1]: https://github.com/iAmShorty/mpos-eggdrop-tcl/issues "Issue"
