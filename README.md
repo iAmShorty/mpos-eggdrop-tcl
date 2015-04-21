@@ -8,17 +8,6 @@ This script is an addon for the popular eggdrop <a href="http://www.eggheads.org
 and gets API Data from <a href="https://github.com/TheSerapher/php-mpos" target="_blank">MPOS</a>, 
 a fantastic Webinterface for people running Cryptocoin Pools
 
-Donations
-================
-
-For those of you finding my project and are willing to appreciate the work
-with some hard earned coins feel free to donate:
-
-* Litecoin:            `LQXG758pmkFsMVvne3pxBB7222PNyLJUMk`
-* Bitcoin:             `14p1qAwme57Foq1vMBPxJGC51wuE9V6d9M`
-* DOGE:                `DEYvtW2u1gaJsBFMwRGTXZC2BZMoBjMznD`
-* Cryptsy Trade Key:    `d2e11bd8d3fcd98ba686a92be71f6c1d606a3368`
-
 FEATURES
 ================
 
