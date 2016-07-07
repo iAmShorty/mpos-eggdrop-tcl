@@ -397,24 +397,6 @@ of %income_diff% = %income_hour% %income_coin% per hour,\
 #
 # output for marketdata
 #
-# - Cryptsy
-#
-# -> %marketdata_market%
-# -> %marketdata_trade_basecoin%
-# -> %marketdata_trade_altcoin%
-# -> %marketdata_tradeprice%
-# -> %marketdata_tradetrime%
-# -> %marketdata_tradelabel%
-# -> %marketdata_tradevolume%
-#
-set output_marketdata_cryptsy "Market: \0032%marketdata_market%\003\
-| Basecoin: %marketdata_trade_basecoin%\
-| Altcoin: %marketdata_trade_altcoin%\
-| Latest Price: %marketdata_tradeprice% %marketdata_tradelabel%\
-| Last Trade: %marketdata_tradetrime%\
-| Volume: %marketdata_tradevolume%"
-
-#
 # - Vircurex
 #
 # -> %marketdata_market%

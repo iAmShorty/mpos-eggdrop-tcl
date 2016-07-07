@@ -29,7 +29,6 @@ FEATURES
 * Advertise new Blocks to Channel
 * Advertise Stats and Infos directly into the channel or send via private Message
 * Show actual Coin Price 
-  - Cryptsy
   - Coins-E
   - Vircurex
   - MintPal
@@ -321,7 +320,7 @@ Commands to query the actual Coinprice from the Market API's
 <pre>
 !price ALTCOIN BASECOIN EXCHANGE
 
-e.g. !price LTC BTC cryptsy
+e.g. !price LTC BTC mintpal
 or !price LTC BTC coins-e
 or !price LTC BTC vircurex
 or !price LTC BTC mintpal

@@ -24,7 +24,7 @@
 # info for specific market set in config
 #
 proc price_info {nick host hand chan arg} {
-	global help_blocktime help_blocked channels debug debugoutput usehttps output onlyallowregisteredusers output_marketdata command_protect marketapi_coinse marketapi_vircurex marketapi_cryptsy marketapi_mintpal
+	global help_blocktime help_blocked channels debug debugoutput usehttps output onlyallowregisteredusers output_marketdata command_protect marketapi_coinse marketapi_vircurex marketapi_mintpal
 
 	if {$onlyallowregisteredusers eq "1"} {
 		if {[check_registereduser $chan $nick] eq "false"} {
@@ -74,10 +74,6 @@ proc price_info {nick host hand chan arg} {
 		set newurl $marketapi_vircurex
 		append newurl "?base=$query_basecoin&alt=$query_altcoin"
 		putlog "URL: $newurl"
-	} elseif {$query_exchange eq "CRYPTSY"} {
-		set market_name "Cryptsy"
-		set newurl $marketapi_cryptsy
-		putlog "URL: $newurl"
 	} elseif {$query_exchange eq "MINTPAL"} {
 		set market_name "MintPal"
 		set newurl $marketapi_mintpal
@@ -110,8 +106,6 @@ proc price_info {nick host hand chan arg} {
 		market_coinse $nick $chan $results $query_altcoin $query_basecoin
 	} elseif {$query_exchange eq "VIRCUREX"} { 
 		market_vircurex $nick $chan $results $query_altcoin $query_basecoin
-	} elseif {$query_exchange eq "CRYPTSY"} { 
-		market_cryptsy $nick $chan $results $query_altcoin $query_basecoin
 	} elseif {$query_exchange eq "MINTPAL"} { 
 		market_mintpal $nick $chan $results $query_altcoin $query_basecoin
 	} else {
@@ -239,72 +233,6 @@ proc market_vircurex {nick chan marketdataresult query_altcoin query_basecoin} {
 	} else {
 		putquick "PRIVMSG $chan :please set output in config file"
 	}
-}
-
-#
-# output for cryptsy api
-#
-proc market_cryptsy {nick chan marketdataresult query_altcoin query_basecoin} {
-	global debug debugoutput output output_marketdata_cryptsy
-	
-	if {$debug eq "1"} { putlog "QUERY: $query_altcoin\/$query_basecoin" }
-	
-	set marketdata_tradeprice "null"
-	set marketdata_tradetrime "null"
-	set marketdata_tradelabel "null"
-	set marketdata_tradevolume "null"
-	
-	foreach {key value} $marketdataresult {
-		#putlog "Key: $key - $value"
-		foreach {sub_key sub_value} $value {
-			#putlog "Subkey: $sub_key - $sub_value"	
-			if {$sub_key eq "markets"} {
-				foreach {elem elem_val} $sub_value {
-					#putlog "Coin: $elem"
-					#putlog "Ele: $elem - Val: $elem_val"
-					if {$elem eq "$query_altcoin\/$query_basecoin"} {
-						putlog "DATA FOUND"
-						foreach {elem2 elem_val2} $elem_val {
-							#putlog "Key: $elem2"
-							#putlog "Subkey: $elem_val2"
-
-							if {$elem2 eq "lasttradeprice"} { set marketdata_tradeprice "$elem_val2" }
-							if {$elem2 eq "lasttradetime"} { set marketdata_tradetrime "$elem_val2" }
-							if {$elem2 eq "label"} { set marketdata_tradelabel "$elem_val2" }
-							if {$elem2 eq "volume"} { set marketdata_tradevolume "$elem_val2" }
-					
-						}
-						break
-					}
-				}
-			}
-		}
-	}
-	
-	if {$marketdata_tradeprice eq "null"} { 
-		putquick "PRIVMSG $chan :Unknown currency pair"
-		return
-	}
-	
-	set lineoutput $output_marketdata_cryptsy
-	set lineoutput [replacevar $lineoutput "%marketdata_market%" "Cryptsy"]
-	set lineoutput [replacevar $lineoutput "%marketdata_trade_basecoin%" $query_basecoin]
-	set lineoutput [replacevar $lineoutput "%marketdata_trade_altcoin%" $query_altcoin]
-	set lineoutput [replacevar $lineoutput "%marketdata_tradeprice%" $marketdata_tradeprice]
-	set lineoutput [replacevar $lineoutput "%marketdata_tradelabel%" $marketdata_tradelabel]
-	set lineoutput [replacevar $lineoutput "%marketdata_tradetrime%" $marketdata_tradetrime]
-	set lineoutput [replacevar $lineoutput "%marketdata_tradevolume%" $marketdata_tradevolume]
-	
-	if {$output eq "CHAN"} {
-		putquick "PRIVMSG $chan :$lineoutput"
-	} elseif {$output eq "NOTICE"} {
-		putquick "NOTICE $nick :$lineoutput"
-	} else {
-		putquick "PRIVMSG $chan :please set output in config file"
-	}
-	
-	return
-	
 }
 
 #

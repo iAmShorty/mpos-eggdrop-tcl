@@ -255,7 +255,6 @@ set blockstokeep "20"
 #
 set marketapi_coinse "https://www.coins-e.com/api/v2/markets/data/"
 set marketapi_vircurex "https://api.vircurex.com/api/get_highest_bid.json"
-set marketapi_cryptsy "http://pubapi.cryptsy.com/api.php?method=marketdatav2"
 set marketapi_mintpal "https://api.mintpal.com/market/stats/"
 
 putlog "===>> Mining-Pool-Config - Version $scriptversion loaded"
