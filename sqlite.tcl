@@ -46,7 +46,7 @@ if {![file exists $sqlite_userfile]} {
 
 if {![file exists $sqlite_blockfile]} { 
 	sqlite3 blocks $sqlite_blockfile
-	blocks eval {CREATE TABLE blocks(block_id integer primary key autoincrement, poolcoin TEXT NOT NULL default 'null', last_block INTEGER NOT NULL, last_status TEXT NOT NULL default 'null', last_estshares INTEGER NOT NULL, last_shares INTEGER NOT NULL, last_finder TEXT NOT NULL default 'null', last_confirmations INTEGER NOT NULL, last_diff FLOAT NOT NULL default '0', last_anon TEXT NOT NULL default 'null', last_worker TEXT NOT NULL default 'null', last_amount FLOAT NOT NULL, posted TEXT NOT NULL default 'N', timestamp DATETIME)}
+	blocks eval {CREATE TABLE blocks(id integer primary key autoincrement, block_id INTEGER NOT NULL, poolcoin TEXT NOT NULL default 'null', last_block INTEGER NOT NULL, last_status TEXT NOT NULL default 'null', last_estshares INTEGER NOT NULL, last_shares INTEGER NOT NULL, last_finder TEXT NOT NULL default 'null', last_confirmations INTEGER NOT NULL, last_diff FLOAT NOT NULL default '0', last_anon TEXT NOT NULL default 'null', last_worker TEXT NOT NULL default 'null', last_amount FLOAT NOT NULL, posted TEXT NOT NULL default 'N', timestamp DATETIME)}
 	blocks close
 }
 

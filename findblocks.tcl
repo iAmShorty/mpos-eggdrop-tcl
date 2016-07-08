@@ -58,6 +58,7 @@ proc checknewblocks {} {
 	set advertise_block 0
 	set writeblockfile "no"
 
+	set block_id "null"
 	set last_block "null"
 	set last_shares "null"
 	set last_finder "null"
@@ -117,6 +118,7 @@ proc checknewblocks {} {
 								#putlog "Ele1: $elem"
 								foreach {elem2 elem_val2} $elem {
 								#putlog "Ele2: $elem2 - Val: $elem_val2"
+									if {$elem2 eq "id"} { set block_id "$elem_val2" } 
 									if {$elem2 eq "height"} { 
 										set last_block "$elem_val2" 
 										#if {$debug eq "1"} { putlog "Block: $elem_val2" }
@@ -144,7 +146,7 @@ proc checknewblocks {} {
 									set blockindatabase [llength [advertiseblocks eval {SELECT last_block FROM blocks WHERE last_block=$last_block AND poolcoin = $poolcoin}]]
 									if {$blockindatabase == 0} {
 										if {$debug eq "1"} { putlog "$poolcoin -> insert block #$last_block" }
-										advertiseblocks eval {INSERT INTO blocks (poolcoin,last_block,last_status,last_estshares,last_shares,last_finder,last_confirmations,last_diff,last_anon,last_worker,last_amount,last_confirmations,posted,timestamp) VALUES ($poolcoin,$last_block,$last_status,$last_estshares,$last_shares,$last_finder,$last_confirmations,$last_diff,$last_anon,$last_worker,$last_amount,$last_confirmations,'N',$last_timestamp)}
+										advertiseblocks eval {INSERT INTO blocks (block_id,poolcoin,last_block,last_status,last_estshares,last_shares,last_finder,last_confirmations,last_diff,last_anon,last_worker,last_amount,last_confirmations,posted,timestamp) VALUES ($block_id,$poolcoin,$last_block,$last_status,$last_estshares,$last_shares,$last_finder,$last_confirmations,$last_diff,$last_anon,$last_worker,$last_amount,$last_confirmations,'N',$last_timestamp)}
 									} else {
 										if {$debug eq "1"} { putlog "$poolcoin -> updating block confirmations for block #$last_block" }
 										advertiseblocks eval {UPDATE blocks SET last_confirmations=$last_confirmations, last_status=$last_status WHERE last_block=$last_block AND poolcoin = $poolcoin}
@@ -182,9 +184,9 @@ proc checknewblocks {} {
 	if {[llength [advertiseblocks eval {SELECT * FROM blocks WHERE posted = 'N' AND last_confirmations >= $confirmations}]] == 0} {
 		if {$debug eq "1"} { putlog "-> no blocks to advertise" }
 	} else {
-		foreach {block_id poolcoin last_block last_status last_estshares last_shares last_finder last_confirmations last_diff last_anon last_worker last_amount posted last_timestamp} [advertiseblocks eval {SELECT * FROM blocks WHERE posted = 'N' AND (last_confirmations >= $confirmations OR last_confirmations = '-1') ORDER BY last_block ASC}] {
-			if {$debug eq "1"} { putlog "$block_id - $poolcoin - $last_block - $last_status - $last_estshares - $last_shares - $last_finder - $last_confirmations - $last_diff - $last_anon - $last_worker - $last_amount" }
-			advertise_block $block_id $poolcoin $last_block $last_status $last_estshares $last_shares $last_finder $last_confirmations $last_diff $last_anon $last_worker $last_amount $last_timestamp
+		foreach {id block_id poolcoin last_block last_status last_estshares last_shares last_finder last_confirmations last_diff last_anon last_worker last_amount posted last_timestamp} [advertiseblocks eval {SELECT * FROM blocks WHERE posted = 'N' AND (last_confirmations >= $confirmations OR last_confirmations = '-1') ORDER BY last_block ASC}] {
+			if {$debug eq "1"} { putlog "$id $block_id - $poolcoin - $last_block - $last_status - $last_estshares - $last_shares - $last_finder - $last_confirmations - $last_diff - $last_anon - $last_worker - $last_amount" }
+			advertise_block $id $block_id $poolcoin $last_block $last_status $last_estshares $last_shares $last_finder $last_confirmations $last_diff $last_anon $last_worker $last_amount $last_timestamp
 			advertiseblocks eval {UPDATE blocks SET posted="Y" WHERE block_id=$block_id}
 		}
 	}
@@ -197,7 +199,7 @@ proc checknewblocks {} {
 #
 # advertising the block
 #
-proc advertise_block {blockid blockfinder_coinname blockfinder_newblock blockfinder_laststatus blockfinder_lastestshares blockfinder_lastshares blockfinder_lastfinder blockfinder_confirmations blockfinder_diff blockfinder_anon blockfinder_worker blockfinder_amount blockfinder_time} {
+proc advertise_block {id blockid blockfinder_coinname blockfinder_newblock blockfinder_laststatus blockfinder_lastestshares blockfinder_lastshares blockfinder_lastfinder blockfinder_confirmations blockfinder_diff blockfinder_anon blockfinder_worker blockfinder_amount blockfinder_time} {
 	global channels debug debugoutput output_findblocks output_findblocks_percoin sqlite_blockfile sqlite_announce
 	sqlite3 advertiseblocks $sqlite_blockfile
 	sqlite3 announcecoins $sqlite_announce
