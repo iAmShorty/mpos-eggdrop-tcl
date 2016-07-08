@@ -200,6 +200,7 @@ set output_findblocks "\[\0032%blockfinder_coinname%\003\]\[\002#%blockfinder_ne
 found by \002%blockfinder_lastfinder%\002 >\
 Last Block was #%blockfinder_lastblock% > Shares: %blockfinder_lastshares%\
 over %blockfinder_lastestshares% estimated (%blockfinder_percentage% %)\
+Confirmations: %blockfinder_confirmations%\
 >> Amount:\0033 %blockfinder_amount%\003"
 
 # different announcements per coin
