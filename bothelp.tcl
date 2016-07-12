@@ -24,6 +24,7 @@
 # print bot usage info
 #
 proc printUsage {nick host hand chan arg} {
+	global debug debugoutput
 
 	if {$debug eq "1"} { putlog "running proc [dict get [info frame 0] proc]" }
 	

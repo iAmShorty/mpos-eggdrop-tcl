@@ -24,7 +24,7 @@
 # Allowing commands for Coins in Channel
 #
 proc channel_commands {nick uhost hand chan arg} {
-	global debug sqlite_commands sqlite_announce
+	global debug debugoutput sqlite_commands sqlite_announce
 	sqlite3 poolcommands $sqlite_commands
 	sqlite3 announcecoins $sqlite_announce
 
@@ -97,7 +97,7 @@ proc channel_commands {nick uhost hand chan arg} {
 # adding specific channels for advertising blockfinder stats
 #
 proc announce_channel {nick uhost hand chan arg} {
-	global debug sqlite_announce sqlite_poolfile
+	global debug debugoutput sqlite_announce sqlite_poolfile
 	sqlite3 registeredpools $sqlite_poolfile
 	sqlite3 announcecoins $sqlite_announce
 
@@ -179,7 +179,7 @@ proc announce_channel {nick uhost hand chan arg} {
 # activate/deactivate pool for block advertising
 #
 proc announce_blockfinder {nick uhost hand chan arg} {
-	global debug sqlite_poolfile
+	global debug debugoutput sqlite_poolfile
 	sqlite3 registeredpools $sqlite_poolfile
 
 	if {$debug eq "1"} { putlog "running proc [dict get [info frame 0] proc]" }

@@ -93,7 +93,7 @@ if {[array exists output_worker_online_percoin]} { unset output_worker_online_pe
 # set in config for specific pool
 #
 proc pool_vars {coinname} {
-	global sqlite_poolfile debug
+	global sqlite_poolfile debug debugoutput
 	sqlite3 registeredpools $sqlite_poolfile
 	
 	if {$debug eq "1"} { putlog "running proc [dict get [info frame 0] proc]" }
@@ -126,6 +126,7 @@ proc pool_vars {coinname} {
 # getting the user status
 #
 proc check_userrights {nick} {
+	global debug debugoutput
 
 	if {$debug eq "1"} { putlog "running proc [dict get [info frame 0] proc]" }
 	
@@ -141,6 +142,7 @@ proc check_userrights {nick} {
 # getting the user status
 #
 proc check_registereduser {chan nick} {
+	global debug debugoutput
 
 	if {$debug eq "1"} { putlog "running proc [dict get [info frame 0] proc]" }
 	
@@ -215,7 +217,7 @@ proc check_httpdata {url} {
 # ACL Command Check
 #
 proc channel_command_acl {channel command} {
-	global protected_commands sqlite_commands debug
+	global protected_commands sqlite_commands debug debugoutput
 	sqlite3 poolcommands $sqlite_commands
 
 	if {$debug eq "1"} { putlog "running proc [dict get [info frame 0] proc]" }
@@ -243,6 +245,7 @@ proc channel_command_acl {channel command} {
 # replace variables
 #
 proc replacevar {string cookie value} {
+	global debug debugoutput
 
 	if {$debug eq "1"} { putlog "running proc [dict get [info frame 0] proc]" }
 
@@ -257,7 +260,8 @@ proc replacevar {string cookie value} {
 # wordwrap proc that accepts multiline data 
 # (empty lines will be stripped because there's no way to relay them via irc) 
 #
-proc wordwrap {data len} { 
+proc wordwrap {data len} {
+	global debug debugoutput
 
 	if {$debug eq "1"} { putlog "running proc [dict get [info frame 0] proc]" }
 	
