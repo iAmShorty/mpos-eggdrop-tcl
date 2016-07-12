@@ -27,6 +27,8 @@ proc pool_add {nick uhost hand chan arg} {
 	global debug sqlite_poolfile
 	sqlite3 registeredpools $sqlite_poolfile
 
+	if {$debug eq "1"} { putlog "running proc [dict get [info frame 0] proc]" }
+	
 	if {[check_userrights $nick] eq "false"} {
 		if {$debug eq "1"} { putlog "$nick tried to add $arg to pools" }
 		return
@@ -78,6 +80,8 @@ proc pool_del {nick uhost hand chan arg} {
 	global debug sqlite_poolfile
 	sqlite3 registeredpools $sqlite_poolfile
 	
+	if {$debug eq "1"} { putlog "running proc [dict get [info frame 0] proc]" }
+	
 	if {[check_userrights $nick] eq "false"} {
 		if {$debug eq "1"} { putlog "$nick tried to delete $arg to pools" }
 		return
@@ -106,6 +110,8 @@ proc pool_del {nick uhost hand chan arg} {
 proc pool_apikey {nick uhost hand arg} {
 	global debug sqlite_poolfile
 	sqlite3 registeredpools $sqlite_poolfile
+
+	if {$debug eq "1"} { putlog "running proc [dict get [info frame 0] proc]" }
 	
 	if {[check_userrights $nick] eq "false"} {
 		if {$debug eq "1"} { putlog "$nick tried to add api key $arg to pools" }
@@ -135,6 +141,8 @@ proc pool_apikey {nick uhost hand arg} {
 proc pool_list {nick uhost hand chan arg} {
 	global debug sqlite_poolfile
 	sqlite3 registeredpools $sqlite_poolfile
+
+	if {$debug eq "1"} { putlog "running proc [dict get [info frame 0] proc]" }
 	
 	if {[check_userrights $nick] eq "false"} {
 		if {$debug eq "1"} { putlog "$nick tried to list $arg to pools" }

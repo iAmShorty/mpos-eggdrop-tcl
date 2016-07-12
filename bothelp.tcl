@@ -24,6 +24,9 @@
 # print bot usage info
 #
 proc printUsage {nick host hand chan arg} {
+
+	if {$debug eq "1"} { putlog "running proc [dict get [info frame 0] proc]" }
+	
 	putquick "NOTICE $nick :Usage:"
 	putquick "NOTICE $nick : !block COINNAME                            - Blockstats"
 	putquick "NOTICE $nick : !pool COINNAME                             - Pool Information"
@@ -36,8 +39,9 @@ proc printUsage {nick host hand chan arg} {
 	putquick "NOTICE $nick : !balance COINNAME <user>                   - User Wallet Balance"
 	putquick "NOTICE $nick : !price ALTCOIN BASECOIN EXCHANGE           - Get actual Coinprice"
 	putquick "NOTICE $nick : !coinchoose COINNAME                       - Get actual Coininfo from Coinchoose"
-	putquick "NOTICE $nick : !hashrate COINNAME                         - Get actual Hashrate form Pool"
-	putquick "NOTICE $nick : !calc <YOURHASHRATE> COINNAME REWARD       - Profit Calculator based on Hashrate"
+	putquick "NOTICE $nick : !hashrate COINNAME                         - Get actual Hashrate from Pool"
+	putquick "NOTICE $nick : !diff COINNAME                             - Get actual Diff from Pool"
+	putquick "NOTICE $nick : !calc COINNAME <YOURHASHRATEINKHS> REWARD  - Profit Calculator based on Hashrate"
 	putquick "NOTICE $nick : !request                                   - Request Access to Bot Commands"
 	if {[matchattr $nick +n]} {
 		putquick "NOTICE $nick : !adduser <ircnick>                         - Adding User to userfile"

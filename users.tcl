@@ -26,6 +26,8 @@
 proc check_mpos_user {username hostmask} {
 	global debug sqlite_userfile
 	sqlite3 registeredusers $sqlite_userfile
+
+	if {$debug eq "1"} { putlog "running proc [dict get [info frame 0] proc]" }
 	
 	set registereduser [string tolower $username]
 	set registeredhostmask [string tolower $hostmask]
@@ -49,6 +51,8 @@ proc user_add {nick uhost hand chan arg} {
 	global debug sqlite_userfile
 	sqlite3 registeredusers $sqlite_userfile
 
+	if {$debug eq "1"} { putlog "running proc [dict get [info frame 0] proc]" }
+	
 	if {[check_userrights $nick] eq "false"} {
 		if {$debug eq "1"} { putlog "$nick tried to add $arg to userfile" }
 		return
@@ -82,6 +86,8 @@ proc user_add {nick uhost hand chan arg} {
 proc user_del {nick uhost hand chan arg} {
 	global debug sqlite_userfile
 	sqlite3 registeredusers $sqlite_userfile
+
+	if {$debug eq "1"} { putlog "running proc [dict get [info frame 0] proc]" }
 	
 	if {[check_userrights $nick] eq "false"} {
 		if {$debug eq "1"} { putlog "$nick tried to delete $arg from users" }
@@ -106,6 +112,8 @@ proc user_del {nick uhost hand chan arg} {
 proc user_request {nick uhost hand chan arg} {
 	global debug scriptpath registereduserfile notificationadmins
 
+	if {$debug eq "1"} { putlog "running proc [dict get [info frame 0] proc]" }
+	
 	if {$arg eq ""} {
 		if {$debug eq "1"} { putlog "no user to add" }
 		return

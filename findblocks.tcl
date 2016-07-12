@@ -54,6 +54,8 @@ proc checknewblocks {} {
 	sqlite3 advertiseblocks $sqlite_blockfile
 	sqlite3 registeredpools $sqlite_poolfile
 	
+	if {$debug eq "1"} { putlog "running proc [dict get [info frame 0] proc]" }
+	
 	set action "/index.php?page=api&action=getblocksfound&api_key="
 	set advertise_block 0
 	set writeblockfile "no"
@@ -204,6 +206,8 @@ proc advertise_block {id blockid blockfinder_coinname blockfinder_newblock block
 	sqlite3 advertiseblocks $sqlite_blockfile
 	sqlite3 announcecoins $sqlite_announce
 
+	if {$debug eq "1"} { putlog "running proc [dict get [info frame 0] proc]" }
+	
 	set blockfinder_lastblock [advertiseblocks eval {SELECT last_block FROM blocks WHERE posted = 'Y' AND poolcoin = $blockfinder_coinname ORDER BY last_block DESC LIMIT 1}]
 
 	if {$debug eq "1"} { putlog "New Block: $blockfinder_newblock" }

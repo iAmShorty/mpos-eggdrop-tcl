@@ -220,7 +220,7 @@ Confirmations: %blockfinder_confirmations%\
 #
 # output for poolstats
 #
-# -> %roundstats_coin%
+# -> %poolstats_coin%
 # -> %poolstats_block%
 # -> %poolstats_diffchange%
 # -> %poolstats_diff%
@@ -267,6 +267,59 @@ set output_poolstats "Pool: \0032%poolstats_coin%\003\
 #set output_poolstats_percoin(mac) "Coin: \0032%poolstats_coin%\003 - test output mac"
 
 #
+# output for poolhashrate
+#
+# -> %poolhashrate_coin%
+# -> %poolhashrate_nethashrate%
+# -> %poolhashrate_nethashratevalue%
+# -> %poolhashrate_poolhashrate%
+# -> %poolhashrate_poolhashratevalue%
+#
+set output_poolhashrate "Pool: \0032%poolhashrate_coin%\003\
+| Hashrate: %poolstats_poolhashrate% %poolstats_poolhashratevalue%\
+| Net Hashrate: %poolstats_nethashrate% %poolstats_nethashratevalue%"
+
+# different announcements per coin
+# use coins set in config.tcl with config option
+# -> set poolstocheck "BTC LTC"
+# the coins listed here, can be used for different
+# announcements per coin. if not set or commented out
+# the standard announce will be used for announcing
+#
+# NOTE:
+# coinname must be in lowercase
+#
+#set output_poolhashrate_percoin(alf) "Coin: \0032%poolstats_coin%\003 - test output alf"
+#set output_poolhashrate_percoin(elp) "Coin: \0032%poolstats_coin%\003 - test output elp"
+#set output_poolhashrate_percoin(mac) "Coin: \0032%poolstats_coin%\003 - test output mac"
+
+#
+# output for pooldiff
+#
+# -> %pooldiff_coin%
+# -> %pooldiff_blocksuntildiffchange%
+# -> %pooldiff_diff%
+# -> %pooldiff_nextdiff%
+#
+set output_poolhashrate "Pool: \0032%pooldiff_coin%\003\
+| Diff change in: %pooldiff_blocksuntildiffchange% Blocks\
+| Pool Diff: %pooldiff_diff%\
+| Next Diff: %pooldiff_nextdiff%"
+
+# different announcements per coin
+# use coins set in config.tcl with config option
+# -> set poolstocheck "BTC LTC"
+# the coins listed here, can be used for different
+# announcements per coin. if not set or commented out
+# the standard announce will be used for announcing
+#
+# NOTE:
+# coinname must be in lowercase
+#
+#set output_pooldiff_percoin(alf) "Coin: \0032%poolstats_coin%\003 - test output alf"
+#set output_pooldiff_percoin(elp) "Coin: \0032%poolstats_coin%\003 - test output elp"
+#set output_pooldiff_percoin(mac) "Coin: \0032%poolstats_coin%\003 - test output mac"
+
 # output for roundstats
 #
 # -> %roundstats_coin%
@@ -394,7 +447,6 @@ of %income_diff% = %income_hour% %income_coin% per hour,\
 ####################               no pool realated output            ####################
 ##########################################################################################
 
-
 #
 # output for marketdata
 #
@@ -409,44 +461,6 @@ set output_marketdata_vircurex "Market: \0032%marketdata_market%\003\
 | Basecoin: %marketdata_trade_basecoin%\
 | Altcoin: %marketdata_trade_altcoin%\
 | Latest Price: %marketdata_trade_price% %marketdata_trade_altcoin%"
-
-#
-# - Coins-E
-#
-# -> %marketdata_market%
-# -> %marketdata_trade_basecoin%
-# -> %marketdata_trade_altcoin%
-# -> %marketdata_tradehigh%
-# -> %marketdata_tradelow%
-# -> %marketdata_tradeavg%
-# -> %marketdata_tradevolume%
-#
-set output_marketdata_coinse "Market: \0032%marketdata_market%\003\
-| Basecoin: %marketdata_trade_basecoin%\
-| Altcoin: %marketdata_trade_altcoin%\
-| High: %marketdata_tradehigh% %marketdata_basecoin%\
-| Low: %marketdata_tradelow% %marketdata_trade_basecoin%\
-| AVG: %marketdata_tradeavg% %marketdata_trade_basecoin%\
-| Volume: %marketdata_tradevolume%"
-
-#
-# - MintPal
-#
-# -> %marketdata_market%
-# -> %marketdata_trade_basecoin%
-# -> %marketdata_trade_altcoin%
-# -> %marketdata_trade_high%
-# -> %marketdata_trade_low%
-# -> %marketdata_trade_vol%
-# -> %marketdata_trade_last%
-#
-set output_marketdata_mintpal "Market: \0032%marketdata_market%\003\
-| Basecoin: %marketdata_trade_basecoin%\
-| Altcoin: %marketdata_trade_altcoin%\
-| High: %marketdata_trade_high% %marketdata_trade_basecoin%\
-| Low: %marketdata_trade_low% %marketdata_trade_basecoin%\
-| Volume: %marketdata_trade_vol%\
-| Latest Price: %marketdata_trade_last% %marketdata_trade_basecoin%"
 
 #
 # Coinchoose output

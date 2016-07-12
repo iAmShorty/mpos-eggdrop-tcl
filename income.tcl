@@ -26,6 +26,8 @@
 proc calc_income {nick host hand chan arg} {
 	global help_blocktime help_blocked channels debug debugoutput output onlyallowregisteredusers output_incomeinfo output_incomeinfo_percoin command_protect
 
+	if {$debug eq "1"} { putlog "running proc [dict get [info frame 0] proc]" }
+	
 	if {$arg eq "" || [llength $arg] != 3} {
 		if {$debug eq "1"} { putlog "wrong arguments, must be !calc coin hashrate blockreward" }
 		return

@@ -26,6 +26,8 @@
 proc user_info {nick host hand chan arg} {
 	global help_blocktime help_blocked channels debug debugoutput output onlyallowregisteredusers output_userstats output_userstats_percoin command_protect
 
+	if {$debug eq "1"} { putlog "running proc [dict get [info frame 0] proc]" }
+	
 	if {$onlyallowregisteredusers eq "1"} {
 		if {[check_registereduser $chan $nick] eq "false"} {
 			putquick "NOTICE $nick :you are not allowed to use this command"

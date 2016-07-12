@@ -1,3 +1,10 @@
+v. 1.1
+
+* resolved bug with block announcement
+* confirmations in blockfinder output
+* removed non existent cointrade api's
+
+
 v. 1.0
 
 * changed from file to sqlite

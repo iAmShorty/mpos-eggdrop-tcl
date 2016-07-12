@@ -231,7 +231,7 @@ set blockdeletetime "3600"
 # keeps blocks in database to prevent double
 # post in channel. best practice, set this to
 # your shown blocks in block statistics page
-# -> standard setting in mmpos = 20
+# -> standard setting in mpos = 20
 #
 set blockstokeep "20"
 
@@ -241,20 +241,13 @@ set blockstokeep "20"
 
 # api url
 #
-# Coins-E
-# https://www.coins-e.com/api/v2/markets/data/
+# Cryptopia
+# https://www.cryptopia.co.nz/api/GetTradePairs
 #
 # Vircurex
 # https://vircurex.com/api/get_highest_bid.json
-# 
-# Cryptsy
-# http://pubapi.cryptsy.com/api.php?method=marketdatav2
-#
-# Mintpal
-# https://api.mintpal.com/market/stats/
-#
-set marketapi_coinse "https://www.coins-e.com/api/v2/markets/data/"
+
+set marketapi_cryptopia "https://www.cryptopia.co.nz/api/GetMarkets"
 set marketapi_vircurex "https://api.vircurex.com/api/get_highest_bid.json"
-set marketapi_mintpal "https://api.mintpal.com/market/stats/"
 
 putlog "===>> Mining-Pool-Config - Version $scriptversion loaded"

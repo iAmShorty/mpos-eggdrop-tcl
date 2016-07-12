@@ -28,6 +28,8 @@ proc channel_commands {nick uhost hand chan arg} {
 	sqlite3 poolcommands $sqlite_commands
 	sqlite3 announcecoins $sqlite_announce
 
+	if {$debug eq "1"} { putlog "running proc [dict get [info frame 0] proc]" }
+	
 	if {[matchattr $nick +n]} {
 		if {$debug eq "1"} { putlog "$nick is botowner" }
 	} else {
@@ -99,6 +101,8 @@ proc announce_channel {nick uhost hand chan arg} {
 	sqlite3 registeredpools $sqlite_poolfile
 	sqlite3 announcecoins $sqlite_announce
 
+	if {$debug eq "1"} { putlog "running proc [dict get [info frame 0] proc]" }
+	
 	if {[matchattr $nick +n]} {
 		if {$debug eq "1"} { putlog "$nick is botowner" }
 	} else {
@@ -178,6 +182,8 @@ proc announce_blockfinder {nick uhost hand chan arg} {
 	global debug sqlite_poolfile
 	sqlite3 registeredpools $sqlite_poolfile
 
+	if {$debug eq "1"} { putlog "running proc [dict get [info frame 0] proc]" }
+	
 	if {[matchattr $nick +n]} {
 		if {$debug eq "1"} { putlog "$nick is botowner" }
 	} else {

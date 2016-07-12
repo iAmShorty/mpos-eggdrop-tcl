@@ -96,6 +96,8 @@ proc pool_vars {coinname} {
 	global sqlite_poolfile debug
 	sqlite3 registeredpools $sqlite_poolfile
 	
+	if {$debug eq "1"} { putlog "running proc [dict get [info frame 0] proc]" }
+	
 	set pool_found "false"
 	if {[llength [registeredpools eval {SELECT apikey FROM pools WHERE coin=$coinname}]] != 0} {
 		set poolscount [registeredpools eval {SELECT COUNT(1) FROM pools WHERE apikey != 0 AND coin == $coinname}]
@@ -124,6 +126,9 @@ proc pool_vars {coinname} {
 # getting the user status
 #
 proc check_userrights {nick} {
+
+	if {$debug eq "1"} { putlog "running proc [dict get [info frame 0] proc]" }
+	
 	if {[matchattr $nick +n]} {
 		putlog "$nick is botowner"
 		return "true"
@@ -136,6 +141,9 @@ proc check_userrights {nick} {
 # getting the user status
 #
 proc check_registereduser {chan nick} {
+
+	if {$debug eq "1"} { putlog "running proc [dict get [info frame 0] proc]" }
+	
 	set hostmask "$nick!*[getchanhost $nick $chan]"
 	if {[check_mpos_user $nick $hostmask] eq "false"} {
 		return "false"
@@ -150,6 +158,8 @@ proc check_registereduser {chan nick} {
 proc check_httpdata {url} {
 	global debug debugoutput http_query_timeout
 
+	if {$debug eq "1"} { putlog "running proc [dict get [info frame 0] proc]" }
+	
 	set returnvalue ""
 	
 	if {[string match "*https*" [string tolower $url]]} {
@@ -208,6 +218,8 @@ proc channel_command_acl {channel command} {
 	global protected_commands sqlite_commands debug
 	sqlite3 poolcommands $sqlite_commands
 
+	if {$debug eq "1"} { putlog "running proc [dict get [info frame 0] proc]" }
+	
 	if {[lsearch $protected_commands $command] > 0 } {
 		regsub "#" $channel "" command_channel
 		if {[llength [poolcommands eval {SELECT command_id FROM commands WHERE channel=$command_channel AND command="$command" AND activated=1}]] != 0} {
@@ -231,6 +243,9 @@ proc channel_command_acl {channel command} {
 # replace variables
 #
 proc replacevar {string cookie value} {
+
+	if {$debug eq "1"} { putlog "running proc [dict get [info frame 0] proc]" }
+
 	variable zeroconvert
 	if {[string length $value] == 0 && [info exists zeroconvert($cookie)]} {
 		set value $zeroconvert($cookie)
@@ -243,6 +258,9 @@ proc replacevar {string cookie value} {
 # (empty lines will be stripped because there's no way to relay them via irc) 
 #
 proc wordwrap {data len} { 
+
+	if {$debug eq "1"} { putlog "running proc [dict get [info frame 0] proc]" }
+	
 	set out {} 
 	foreach line [split [string trim $data] \n] { 
 		set curr {} 

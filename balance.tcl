@@ -26,6 +26,8 @@
 proc balance_info {nick host hand chan arg} {
 	global help_blocktime help_blocked channels debug debugoutput output onlyallowregisteredusers ownersbalanceonly output_balance output_balance_percoin command_protect
 
+	if {$debug eq "1"} { putlog "running proc [dict get [info frame 0] proc]" }
+	
 	# only allow bot owners to get balances for 
 	# specified users
 	#
